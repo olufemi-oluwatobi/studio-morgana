@@ -76,6 +76,22 @@ Spec: the "Morgana: The Element Model" doc.
 Next: shapes as elements with outlines (star, polygon), placing a card file as an element, children and
 attaching (tape, stamps), curl, wet-on-wet paint, then the motion timeline (M1).
 
+## Motion engine (done, no sound yet)
+
+- `create a video called X, W by H, on #colour, N s long` (30 fps).
+- Elements: `bring in the X at T s, from the left|right|top|bottom` (slide and settle), `slam the X in at T s`
+  (rubber-stamp drop), `remove the X at T s, to the …`, `glide the X to x y, turned D, scale S, at T s, over D s`.
+- Layers: `reveal the A and the B at T s, over D s, from the left` (drawn on) or `…, fading`.
+- Camera: `glide the camera to x y, zoom Z, at T s, over D s` (a slow push-in when there are no camera keys).
+- Captions: `style the captions in <font>, size N, #colour, at Y` and
+  `caption "TEXT" at T s, for D s, "phrase" in #colour`, appearing word by word with highlighted phrases.
+- Spray coats: `at T s, for D s, with drips`. Ink body (`from ink`) for stamps and marks with no paper.
+- `web/stage.js` evaluates every frame from the scene and the time; the live page has play, pause and a scrub bar;
+  `node web/video.cjs <page> <out.mp4>` renders each frame from the same runtime and encodes with ffmpeg.
+- Examples: `examples/video/graffiti.gt`, `examples/video/mean-reversion.gt`.
+- Not yet: sound (to be its own property), counters and number roll, per-word layout for text layers,
+  background colour changes, exporting in the browser with WebCodecs.
+
 ## Decisions (defaults taken, change if needed)
 
 1. WebGPU first, WebGL2 fallback.

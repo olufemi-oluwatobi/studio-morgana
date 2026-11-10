@@ -119,6 +119,12 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
     const g = mixPigments([{ pigment: 'phthalo blue', amount: 1 }, { pigment: 'hansa yellow', amount: 2 }]), gv = [1, 3, 5].map(i => parseInt(g.slice(i, i + 2), 16));
     ok(`paint: blue and yellow make green (${g})`, gv[1] > gv[0] && gv[1] > gv[2]);
     ok('spray with a paint records gun settings', st.ok && st.doc.sides.swatch.steps[0].kind === 'paint' && st.doc.sides.swatch.steps[0].params.passes === 2 && st.doc.sides.swatch.steps[1].params.soft === true);
+    // motion words
+    const mp = path.join(ex, 'video', 'mean-reversion.gt'); const mv = compile(fs.readFileSync(mp, 'utf8'), { baseDir: path.dirname(mp) });
+    ok('video: 24 s timeline compiles', mv.ok && mv.doc.video.seconds === 24, JSON.stringify(mv.diagnostics?.slice(0, 2)));
+    ok('motion: enter, slam, remove', mv.ok && mv.doc.elements.chart.enter.from === 'right' && mv.doc.elements['sell-stamp'].enter.style === 'slam' && mv.doc.elements.chart.exit.t0 === 16.2);
+    ok('motion: reveals, camera, captions', mv.ok && mv.doc.timeline.reveals.price.dur === 2.6 && mv.doc.timeline.camera.length === 3 && mv.doc.timeline.captions.length === 8 && mv.doc.timeline.captions[0].marks[0].text === 'snap back');
+    ok('ink body for stamps', mv.ok && mv.doc.elements['sell-stamp'].body.family === 'ink');
     const bad = compile('create a canvas called x.', { baseDir: ex });
     ok('canvas needs a size', !bad.ok && /needs a size/.test(bad.diagnostics[0].msg)); }
   const L = compile(fs.readFileSync(path.join(rx, 'lagos-lounge.gt'), 'utf8'), { baseDir: rx });

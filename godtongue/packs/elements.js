@@ -15,6 +15,7 @@ export const BODIES = {
   brass:       { family: 'metal', color: '#c9a24a', metal: 1, rough: .22, thick_mm: 1.2, fibres: 0, edge: 'bevel' },
   gold:        { family: 'metal', color: '#e2b65a', metal: 1, rough: .16, thick_mm: 1.0, fibres: 0, edge: 'bevel' },
   copper:      { family: 'metal', color: '#c4744a', metal: 1, rough: .24, thick_mm: 1.0, fibres: 0, edge: 'bevel' },
+  ink:         { family: 'ink', color: 'none', metal: 0, rough: .9, thick_mm: 0, fibres: 0, edge: 'clean' },
   acrylic:     { family: 'plastic', color: '#eef2f5', metal: 0, rough: .06, thick_mm: 2.0, fibres: 0, edge: 'polished' },
 };
 const BODY_ALIAS = { paper: 'bond', 'bond-paper': 'bond', card: 'cardstock', 'card-stock': 'cardstock', steel: 'stainless', 'stainless-steel': 'stainless', plastic: 'acrylic' };
@@ -91,13 +92,89 @@ export default function elements(reg) {
     },
   });
 
+  // ── motion: elements come in, slam down, leave; layers reveal over time
+  const secs = (t) => t == null ? null : Array.isArray(t) ? num(t[0]) : num(t);
+  const timing = (toks) => { const m = readMods(toks); return { t0: secs(m.at), dur: secs(m.over) ?? secs(m.for), dir: [].concat(m.from || m.to || []).join('') || null, m }; };
+  const element = (ctx, t, skip) => { const { name } = readName(t, 0, new Set([...skip, 'at', 'from', 'to', 'in', 'over'])); const els = ctx.doc.elements || {};
+    const n = els[name] ? name : ctx.resolve?.(name); if (!els[n]) ctx.err(`no element "${name}"`, `elements: ${Object.keys(els).join(', ') || 'none'}`); return n; };
+  reg.verb({
+    words: ['slam'],
+    help: 'Slam an element down onto the stage at a time, like a rubber stamp: "slam the sell-stamp in at 7 s."',
+    examples: ['slam the sell-stamp in at 7 s.'],
+    run(ctx, toks) { const t = dropArticles(toks), n = element(ctx, t, []); const { t0 } = timing(t.slice(t.findIndex(x => isWord(x, 'at')))); ctx.doc.elements[n].enter = { t0: t0 ?? 0, style: 'slam' }; },
+  });
+  reg.verb({
+    words: ['remove'],
+    help: 'Take an element off the stage at a time: "remove the title at 4 s, to the left."',
+    examples: ['remove the title at 4 s, to the left.'],
+    run(ctx, toks) { let t = dropArticles(toks); if (isWord(t[0], 'away', 'off', 'out')) t = t.slice(1); const n = element(ctx, t, ['away', 'off']);
+      const { t0, dir } = timing(t.slice(t.findIndex(x => isWord(x, 'at')))); ctx.doc.elements[n].exit = { t0: t0 ?? 0, to: (dir || 'left').replace(/-/g, ' ') }; },
+  });
+  // move the chart to 540 700 at 9 s, over 0.6 s · move the camera to 700 600, zoom 1.2, at 9 s, over 0.5 s
+  reg.verb({
+    words: ['glide'],
+    help: 'Move an element (or the camera) to a new place over time: "glide the chart to 540 700, turned 3, at 9 s, over 0.6 s." "glide the camera to 700 600, zoom 1.2, at 9 s, over 0.5 s."',
+    examples: ['glide the camera to 700 600, zoom 1.2, at 9 s, over 0.5 s.'],
+    run(ctx, toks) {
+      const t = dropArticles(toks), cam = isWord(t[0], 'camera');
+      const n = cam ? null : element(ctx, t, []);
+      const ti = t.findIndex(x => isWord(x, 'to')), m = readMods(t.slice(ti));
+      const to = [].concat(m.to || []).map(num).filter(v => v != null);
+      const key = { t0: secs(m.at) ?? 0, dur: secs(m.over) ?? .6, ...(to.length === 2 ? { to } : {}), ...(m.zoom != null ? { zoom: num(m.zoom) } : {}), ...(m.turned != null ? { turn: num(m.turned) } : {}), ...(m.scale != null ? { scale: num(m.scale) } : {}) };
+      if (cam) ((ctx.doc.timeline ||= { reveals: {} }).camera ||= []).push(key); else (ctx.doc.elements[n].moves ||= []).push(key);
+    },
+  });
+  // caption "Two sigma above? Sell." at 9.6 s, for 3 s, "Sell" in #c8361f
+  reg.verb({
+    words: ['caption', 'say'],
+    help: 'A caption that appears word by word: caption "TEXT" at T s, for D s, "keyword" in #colour.',
+    examples: ['caption "Prices snap back." at 1 s, for 3 s, "snap back" in #c8361f.'],
+    run(ctx, toks) {
+      const str = toks.find(x => x.t === 'str'); if (!str) ctx.err('caption "TEXT" at T s, for D s');
+      const rest = toks.slice(toks.indexOf(str) + 1), m = readMods(rest);
+      const marks = []; for (let k = 0; k < rest.length; k++) if (rest[k].t === 'str' && isWord(rest[k + 1], 'in') && rest[k + 2]?.t === 'color') marks.push({ text: rest[k].v, color: rest[k + 2].v });
+      ((ctx.doc.timeline ||= { reveals: {} }).captions ||= []).push({ text: str.v, t0: secs(m.at) ?? 0, dur: secs(m.for) ?? secs(m.over) ?? 3, marks, line: ctx.line });
+    },
+  });
+  // caption style: set the captions to Bodoni Moda 64 in #1d1b18, at 1560
+  reg.verb({
+    words: ['style'],
+    help: 'Caption style: "style the captions in Jost, size 62, #1d1b18, at 1560."',
+    examples: ['style the captions in Jost, size 62, #1d1b18, at 1560.'],
+    run(ctx, toks) {
+      const t = dropArticles(toks); if (!isWord(t[0], 'captions', 'caption')) ctx.err('style the captions …');
+      const m = readMods(t.slice(1)), fam = []; let k = t.findIndex(x => isWord(x, 'in')) + 1; while (k > 0 && t[k]?.t === 'word') fam.push(t[k++].v);
+      const font = fam.length ? fam.map(w => w[0].toUpperCase() + w.slice(1)).join(' ') : 'Jost';
+      const col = t.find(x => x.t === 'color');
+      (ctx.doc.timeline ||= { reveals: {} }).captionStyle = { font, size: m.size != null ? num(m.size) : 60, color: col?.v || '#1d1b18', y: m.at != null ? num(m.at) : null, weight: (m._flags?.has('bold') ? 700 : 500) };
+    },
+  });
+
+  reg.verb({
+    words: ['reveal', 'show'],
+    help: 'Reveal a layer over time, as if drawn or written: "reveal the price at 5 s, over 3 s, from the left."',
+    examples: ['reveal the price at 5 s, over 3 s, from the left.'],
+    run(ctx, toks) {
+      const t = dropArticles(toks), names = [];
+      let i = 0; while (i < t.length && !isWord(t[i], 'at')) { if (t[i].t === 'word' && !isWord(t[i], 'and', 'the')) { const r = readName(t, i, new Set(['and', 'at'])); names.push(ctx.resolve(r.name) || r.name); i = r.i; } else i++; }
+      const { t0, dur, dir } = timing(t.slice(i));
+      const tl = (ctx.doc.timeline ||= { reveals: {} });
+      const fade = t.some(x => isWord(x, 'fading', 'fade', 'faded'));
+      for (const n of names) { if (!ctx.doc.layers[n]) ctx.err(`"${n}" is not a layer`); tl.reveals[n] = { t0: t0 ?? 0, dur: dur ?? .6, from: fade ? 'fade' : (dir || 'left').replace(/-/g, ' ') }; }
+    },
+  });
+
   // layering: bring the memo to the front · send the seal to the back · send the seal behind the memo
   reg.verb({
     words: ['bring', 'send'],
     help: 'Change stacking: "bring the memo to the front", "send the seal to the back", "send the seal behind the memo".',
     examples: ['bring the memo to the front.', 'send the seal behind the memo.'],
     run(ctx, toks) {
-      const els = ctx.doc.elements || {}, t = dropArticles(toks);
+      const els = ctx.doc.elements || {}; let t = dropArticles(toks);
+      if (isWord(t[0], 'in')) {                         // bring in the memo at 1 s, from the bottom
+        t = dropArticles(t.slice(1)); const n = element(ctx, t, []); const { t0, dir } = timing(t.slice(t.findIndex(x => isWord(x, 'at'))));
+        els[n].enter = { t0: t0 ?? 0, style: 'slide', from: (dir || 'bottom').replace(/-/g, ' ') }; return;
+      }
       const { name } = readName(t, 0, new Set(['to', 'behind', 'in', 'above', 'over', 'under', 'below']));
       if (!els[name]) ctx.err(`no element "${name}"`, `elements: ${Object.keys(els).join(', ') || 'none yet'}`);
       const list = Object.keys(els).sort((a, b) => els[a].order - els[b].order).filter(k => k !== name);

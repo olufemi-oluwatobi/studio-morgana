@@ -25,8 +25,8 @@ function maskSvg(doc, area) {
     else if (L?.kind === 'signature') defs.push(`<text id="L-${name}" transform="translate(${L.center[0]} ${L.center[1]}) rotate(${L.rotate_deg})" font-family="${esc(L.font.family)}, cursive" font-size="${L.size}" textLength="${L.max_width}" lengthAdjust="spacingAndGlyphs" text-anchor="middle" fill="#fff">${esc(L.text)}</text>`);
     else if (z?.rect) defs.push(`<rect id="L-${name}" x="${z.rect[0]}" y="${z.rect[1]}" width="${z.rect[2]}" height="${z.rect[3]}" rx="${z.r || 0}" fill="#fff"/>`);
   }
-  const flat = (id, v) => { if (!filters.has(id)) { filters.add(id); defs.push(`<filter id="${id}" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB"><feColorMatrix values="0 0 0 0 ${v} 0 0 0 0 ${v} 0 0 0 0 ${v} 0 0 0 1 0"/></filter>`); } return id; };
-  const grow = (r, v) => { const id = `g${v}_${String(r).replace('.', '_')}`; if (!filters.has(id)) { filters.add(id); defs.push(`<filter id="${id}" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB"><feMorphology operator="dilate" radius="${r}"/><feColorMatrix values="0 0 0 0 ${v} 0 0 0 0 ${v} 0 0 0 0 ${v} 0 0 0 1 0"/></filter>`); } return id; };
+  const flat = (id, v) => { if (!filters.has(id)) { filters.add(id); defs.push(`<filter id="${id}" filterUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}" color-interpolation-filters="sRGB"><feColorMatrix values="0 0 0 0 ${v} 0 0 0 0 ${v} 0 0 0 0 ${v} 0 0 0 1 0"/></filter>`); } return id; };
+  const grow = (r, v) => { const id = `g${v}_${String(r).replace('.', '_')}`; if (!filters.has(id)) { filters.add(id); defs.push(`<filter id="${id}" filterUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}" color-interpolation-filters="sRGB"><feMorphology operator="dilate" radius="${r}"/><feColorMatrix values="0 0 0 0 ${v} 0 0 0 0 ${v} 0 0 0 0 ${v} 0 0 0 1 0"/></filter>`); } return id; };
   const shape = (t, v) => t.mod === 'halo'
     ? `<use href="#L-${t.ref}" filter="url(#${grow(t.r, v)})"/><use href="#L-${t.ref}" filter="url(#${flat('f' + (1 - v), 1 - v)})"/>`
     : `<use href="#L-${t.ref}" filter="url(#${t.mod ? grow(t.r, v) : flat('f' + v, v)})"/>`;
@@ -60,7 +60,13 @@ export function toScene(doc) {
   if (doc.kind === 'stage') {
     const els = Object.entries(doc.elements).sort((a, b) => a[1].order - b[1].order)
       .map(([name, e]) => ({ name, ...e, steps: sides[name] || [] }));
-    return { name: doc.name, kind: 'stage', video: doc.video || null, W: c.grid[0], H: c.grid[1], bench: doc.stage.background, layers: {}, elements: els, unsupported: [...unsupported] };
+    // reveals: a step whose area draws a revealed layer carries that layer's timing
+    const rv = doc.timeline?.reveals || {};
+    for (const e of els) e.steps.forEach((st, k) => { const src = doc.sides[e.name].steps[k]; const hit = src.area?.terms.map(x => rv[x.ref]).find(Boolean); if (hit) st.reveal = hit; });
+    const tl = doc.timeline || {}, cs = tl.captionStyle || { font: 'Jost', size: 60, color: '#1d1b18', y: null, weight: 500 };
+    const ff = (tl.captions || []).length ? (fontFile(cs.font, cs.weight, 'normal') || fontFile(cs.font, 400, 'normal')) : null;
+    const timeline = { camera: tl.camera || [], captions: tl.captions || [], captionStyle: { ...cs, src: ff ? 'data:font/woff2;base64,' + fs.readFileSync(ff).toString('base64') : null } };
+    return { name: doc.name, kind: 'stage', video: doc.video || null, timeline, W: c.grid[0], H: c.grid[1], bench: doc.stage.background, layers: {}, elements: els, unsupported: [...unsupported] };
   }
   return { name: doc.name, kind: doc.kind, W: c.grid[0], H: c.grid[1], rect: c.rect, r: c.r, pxmm, bench: doc.view?.bench || c.bench,
     stock: { color: STOCK[c.stock] || STOCK.stainless, rough: .28 }, sides, unsupported: [...unsupported] };
@@ -78,7 +84,7 @@ export default {
     const runtime = fs.readFileSync(path.join(HERE, '..', 'web', scene.kind === 'stage' ? 'stage.js' : 'runtime.js'), 'utf8');
     const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(doc.name)}</title>
 <style>html,body{margin:0;height:100%;background:${scene.bench};overflow:hidden;perspective:2600px;font:12px system-ui,sans-serif;color:#9aa0a8}canvas{display:block;margin:auto;height:100vh;max-width:100vw;object-fit:contain;touch-action:none;backface-visibility:visible;will-change:transform}#hud{position:fixed;left:12px;bottom:10px}button{position:fixed;right:12px;bottom:10px;font:inherit;padding:6px 12px;border-radius:6px;border:1px solid #444;background:#1b1d22;color:#ddd}</style></head>
-<body><canvas id="gl"></canvas><div id="hud"></div><button id="flip" hidden>Flip</button>
+<body><canvas id="gl"></canvas><div id="hud"></div><button id="flip" hidden>Flip</button><div id="bar" hidden style="position:fixed;left:50%;transform:translateX(-50%);bottom:34px;display:flex;gap:10px;align-items:center;background:#000a;padding:6px 12px;border-radius:8px"><button id="play" style="position:static">Pause</button><input id="scrub" type="range" min="0" max="1000" value="0" style="width:min(60vw,420px)"><span id="tc" style="min-width:52px;color:#ddd">0.0 s</span></div>
 <script>window.SCENE=${JSON.stringify(scene)};</script><script>${runtime}</script></body></html>`;
     fs.writeFileSync(path.join(outDir, 'index.html'), html);
     return { entry: 'index.html', files: ['index.html'] };

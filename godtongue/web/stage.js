@@ -106,7 +106,7 @@
     const sh = mk(w + 160, h + 160), shx = sh.getContext('2d');
     shx.filter = `blur(${2 + e.up_mm * PXMM * .9}px)`; shx.translate(80, 80); shx.fill(P.shape);
     P.sh = sh; P.maps = [0, 0, 0, 0, 0].map(() => mk(w, h)); P.maps.push(sh);
-    const o = P.maps[4].getContext('2d'); o.fillStyle = '#fff'; o.fill(P.shape);
+    const o = P.maps[4].getContext('2d'); if (e.body.color !== 'none') { o.fillStyle = '#fff'; o.fill(P.shape); }
     return P;
   }
 
@@ -136,7 +136,9 @@
     const e = P.e, [w, h] = e.size, B = e.body, rnd = rng(hashStr(e.name) + 99);
     const [col, mr, up, dn] = P.maps, [c, m, u, d] = [col, mr, up, dn].map(k => k.getContext('2d'));
     for (const k of [u, d]) { k.globalCompositeOperation = 'source-over'; k.fillStyle = '#000'; k.fillRect(0, 0, w, h); }
-    c.fillStyle = B.color; c.fillRect(0, 0, w, h);
+    const ink = B.color === 'none';
+    c.globalCompositeOperation = 'source-over'; c.clearRect(0, 0, w, h);
+    if (!ink) { c.fillStyle = B.color; c.fillRect(0, 0, w, h); }
     m.fillStyle = rgb(B.metal * 255, B.rough * 255, 0); m.fillRect(0, 0, w, h);
     if (e.aged > 0) {
       for (let k = 0; k < 14; k++) { const x = rnd() * w, y = rnd() * h, r = 20 + rnd() * w * .35, g = c.createRadialGradient(x, y, 0, x, y, r);
@@ -145,14 +147,29 @@
       v.addColorStop(0, 'rgba(120,85,40,0)'); v.addColorStop(1, `rgba(120,85,40,${.35 * e.aged})`); c.fillStyle = v; c.fillRect(0, 0, w, h);
     }
     const tmp = mk(w, h), tx = tmp.getContext('2d');
+    // a layer being revealed: its mask wiped in from a side (as if drawn or written) or faded in
+    const revealed = (mask, r) => {
+      if (!r || !S.video) return mask;
+      const pr = Math.max(0, Math.min(1, (t - r.t0) / r.dur)); if (pr >= 1) return mask; if (pr <= 0) return null;
+      const out = mk(w, h), ox = out.getContext('2d'); ox.drawImage(mask, 0, 0); ox.globalCompositeOperation = 'destination-in';
+      if (r.from === 'fade') { ox.globalAlpha = pr; ox.fillStyle = '#fff'; ox.fillRect(0, 0, w, h); return out; }
+      const horiz = /left|right/.test(r.from), L = horiz ? w : h, edge = 40, pos = pr * (L + edge) - edge;
+      const g = horiz ? ox.createLinearGradient(0, 0, w, 0) : ox.createLinearGradient(0, 0, 0, h);
+      const a = Math.max(0, Math.min(1, pos / L)), b = Math.max(0, Math.min(1, (pos + edge) / L));
+      const fwd = /left|top/.test(r.from);
+      if (fwd) { g.addColorStop(0, '#fff'); g.addColorStop(a, '#fff'); g.addColorStop(b, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(255,255,255,0)'); }
+      else { g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1 - b, 'rgba(255,255,255,0)'); g.addColorStop(1 - a, '#fff'); g.addColorStop(1, '#fff'); }
+      ox.fillStyle = g; ox.fillRect(0, 0, w, h); return out;
+    };
     const tint = (mask, fill) => { tx.globalCompositeOperation = 'copy'; tx.drawImage(mask, 0, 0); tx.globalCompositeOperation = 'source-in'; if (typeof fill === 'string') { tx.fillStyle = fill; tx.fillRect(0, 0, w, h); } else fill(tx); return tmp; };
     const put = (k, mask, fill, op = 'source-over', blur = 0) => { const tt = tint(mask, fill); k.globalCompositeOperation = op; k.filter = blur ? `blur(${blur}px)` : 'none'; k.drawImage(tt, 0, 0); k.filter = 'none'; k.globalCompositeOperation = 'source-over'; };
     const paper = B.family === 'paper' || B.family === 'card';
     const mists = [];
     for (const [i, s] of e.steps.entries()) {
-      const mask = P.masks[i], p = s.params || {};
+      const mask = revealed(P.masks[i], s.reveal), p = s.params || {};
+      if (!mask) continue;
       switch (s.op) {
-        case 'enamel': if (paper) put(c, mask, s.mat.color, 'multiply'); else { put(c, mask, s.mat.color); put(m, mask, rgb(0, s.mat.rough * 255, 0)); } break;
+        case 'enamel': if (ink) { put(c, mask, s.mat.color); break; } if (paper) put(c, mask, s.mat.color, 'multiply'); else { put(c, mask, s.mat.color); put(m, mask, rgb(0, s.mat.rough * 255, 0)); } break;
         case 'plate': case 'foil': case 'inlay': put(c, mask, s.mat.color); put(m, mask, rgb(s.mat.metal * 255, s.mat.rough * 255, 0)); break;
         case 'emboss': put(u, mask, grey(p.height_mm ?? .1), 'lighter', 1 + (p.soft ?? .5) * 4); break;
         case 'deboss': put(d, mask, grey(p.depth_mm ?? .08), 'lighter', 2); break;
@@ -195,6 +212,7 @@
     // the mist where the gun is spraying right now
     for (const ms of mists) { const g = c.createRadialGradient(ms.gun[0], ms.gun[1], 0, ms.gun[0], ms.gun[1], ms.r);
       g.addColorStop(0, ms.color + '88'); g.addColorStop(1, ms.color + '00'); c.fillStyle = g; c.fillRect(0, 0, w, h); }
+    if (ink) { const o = P.maps[4].getContext('2d'); o.globalCompositeOperation = 'copy'; o.drawImage(col, 0, 0); o.globalCompositeOperation = 'source-in'; o.fillStyle = '#fff'; o.fillRect(0, 0, w, h); o.globalCompositeOperation = 'source-over'; }
     return P.maps;
   }
 
@@ -204,13 +222,13 @@
   if (!gl) { hud.textContent = 'WebGL2 is not available in this browser.'; return; }
   const VS = `#version 300 es
 in vec2 p; out vec2 uv;
-uniform vec2 uStage, uAt, uSize, uOff; uniform float uTurn, uPad, uZoom;
-void main(){ vec2 sz = uSize + 2. * uPad; uv = p; vec2 l = (p - .5) * sz; float c = cos(uTurn), s = sin(uTurn);
-  vec2 q = vec2(c * l.x - s * l.y, s * l.x + c * l.y) + uAt + uOff; q = (q - uStage * .5) * uZoom + uStage * .5; gl_Position = vec4(q.x / uStage.x * 2. - 1., 1. - q.y / uStage.y * 2., 0, 1); }`;
+uniform vec2 uStage, uAt, uSize, uOff, uCam; uniform float uTurn, uPad, uZoom, uScale; uniform int uScreen;
+void main(){ vec2 sz = (uSize + 2. * uPad) * uScale; uv = p; vec2 l = (p - .5) * sz; float c = cos(uTurn), s = sin(uTurn);
+  vec2 q = vec2(c * l.x - s * l.y, s * l.x + c * l.y) + uAt + uOff; if (uScreen == 0) q = (q - uCam) * uZoom + uStage * .5; gl_Position = vec4(q.x / uStage.x * 2. - 1., 1. - q.y / uStage.y * 2., 0, 1); }`;
   const FS = `#version 300 es
 precision highp float;
 in vec2 uv; out vec4 o;
-uniform sampler2D uCol, uMR, uUp, uDn, uSil, uSh; uniform vec2 uSize, uLight; uniform int uMode; uniform float uFibres, uTurn, uThick; uniform vec3 uEdge;
+uniform sampler2D uCol, uMR, uUp, uDn, uSil, uSh, uCap; uniform vec2 uSize, uLight; uniform int uMode; uniform float uFibres, uTurn, uThick, uAlpha; uniform vec3 uEdge;
 float hash(vec2 q){ return fract(sin(dot(q, vec2(127.1, 311.7))) * 43758.5453); }
 float vnoise(vec2 q){ vec2 i = floor(q), f = fract(q); f = f * f * (3. - 2. * f);
   return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }
@@ -220,10 +238,11 @@ float env(vec3 r, float rough){ vec2 dir = normalize(vec2(1., .55) + uLight * .8
   return .10 + (s1 * 1.9 + s2 + top) / (1. + rough * 2.2); }
 vec3 srgb(vec3 c){ return pow(clamp(c, 0., 1.), vec3(1. / 2.2)); }
 void main(){
-  if (uMode == 0) { float a = texture(uSh, uv).a; o = vec4(0., 0., 0., a * .42); return; }
+  if (uMode == 3) { o = texture(uCap, uv); return; }
+  if (uMode == 0) { float a = texture(uSh, uv).a; o = vec4(0., 0., 0., a * .42 * uAlpha); return; }
   float sil = texture(uSil, uv).a; if (sil < .01) discard;
   vec4 col = texture(uCol, uv); vec3 base = pow(col.rgb, vec3(2.2));
-  if (uMode == 1) { o = vec4(srgb(uEdge), sil); return; }
+  if (uMode == 1) { o = vec4(srgb(uEdge), sil * uAlpha); return; }
   vec3 mr = texture(uMR, uv).rgb; float metal = mr.r, rough = clamp(mr.g, .03, 1.), coat = mr.b;
   vec2 px = 1. / uSize;
   float hx = hgt(uv + vec2(px.x, 0.)) - hgt(uv - vec2(px.x, 0.)), hy = hgt(uv + vec2(0., px.y)) - hgt(uv - vec2(0., px.y));
@@ -240,7 +259,7 @@ void main(){
   vec3 cc = mix(diel, base * e * 1.25, metal);
   cc += coat * .06 * max(env(reflect(-V, normalize(mix(vec3(0, 0, 1), n, .3))), .03) - .4, 0.);
   cc *= 1. - clamp(length(vec2(hx, hy)) * 2., 0., .5) * (1. - metal * .5);
-  o = vec4(srgb(cc), sil);
+  o = vec4(srgb(cc), sil * uAlpha);
 }`;
   const sh = (t, s) => { const x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; };
   const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr); gl.useProgram(pr);
@@ -254,35 +273,99 @@ void main(){
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   gl.uniform2f(U('uStage'), W, H);
 
-  const V = S.video, T = V ? V.seconds : 0;
+  const V = S.video, T = V ? V.seconds : 0, TL = S.timeline || { camera: [], captions: [] };
   const t0 = performance.now();
   const built = await Promise.all(S.elements.map(async (e) => ({ e, P: await prepareElement(e) })));
   for (const b of built) b.tex = upload(compose(b.P, V ? 0 : Infinity).concat([]));
   const buildMs = performance.now() - t0;
   const bg = [1, 3, 5].map(i => parseInt(S.bench.slice(i, i + 2), 16) / 255);
   const lin = (h) => [1, 3, 5].map(i => Math.pow(parseInt(h.slice(i, i + 2), 16) / 255, 2.2));
-  // the last moment anything is still changing (coats and their drips); after that frames reuse the maps
-  const busyUntil = Math.max(0, ...S.elements.flatMap(e => e.steps.map(s => s.params?.t0 != null ? s.params.t0 + (s.params.dur || 1) + (s.params.drips ? 2.6 : 0) : 0)));
+  const clamp = (x) => Math.max(0, Math.min(1, x)), easeIO = (k) => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+  const easeOutBack = (k) => 1 + 2.2 * Math.pow(k - 1, 3) + 1.2 * Math.pow(k - 1, 2), easeIn = (k) => k * k * k;
+  // the moments maps must be rebuilt: coats, drips and reveals
+  const windows = S.elements.flatMap(e => e.steps.flatMap(s => [s.params?.t0 != null ? [s.params.t0, s.params.t0 + (s.params.dur || 1) + (s.params.drips ? 2.6 : 0)] : null, s.reveal ? [s.reveal.t0, s.reveal.t0 + s.reveal.dur] : null].filter(Boolean)));
+  const busy = (t) => windows.some(([a, b]) => t >= a - .05 && t <= b + .05);
+  const DIRS = { bottom: [0, 1], top: [0, -1], left: [-1, 0], right: [1, 0] };
+  // where an element is at time t: its entrance, its glides and its exit
+  function pose(e, t) {
+    const q = { x: e.at[0], y: e.at[1], turn: e.turn || 0, scale: 1, alpha: 1, lift: 0 };
+    for (const mv of (e.moves || []).slice().sort((a, b) => a.t0 - b.t0)) {
+      if (!V || t <= mv.t0) { if (V) break; }
+      const k = V ? easeIO(clamp((t - mv.t0) / mv.dur)) : 1;
+      if (mv.to) { q.x += (mv.to[0] - q.x) * k; q.y += (mv.to[1] - q.y) * k; }
+      if (mv.turn != null) q.turn += (mv.turn - q.turn) * k; if (mv.scale != null) q.scale += (mv.scale - q.scale) * k;
+      q.lift = Math.max(q.lift, Math.sin(Math.PI * clamp((t - mv.t0) / mv.dur)) * 4);
+    }
+    if (!V) return q;
+    const en = e.enter, ex = e.exit;
+    if (en) {
+      if (t < en.t0) return null;
+      if (en.style === 'slam') { const k = clamp((t - en.t0) / .2); q.scale *= 1 + 1.3 * (1 - easeIn(k)); q.alpha = clamp(k * 4); const after = t - en.t0 - .2; if (after > 0) q.scale *= 1 + .05 * Math.sin(after * 40) * Math.exp(-after * 14); q.lift = 10 * (1 - k); }
+      else { const k = clamp((t - en.t0) / .75), d = DIRS[en.from] || DIRS.bottom, dist = (d[0] ? W : H) * .9, back = 1 - easeOutBack(k);
+        q.x += d[0] * dist * back; q.y += d[1] * dist * back; q.turn += back * 7 * (d[0] || 1); q.lift = Math.max(q.lift, 8 * (1 - k)); }
+    }
+    if (ex && t >= ex.t0) { const k = easeIn(clamp((t - ex.t0) / .55)); if (k >= 1) return null; const d = DIRS[ex.to] || DIRS.left, dist = (d[0] ? W : H) * 1.05;
+      q.x += d[0] * dist * k; q.y += d[1] * dist * k; q.turn -= k * 6 * (d[0] || 1); q.lift = Math.max(q.lift, 8 * k); }
+    return q;
+  }
+  function camera(t) {
+    const c = { x: W / 2, y: H / 2, zoom: 1 };
+    if (!V) return c;
+    if (!TL.camera.length) { c.zoom = 1 + .04 * (t / T); return c; }
+    for (const k of TL.camera.slice().sort((a, b) => a.t0 - b.t0)) { if (t <= k.t0) break; const e = easeIO(clamp((t - k.t0) / k.dur));
+      if (k.to) { c.x += (k.to[0] - c.x) * e; c.y += (k.to[1] - c.y) * e; } if (k.zoom != null) c.zoom += (k.zoom - c.zoom) * e; }
+    return c;
+  }
+  // captions: drawn word by word into a stage-sized layer that sits on top of everything
+  const CS = TL.captionStyle || {}, capC = mk(W, H), capX = capC.getContext('2d');
+  let capFont = 'sans-serif';
+  if (CS.src) { const f = new FontFace('gtcap', `url(${CS.src})`, { weight: String(CS.weight || 500) }); await f.load(); document.fonts.add(f); capFont = 'gtcap'; }
+  const capTex = gl.createTexture(); gl.activeTexture(gl.TEXTURE6); gl.bindTexture(gl.TEXTURE_2D, capTex);
+  for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
+  const norm = (w) => w.toLowerCase().replace(/[^a-z0-9σ±+−-]/g, '');
+  function drawCaptions(t) {
+    capX.clearRect(0, 0, W, H); let any = false;
+    const size = CS.size || 60, lh = size * 1.18, maxW = W * .84, y0 = CS.y ?? H * .8;
+    capX.font = `${CS.weight || 500} ${size}px ${capFont}, sans-serif`; capX.textBaseline = 'alphabetic';
+    for (const cp of TL.captions) {
+      if (t < cp.t0 || t > cp.t0 + cp.dur + .25) continue; any = true;
+      const words = cp.text.split(/\s+/), hl = new Array(words.length).fill(null);
+      for (const mk_ of cp.marks) { const mw = mk_.text.split(/\s+/).map(norm); for (let i = 0; i + mw.length <= words.length; i++) if (mw.every((w, j) => norm(words[i + j]) === w)) for (let j = 0; j < mw.length; j++) hl[i + j] = mk_.color; }
+      const lines = [[]]; let lw = 0; const sp = capX.measureText(' ').width;
+      words.forEach((w, i) => { const ww = capX.measureText(w).width; if (lw + ww > maxW && lines.at(-1).length) { lines.push([]); lw = 0; } lines.at(-1).push(i); lw += ww + sp; });
+      const per = Math.min(.32, cp.dur * .55 / words.length), out = clamp((cp.t0 + cp.dur + .25 - t) / .25);
+      lines.forEach((ln, li) => {
+        const width = ln.reduce((a, i) => a + capX.measureText(words[i]).width, 0) + sp * (ln.length - 1);
+        let x = (W - width) / 2; const y = y0 + (li - (lines.length - 1) / 2) * lh;
+        for (const i of ln) {
+          const k = clamp((t - cp.t0 - i * per) / .14), ww = capX.measureText(words[i]).width;
+          if (k > 0) { capX.globalAlpha = k * out; capX.fillStyle = hl[i] || CS.color || '#1d1b18'; capX.fillText(words[i], x, y + (1 - k) * 14); }
+          x += ww + sp;
+        }
+      });
+    }
+    capX.globalAlpha = 1; return any;
+  }
   let light = [0, 0], manual = false, frames = 0, tf = performance.now(), lastT = -1;
   const refresh = (t) => { for (const b of built) { const maps = compose(b.P, t); maps.slice(0, 5).forEach((cvs, i) => { gl.bindTexture(gl.TEXTURE_2D, b.tex[i]); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, cvs); }); } };
   const render = (t, now) => {
     if (V) {
-      if (Math.min(t, busyUntil) !== Math.min(lastT, busyUntil) || lastT < 0) refresh(t);
+      if (busy(t) || busy(lastT) || lastT < 0 || Math.abs(t - lastT) > .5) refresh(t);
       lastT = t;
-      // camera: a slow push-in; light: still while painting, then a sweep across the finished card
-      const z = 1 + .07 * (t / T); gl.uniform1f(U('uZoom'), z);
-      const sw = Math.max(0, Math.min(1, (t - (T - 2.2)) / 1.8));
-      if (!manual) light = [-.8 + sw * 1.6 + Math.sin(t * .7) * .05, -.15 + Math.sin(t * .5) * .05];
+      if (!manual) light = [-.35 + Math.sin(t * .4) * .25, -.15 + Math.sin(t * .3) * .08];
     } else if (!manual) light = [Math.sin(now / 2300) * .5, Math.cos(now / 3100) * .3];
+    const cam = camera(t);
+    gl.uniform2f(U('uCam'), cam.x, cam.y); gl.uniform1f(U('uZoom'), cam.zoom); gl.uniform1i(U('uScreen'), 0);
     gl.clearColor(bg[0], bg[1], bg[2], 1); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform2f(U('uLight'), light[0], light[1]);
     for (const b of built) {
-      const e = b.e, [w, h] = e.size, turn = (e.turn || 0) * Math.PI / 180, thick = e.body.thick_mm * PXMM;
+      const e = b.e, q = pose(e, t); if (!q) continue;
+      const [w, h] = e.size, turn = q.turn * Math.PI / 180, thick = e.body.thick_mm * PXMM, inkB = e.body.color === 'none';
       b.tex.forEach((tt, i) => { gl.activeTexture(gl.TEXTURE0 + i); gl.bindTexture(gl.TEXTURE_2D, tt); gl.uniform1i(U(NAMES[i]), i); });
-      gl.uniform2f(U('uAt'), e.at[0], e.at[1]); gl.uniform2f(U('uSize'), w, h); gl.uniform1f(U('uTurn'), turn);
+      gl.uniform2f(U('uAt'), q.x, q.y); gl.uniform2f(U('uSize'), w, h); gl.uniform1f(U('uTurn'), turn); gl.uniform1f(U('uScale'), q.scale); gl.uniform1f(U('uAlpha'), q.alpha);
       gl.uniform1f(U('uFibres'), e.body.fibres || 0);
-      const lift = e.up_mm * PXMM;
-      gl.uniform1i(U('uMode'), 0); gl.uniform1f(U('uPad'), 80); gl.uniform2f(U('uOff'), lift * (.5 - light[0] * .4), lift * (.8 - light[1] * .4)); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      const lift = (e.up_mm + q.lift) * PXMM;
+      if (!inkB) { gl.uniform1i(U('uMode'), 0); gl.uniform1f(U('uPad'), 80); gl.uniform2f(U('uOff'), lift * (.5 - light[0] * .4), lift * (.8 - light[1] * .4)); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); }
       gl.uniform1f(U('uPad'), 0);
       if (thick > .6) {
         const ec = lin(e.body.color).map(v => e.body.family === 'metal' ? Math.min(1, v * 1.6 + .15) : v * .72);
@@ -290,11 +373,25 @@ void main(){
       }
       gl.uniform1i(U('uMode'), 2); gl.uniform2f(U('uOff'), 0, 0); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
+    if (TL.captions.length && drawCaptions(t)) {
+      gl.activeTexture(gl.TEXTURE6); gl.bindTexture(gl.TEXTURE_2D, capTex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, capC);
+      gl.uniform1i(U('uCap'), 6); gl.uniform1i(U('uMode'), 3); gl.uniform1i(U('uScreen'), 1); gl.uniform2f(U('uAt'), W / 2, H / 2); gl.uniform2f(U('uSize'), W, H);
+      gl.uniform1f(U('uTurn'), 0); gl.uniform1f(U('uScale'), 1); gl.uniform2f(U('uOff'), 0, 0); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
     frames++;
   };
-  gl.uniform1f(U('uZoom'), 1);
-  const startAt = performance.now();
-  const loop = (now) => { if (!window.__capturing) render(V ? ((now - startAt) / 1000) % (T + 1.5) : 0, now); requestAnimationFrame(loop); };
+  gl.uniform1f(U('uZoom'), 1); gl.uniform1f(U('uScale'), 1); gl.uniform1f(U('uAlpha'), 1);
+  // playback with a scrub bar for videos
+  let playing = true, tPlay = 0, last = performance.now();
+  if (V) {
+    const bar = document.getElementById('bar'), sc = document.getElementById('scrub'), pb = document.getElementById('play'), tc = document.getElementById('tc');
+    bar.hidden = false; pb.onclick = () => { playing = !playing; pb.textContent = playing ? 'Pause' : 'Play'; };
+    sc.oninput = () => { playing = false; pb.textContent = 'Play'; tPlay = sc.value / 1000 * T; };
+    setInterval(() => { sc.value = Math.round(tPlay / T * 1000); tc.textContent = tPlay.toFixed(1) + ' s'; }, 100);
+  }
+  const loop = (now) => { const dt = (now - last) / 1000; last = now;
+    if (!window.__capturing) { if (V && playing) tPlay = (tPlay + dt) % T; render(V ? tPlay : 0, now); }
+    requestAnimationFrame(loop); };
   window.__gt = { frame: (t) => { window.__capturing = true; render(t, 0); gl.finish(); return cv.toDataURL('image/jpeg', .93); }, video: V, buildMs, steps: S.elements.reduce((a, e) => a + e.steps.length, 0), setTilt: (x, y) => { manual = true; light = [x, y]; }, fps: () => frames / ((performance.now() - tf) / 1000), show: () => {} };
   hud.textContent = `${S.name} · ${S.elements.length} elements · built in ${buildMs.toFixed(0)} ms` + (S.unsupported.length ? ` · skipped: ${S.unsupported.join(', ')}` : '');
   cv.addEventListener('pointermove', (ev) => { const r = cv.getBoundingClientRect(); manual = true; light = [((ev.clientX - r.left) / r.width - .5) * 1.4, ((ev.clientY - r.top) / r.height - .5) * 1.0]; });
