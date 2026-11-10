@@ -48,7 +48,11 @@ Background and the customer: the "Morgana: First Principles" doc.
 
 ## P1 remaining
 
-- Move map building from 2D canvas to GPU passes (the build time is almost all CPU compositing and SVG blur).
+- Move map building from 2D canvas to GPU passes. Profiled on Goku (headless, software GL): blur is not the cost
+  (2.07 s with, 1.90 s without); rasterising the SVG masks is (about 2.0 s when forced up front), compositing about
+  0.7 s. Tried rasterising each layer once and building masks by canvas stamping: no faster in software and
+  worse outlines, so reverted. Next attempt: rasterise layers once, then union, minus, within and "grown by"
+  as WebGL passes (jump-flood distance field), never 2D canvas. Must be measured on a real GPU, not headless.
 - Parity harness on maps: export the factory's height and material maps and diff them, not the lit pictures.
 - Material response tuning against `golden/refs/`; signature fitting; missing sprays and finishes.
 - WebGPU path, WebGL2 kept as fallback.
