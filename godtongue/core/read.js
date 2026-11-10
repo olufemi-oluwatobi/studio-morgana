@@ -12,6 +12,7 @@ export const UNITS = {
   px: 'px', pixel: 'px', pixels: 'px',
   deg: 'deg', degree: 'deg', degrees: 'deg', '°': 'deg',
   '%': 'pct', percent: 'pct',
+  s: 's', sec: 's', secs: 's', second: 's', seconds: 's',
   m: 'm', metre: 'm', metres: 'm', meter: 'm', meters: 'm', cm: 'cm', centimetre: 'cm', centimetres: 'cm', centimeter: 'cm', centimeters: 'cm',
 };
 

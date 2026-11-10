@@ -143,7 +143,7 @@ export default function elements(reg) {
 
 // spray settings → params (used by the spray verb when the coat is a paint or a pigment)
 export function sprayParams(ctx, mods) {
-  const ph = (mods._phrases || []).join(' ');
+  const ph = [(mods._phrases || []).join(' '), typeof mods.sweeping === 'string' ? 'from the ' + mods.sweeping.replace(/-/g, ' ') : ''].join(' ');
   const nozzle = /fine/.test(ph) ? 'fine' : /coarse|spatter/.test(ph) ? 'coarse' : 'medium';
   const dir = /top to bottom|vertical|down/.test(ph) ? 'vertical' : /corner|from the/.test(ph) ? (ph.match(/(top|bottom) (left|right)/)?.[0] || 'top left') : 'horizontal';
   return {
@@ -151,6 +151,7 @@ export function sprayParams(ctx, mods) {
     away_cm: mods.away ? (mods.away.unit === 'mm' ? mods.away.v / 10 : mods.away.v) : 20,
     passes: mods.passes != null ? num(mods.passes) : 1,
     pressure: mods.pressure != null ? num(mods.pressure) : 1,
-    soft: /soft/.test(ph), wet: /wet/.test(ph),
+    soft: /soft/.test(ph), wet: /wet/.test(ph), drips: mods.drips === true || /drip/.test(ph),
+    ...(mods.at != null && !Array.isArray(mods.at) ? { t0: num(mods.at) } : {}), ...(mods.for != null ? { dur: num(mods.for) } : {}),
   };
 }

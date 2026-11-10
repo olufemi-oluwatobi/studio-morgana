@@ -9,7 +9,7 @@ export default function card(reg) {
     examples: ['create a card called marilyn from stainless, 0.8 mm thick, seed 19260601.', 'create a canvas called post, 1080 by 1350.'],
     run(ctx, toks) {
       const t = dropArticles(toks);
-      const isStage = isWord(t[0], 'stage'), isCanvas = isWord(t[0], 'canvas') || isStage;
+      const isVideo = isWord(t[0], 'video'), isStage = isWord(t[0], 'stage') || isVideo, isCanvas = isWord(t[0], 'canvas') || isStage;
       if (!isWord(t[0], 'card') && !isCanvas) ctx.err('start with "create a card called …", "create a canvas called …, 1080 by 1350" or "create a stage called …, 1080 by 1350"');
       const head = t.slice(1); const comma = head.findIndex(x => x.t === ',');
       const first = comma < 0 ? head : head.slice(0, comma), rest = comma < 0 ? [] : head.slice(comma + 1);
@@ -32,6 +32,7 @@ export default function card(reg) {
         ctx.doc.kind = isStage ? 'stage' : 'canvas';
         ctx.doc.canvas = { size_px: [w, h] };
         if (isStage) { ctx.doc.stage = { size: [w, h], background: mods.on?.t === 'color' ? mods.on.v : (typeof mods.on === 'string' ? mods.on : '#d9d2c4') }; ctx.doc.elements = {}; }
+        if (isVideo) ctx.doc.video = { seconds: mods.long ? num(mods.long) : 10, fps: mods.fps != null ? num(mods.fps) : 30 };
         c.grid = [w, h]; c.rect = [0, 0, w, h]; c.r = 0;
         c.size_mm = [w * 25.4 / 300, h * 25.4 / 300];   // 300 dpi unless told otherwise
         ctx.doc.zones.card = { rect: [0, 0, w, h], r: 0 };

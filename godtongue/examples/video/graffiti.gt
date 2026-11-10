@@ -1,0 +1,30 @@
+-- Graffiti fancard, painted live: an original street piece sprayed onto a stainless card, coat by coat.
+create a video called graffiti, 1080 by 1350, on #17171a, 10 s long.
+
+mix a paint called magenta from 3 parts quinacridone magenta and a touch of titanium white, gloss.
+mix a paint called teal from 2 parts phthalo blue and 1 part phthalo green and 1 part titanium white, gloss.
+mix a paint called sun from 3 parts cadmium yellow and a touch of titanium white, gloss.
+mix a paint called ink from 1 part carbon black, satin.
+mix a paint called chalk from 1 part titanium white, satin.
+mix a paint called flame from 2 parts cadmium orange and 1 part cadmium red, gloss.
+
+make a plate called card from stainless, 816 by 1284, at 540 675, turned -2, 1 mm up.
+write "WILD" called tag in Sedgwick Ave Display, at 408 624, size 360.
+write "STYLE" called tag-low in Sedgwick Ave Display, at 432 828, size 228.
+draw a star called spark-1, 4 points, 55 big, 12 inner, at 672 360.
+draw a star called spark-2, 4 points, 34 big, 7 inner, at 154 948.
+draw a star called spark-3, 4 points, 26 big, 6 inner, at 708 912.
+draw a shape called crown, from 252 396 to 300 300 to 360 372 to 408 276 to 456 372 to 516 300 to 564 396.
+draw a rectangle called flame-band, 816 by 108, at 408 702.
+draw a rectangle called flame-band-low, 816 by 72, at 408 870.
+write "fancard · spray series · 001" called caption in Permanent Marker, at 408 1200, size 40.
+
+spray the card with magenta, medium nozzle, 35 cm away, 2 passes, sweeping from the top left, at 0.6 s, for 1.4 s.
+spray the card with teal, medium nozzle, 35 cm away, 2 passes, sweeping from the bottom right, at 1.6 s, for 1.4 s.
+spray the tag grown by 16 and the tag-low grown by 16 with ink, fine nozzle, 8 cm away, 2 passes, at 3 s, for 1.2 s, with drips.
+spray the tag and the tag-low with sun, fine nozzle, 6 cm away, 2 passes, at 4.2 s, for 1.4 s, with drips.
+spray the tag within the flame-band and the tag-low within the flame-band-low with flame, fine nozzle, 6 cm away, 2 passes, at 5.6 s, for 0.8 s.
+spray the crown grown by 5 with chalk, fine nozzle, 5 cm away, 2 passes, at 6.4 s, for 0.6 s, with drips.
+spray the spark-1 and the spark-2 and the spark-3 with chalk, fine nozzle, 4 cm away, 2 passes, at 7 s, for 0.5 s.
+spray the caption with ink, fine nozzle, 4 cm away, 2 passes, at 7.5 s, for 0.6 s.
+spray the card with gloss, 40 µm thick.

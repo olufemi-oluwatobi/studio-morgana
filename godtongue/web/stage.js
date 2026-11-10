@@ -76,17 +76,69 @@
     return coat;
   }
 
-  // ── build one element into local maps
-  async function buildElement(e) {
-    const t0 = performance.now(), [w, h] = e.size, B = e.body, rnd = rng(hashStr(e.name));
-    const [col, mr, up, dn, sil] = [0, 0, 0, 0, 0].map(() => mk(w, h));
-    const [c, m, u, d, o] = [col, mr, up, dn, sil].map(k => k.getContext('2d'));
-    const shape = outline(e, rnd);
-    o.fillStyle = '#fff'; o.fill(shape);
-    for (const k of [u, d]) { k.fillStyle = '#000'; k.fillRect(0, 0, w, h); }
+  // ── an element is prepared once (masks, outline, paint coats, drips), then composed at any time t
+  async function prepareElement(e) {
+    const [w, h] = e.size, rnd = rng(hashStr(e.name));
+    const P = { e, shape: outline(e, rnd), masks: await Promise.all(e.steps.map(s => load(s.mask))), coats: [], photos: {} };
+    for (const [i, s] of e.steps.entries()) {
+      if (s.image) P.photos[i] = await load(s.image.src);
+      if (s.op === 'spray' && s.kind === 'paint') {
+        const p = s.params, sten = mk(w, h), sx = sten.getContext('2d');
+        sx.filter = p.soft ? `blur(${Math.max(2, p.away_cm * .8)}px)` : 'none'; sx.drawImage(P.masks[i], 0, 0);
+        const coat = sprayCoat(e, s, sten, rng(hashStr(e.name) + i * 7919));
+        const fin = s.mat.finish, gloss = fin === 'gloss' || fin === 'candy' ? 255 : fin === 'satin' ? 90 : 0;
+        const mm = mk(w, h), mx = mm.getContext('2d'); mx.drawImage(coat, 0, 0); mx.globalCompositeOperation = 'source-in';
+        mx.fillStyle = rgb(s.mat.metal * 255, s.mat.rough * 255, gloss); mx.fillRect(0, 0, w, h);
+        // drips: where the coat is heavy, paint runs down from its lowest edge
+        const drips = [];
+        if (p.drips) {
+          const a = coat.getContext('2d').getImageData(0, 0, w, h).data, dr = rng(hashStr(e.name) + i * 31);
+          for (let k = 0; k < w / 9; k++) {
+            const x = (dr() * w) | 0; let y = -1;
+            for (let yy = h - 1; yy > 0; yy--) if (a[(yy * w + x) * 4 + 3] > 150) { y = yy; break; }
+            if (y < 0 || dr() < .45) continue;
+            drips.push({ x, y: y - 2, len: 18 + dr() ** 2 * 150, wd: 2.5 + dr() * 4.5, delay: dr() * .8 });
+          }
+        }
+        P.coats[i] = { coat, mm, drips, color: s.mat.color };
+      }
+    }
+    const sh = mk(w + 160, h + 160), shx = sh.getContext('2d');
+    shx.filter = `blur(${2 + e.up_mm * PXMM * .9}px)`; shx.translate(80, 80); shx.fill(P.shape);
+    P.sh = sh; P.maps = [0, 0, 0, 0, 0].map(() => mk(w, h)); P.maps.push(sh);
+    const o = P.maps[4].getContext('2d'); o.fillStyle = '#fff'; o.fill(P.shape);
+    return P;
+  }
+
+  // how much of a timed coat has been sprayed, as a mask that follows the gun; and where the gun is
+  function reveal(P, s, prog) {
+    const [w, h] = P.e.size, rv = mk(w, h), r = rv.getContext('2d'), p = s.params, sigma = Math.max(8, p.away_cm * PXMM * 1.5);
+    let gun = null;
+    if (/top|bottom/.test(p.sweep)) {
+      const cx = /right/.test(p.sweep) ? w : 0, cy = /bottom/.test(p.sweep) ? h : 0, R = Math.hypot(w, h) * 1.15 * prog;
+      const g = r.createRadialGradient(cx, cy, Math.max(0, R - sigma * 1.2), cx, cy, R + 1);
+      g.addColorStop(0, '#fff'); g.addColorStop(1, 'rgba(255,255,255,0)'); r.fillStyle = g; r.fillRect(0, 0, w, h);
+      const ang = .55 + Math.sin(prog * 18) * .5; gun = [cx + (cx ? -1 : 1) * Math.cos(ang) * R * .9, cy + (cy ? -1 : 1) * Math.sin(ang) * R * .9];
+    } else {
+      const vert = p.sweep === 'vertical', L = vert ? w : h, A = vert ? h : w, rows = Math.max(1, Math.ceil(L / (sigma * .9))), rh = L / rows;
+      r.fillStyle = '#fff'; r.filter = `blur(${Math.min(14, sigma * .25)}px)`;
+      for (let i = 0; i < rows; i++) {
+        const rp = Math.max(0, Math.min(1, prog * rows - i)); if (!rp) continue;
+        const ltr = i % 2 === 0, len = rp * (A + 40), x0 = ltr ? -20 : A + 20 - len;
+        if (vert) r.fillRect(i * rh - 6, x0, rh + 12, len); else r.fillRect(x0, i * rh - 6, len, rh + 12);
+        if (rp < 1) { const at = ltr ? x0 + len : x0; gun = vert ? [i * rh + rh / 2, at] : [at, i * rh + rh / 2]; }
+      }
+    }
+    return { rv, gun };
+  }
+
+  function compose(P, t) {
+    const e = P.e, [w, h] = e.size, B = e.body, rnd = rng(hashStr(e.name) + 99);
+    const [col, mr, up, dn] = P.maps, [c, m, u, d] = [col, mr, up, dn].map(k => k.getContext('2d'));
+    for (const k of [u, d]) { k.globalCompositeOperation = 'source-over'; k.fillStyle = '#000'; k.fillRect(0, 0, w, h); }
     c.fillStyle = B.color; c.fillRect(0, 0, w, h);
     m.fillStyle = rgb(B.metal * 255, B.rough * 255, 0); m.fillRect(0, 0, w, h);
-    if (e.aged > 0) {                                  // age: warm blotches and darker edges
+    if (e.aged > 0) {
       for (let k = 0; k < 14; k++) { const x = rnd() * w, y = rnd() * h, r = 20 + rnd() * w * .35, g = c.createRadialGradient(x, y, 0, x, y, r);
         g.addColorStop(0, `rgba(150,110,50,${.12 * e.aged})`); g.addColorStop(1, 'rgba(150,110,50,0)'); c.fillStyle = g; c.fillRect(0, 0, w, h); }
       const v = c.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .3, w / 2, h / 2, Math.max(w, h) * .75);
@@ -94,44 +146,56 @@
     }
     const tmp = mk(w, h), tx = tmp.getContext('2d');
     const tint = (mask, fill) => { tx.globalCompositeOperation = 'copy'; tx.drawImage(mask, 0, 0); tx.globalCompositeOperation = 'source-in'; if (typeof fill === 'string') { tx.fillStyle = fill; tx.fillRect(0, 0, w, h); } else fill(tx); return tmp; };
-    const put = (k, mask, fill, op = 'source-over', blur = 0) => { const t = tint(mask, fill); k.globalCompositeOperation = op; k.filter = blur ? `blur(${blur}px)` : 'none'; k.drawImage(t, 0, 0); k.filter = 'none'; k.globalCompositeOperation = 'source-over'; };
+    const put = (k, mask, fill, op = 'source-over', blur = 0) => { const tt = tint(mask, fill); k.globalCompositeOperation = op; k.filter = blur ? `blur(${blur}px)` : 'none'; k.drawImage(tt, 0, 0); k.filter = 'none'; k.globalCompositeOperation = 'source-over'; };
     const paper = B.family === 'paper' || B.family === 'card';
+    const mists = [];
     for (const [i, s] of e.steps.entries()) {
-      const mask = await load(s.mask), p = s.params || {};
+      const mask = P.masks[i], p = s.params || {};
       switch (s.op) {
-        case 'enamel':                                  // on paper and card, a colour fill is ink: it sits in the fibres
-          if (paper) put(c, mask, s.mat.color, 'multiply'); else { put(c, mask, s.mat.color); put(m, mask, rgb(0, s.mat.rough * 255, 0)); }
-          break;
-        case 'plate': case 'foil': case 'inlay':
-          put(c, mask, s.mat.color); put(m, mask, rgb(s.mat.metal * 255, s.mat.rough * 255, 0)); break;
+        case 'enamel': if (paper) put(c, mask, s.mat.color, 'multiply'); else { put(c, mask, s.mat.color); put(m, mask, rgb(0, s.mat.rough * 255, 0)); } break;
+        case 'plate': case 'foil': case 'inlay': put(c, mask, s.mat.color); put(m, mask, rgb(s.mat.metal * 255, s.mat.rough * 255, 0)); break;
         case 'emboss': put(u, mask, grey(p.height_mm ?? .1), 'lighter', 1 + (p.soft ?? .5) * 4); break;
         case 'deboss': put(d, mask, grey(p.depth_mm ?? .08), 'lighter', 2); break;
         case 'engrave': put(d, mask, grey(p.depth_mm ?? .05), 'lighter', 1); break;
         case 'etch': put(m, mask, rgb(0, 110, 0), 'lighter'); break;
-        case 'spray':
-          if (s.kind === 'paint') {
-            const sten = mk(w, h), sx = sten.getContext('2d');
-            sx.filter = p.soft ? `blur(${Math.max(2, p.away_cm * .8)}px)` : 'none'; sx.drawImage(mask, 0, 0);
-            const coat = sprayCoat(e, s, sten, rng(hashStr(e.name) + i * 7919));
-            c.drawImage(coat, 0, 0);
-            const fin = s.mat.finish, gloss = fin === 'gloss' || fin === 'candy' ? 255 : fin === 'satin' ? 90 : 0;
-            const mm = mk(w, h), mx = mm.getContext('2d'); mx.drawImage(coat, 0, 0); mx.globalCompositeOperation = 'source-in';
-            mx.fillStyle = rgb(s.mat.metal * 255, s.mat.rough * 255, gloss); mx.fillRect(0, 0, w, h); m.drawImage(mm, 0, 0);
-          } else if (s.kind === 'gloss') put(m, mask, rgb(0, 0, 255), 'lighter');
-          else if (s.kind === 'matte') put(m, mask, rgb(0, 90, 0), 'lighter');
+        case 'spray': {
+          if (s.kind !== 'paint') { if (s.kind === 'gloss') put(m, mask, rgb(0, 0, 255), 'lighter'); else if (s.kind === 'matte') put(m, mask, rgb(0, 90, 0), 'lighter'); break; }
+          const C = P.coats[i], timed = p.t0 != null && S.video, prog = timed ? Math.max(0, Math.min(1, (t - p.t0) / (p.dur || 1))) : 1;
+          if (prog <= 0) break;
+          let coat = C.coat, mmap = C.mm;
+          if (prog < 1) {
+            const { rv, gun } = reveal(P, s, prog);
+            const a = mk(w, h), ax = a.getContext('2d'); ax.drawImage(C.coat, 0, 0); ax.globalCompositeOperation = 'destination-in'; ax.drawImage(rv, 0, 0);
+            const b = mk(w, h), bx = b.getContext('2d'); bx.drawImage(C.mm, 0, 0); bx.globalCompositeOperation = 'destination-in'; bx.drawImage(rv, 0, 0);
+            coat = a; mmap = b; if (gun) mists.push({ gun, color: C.color, r: Math.max(18, p.away_cm * PXMM * 1.1) });
+          }
+          c.drawImage(coat, 0, 0); m.drawImage(mmap, 0, 0);
+          // drips start once the gun has passed and keep running for a moment
+          if (C.drips.length) {
+            const tEnd = timed ? p.t0 + (p.dur || 1) * .7 : -1e9;
+            for (const k of [c, m]) { k.lineCap = 'round'; }
+            for (const dp of C.drips) {
+              const g = timed ? Math.max(0, Math.min(1, (t - tEnd - dp.delay) / 1.8)) : 1; if (!g) continue;
+              const L = dp.len * (1 - (1 - g) ** 2.2);
+              c.strokeStyle = C.color; c.lineWidth = dp.wd; c.beginPath(); c.moveTo(dp.x, dp.y); c.lineTo(dp.x, dp.y + L); c.stroke();
+              c.fillStyle = C.color; c.beginPath(); c.arc(dp.x, dp.y + L, dp.wd * .75, 0, 6.2832); c.fill();
+              m.strokeStyle = rgb(0, 20, 255); m.lineWidth = dp.wd; m.beginPath(); m.moveTo(dp.x, dp.y); m.lineTo(dp.x, dp.y + L); m.stroke();
+            }
+          }
           break;
+        }
         case 'print': case 'illustrate': {
-          const photo = await load(s.image.src), [x, y, ww, hh] = s.image.rect, [fx, fy] = s.image.focus;
+          const photo = P.photos[i], [x, y, ww, hh] = s.image.rect, [fx, fy] = s.image.focus;
           const k = Math.max(ww / photo.width, hh / photo.height), dw = photo.width * k, dh = photo.height * k;
           put(c, mask, (g) => g.drawImage(photo, x - (dw - ww) * fx, y - (dh - hh) * fy, dw, dh), paper ? 'multiply' : 'source-over');
           break;
         }
       }
     }
-    // shadow: the outline, blurred by how high the element sits
-    const sh = mk(w + 160, h + 160), shx = sh.getContext('2d');
-    shx.filter = `blur(${2 + e.up_mm * PXMM * .9}px)`; shx.translate(80, 80); shx.fill(shape);
-    return { maps: [col, mr, up, dn, sil, sh], ms: performance.now() - t0 };
+    // the mist where the gun is spraying right now
+    for (const ms of mists) { const g = c.createRadialGradient(ms.gun[0], ms.gun[1], 0, ms.gun[0], ms.gun[1], ms.r);
+      g.addColorStop(0, ms.color + '88'); g.addColorStop(1, ms.color + '00'); c.fillStyle = g; c.fillRect(0, 0, w, h); }
+    return P.maps;
   }
 
   // ── GL
@@ -140,9 +204,9 @@
   if (!gl) { hud.textContent = 'WebGL2 is not available in this browser.'; return; }
   const VS = `#version 300 es
 in vec2 p; out vec2 uv;
-uniform vec2 uStage, uAt, uSize, uOff; uniform float uTurn, uPad;
+uniform vec2 uStage, uAt, uSize, uOff; uniform float uTurn, uPad, uZoom;
 void main(){ vec2 sz = uSize + 2. * uPad; uv = p; vec2 l = (p - .5) * sz; float c = cos(uTurn), s = sin(uTurn);
-  vec2 q = vec2(c * l.x - s * l.y, s * l.x + c * l.y) + uAt + uOff; gl_Position = vec4(q.x / uStage.x * 2. - 1., 1. - q.y / uStage.y * 2., 0, 1); }`;
+  vec2 q = vec2(c * l.x - s * l.y, s * l.x + c * l.y) + uAt + uOff; q = (q - uStage * .5) * uZoom + uStage * .5; gl_Position = vec4(q.x / uStage.x * 2. - 1., 1. - q.y / uStage.y * 2., 0, 1); }`;
   const FS = `#version 300 es
 precision highp float;
 in vec2 uv; out vec4 o;
@@ -190,38 +254,50 @@ void main(){
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   gl.uniform2f(U('uStage'), W, H);
 
+  const V = S.video, T = V ? V.seconds : 0;
   const t0 = performance.now();
-  const built = await Promise.all(S.elements.map(async (e) => ({ e, ...(await buildElement(e)) })));
-  for (const b of built) b.tex = upload(b.maps);
+  const built = await Promise.all(S.elements.map(async (e) => ({ e, P: await prepareElement(e) })));
+  for (const b of built) b.tex = upload(compose(b.P, V ? 0 : Infinity).concat([]));
   const buildMs = performance.now() - t0;
   const bg = [1, 3, 5].map(i => parseInt(S.bench.slice(i, i + 2), 16) / 255);
   const lin = (h) => [1, 3, 5].map(i => Math.pow(parseInt(h.slice(i, i + 2), 16) / 255, 2.2));
-  let light = [0, 0], manual = false, frames = 0, tf = performance.now();
-  const draw = (now) => {
-    if (!manual) light = [Math.sin(now / 2300) * .5, Math.cos(now / 3100) * .3];
+  // the last moment anything is still changing (coats and their drips); after that frames reuse the maps
+  const busyUntil = Math.max(0, ...S.elements.flatMap(e => e.steps.map(s => s.params?.t0 != null ? s.params.t0 + (s.params.dur || 1) + (s.params.drips ? 2.6 : 0) : 0)));
+  let light = [0, 0], manual = false, frames = 0, tf = performance.now(), lastT = -1;
+  const refresh = (t) => { for (const b of built) { const maps = compose(b.P, t); maps.slice(0, 5).forEach((cvs, i) => { gl.bindTexture(gl.TEXTURE_2D, b.tex[i]); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, cvs); }); } };
+  const render = (t, now) => {
+    if (V) {
+      if (Math.min(t, busyUntil) !== Math.min(lastT, busyUntil) || lastT < 0) refresh(t);
+      lastT = t;
+      // camera: a slow push-in; light: still while painting, then a sweep across the finished card
+      const z = 1 + .07 * (t / T); gl.uniform1f(U('uZoom'), z);
+      const sw = Math.max(0, Math.min(1, (t - (T - 2.2)) / 1.8));
+      if (!manual) light = [-.8 + sw * 1.6 + Math.sin(t * .7) * .05, -.15 + Math.sin(t * .5) * .05];
+    } else if (!manual) light = [Math.sin(now / 2300) * .5, Math.cos(now / 3100) * .3];
     gl.clearColor(bg[0], bg[1], bg[2], 1); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform2f(U('uLight'), light[0], light[1]);
     for (const b of built) {
       const e = b.e, [w, h] = e.size, turn = (e.turn || 0) * Math.PI / 180, thick = e.body.thick_mm * PXMM;
-      b.tex.forEach((t, i) => { gl.activeTexture(gl.TEXTURE0 + i); gl.bindTexture(gl.TEXTURE_2D, t); gl.uniform1i(U(NAMES[i]), i); });
+      b.tex.forEach((tt, i) => { gl.activeTexture(gl.TEXTURE0 + i); gl.bindTexture(gl.TEXTURE_2D, tt); gl.uniform1i(U(NAMES[i]), i); });
       gl.uniform2f(U('uAt'), e.at[0], e.at[1]); gl.uniform2f(U('uSize'), w, h); gl.uniform1f(U('uTurn'), turn);
       gl.uniform1f(U('uFibres'), e.body.fibres || 0);
-      // shadow, pushed away from the light by the element's height
       const lift = e.up_mm * PXMM;
       gl.uniform1i(U('uMode'), 0); gl.uniform1f(U('uPad'), 80); gl.uniform2f(U('uOff'), lift * (.5 - light[0] * .4), lift * (.8 - light[1] * .4)); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       gl.uniform1f(U('uPad'), 0);
-      // the edge band: the sheet's thickness showing on the side away from the light
       if (thick > .6) {
         const ec = lin(e.body.color).map(v => e.body.family === 'metal' ? Math.min(1, v * 1.6 + .15) : v * .72);
         gl.uniform3f(U('uEdge'), ec[0], ec[1], ec[2]); gl.uniform1i(U('uMode'), 1); gl.uniform2f(U('uOff'), thick * .55, thick * .8); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       }
       gl.uniform1i(U('uMode'), 2); gl.uniform2f(U('uOff'), 0, 0); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
-    frames++; requestAnimationFrame(draw);
+    frames++;
   };
-  window.__gt = { buildMs, steps: S.elements.reduce((a, e) => a + e.steps.length, 0), setTilt: (x, y) => { manual = true; light = [x, y]; }, fps: () => frames / ((performance.now() - tf) / 1000), show: () => {} };
+  gl.uniform1f(U('uZoom'), 1);
+  const startAt = performance.now();
+  const loop = (now) => { if (!window.__capturing) render(V ? ((now - startAt) / 1000) % (T + 1.5) : 0, now); requestAnimationFrame(loop); };
+  window.__gt = { frame: (t) => { window.__capturing = true; render(t, 0); gl.finish(); return cv.toDataURL('image/jpeg', .93); }, video: V, buildMs, steps: S.elements.reduce((a, e) => a + e.steps.length, 0), setTilt: (x, y) => { manual = true; light = [x, y]; }, fps: () => frames / ((performance.now() - tf) / 1000), show: () => {} };
   hud.textContent = `${S.name} · ${S.elements.length} elements · built in ${buildMs.toFixed(0)} ms` + (S.unsupported.length ? ` · skipped: ${S.unsupported.join(', ')}` : '');
   cv.addEventListener('pointermove', (ev) => { const r = cv.getBoundingClientRect(); manual = true; light = [((ev.clientX - r.left) / r.width - .5) * 1.4, ((ev.clientY - r.top) / r.height - .5) * 1.0]; });
   cv.addEventListener('pointerleave', () => { manual = false; });
-  requestAnimationFrame(draw);
+  requestAnimationFrame(loop);
 })().catch(e => { document.getElementById('hud').textContent = 'stage error: ' + e.message; window.__gtError = e.message; });

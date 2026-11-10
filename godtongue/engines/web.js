@@ -60,7 +60,7 @@ export function toScene(doc) {
   if (doc.kind === 'stage') {
     const els = Object.entries(doc.elements).sort((a, b) => a[1].order - b[1].order)
       .map(([name, e]) => ({ name, ...e, steps: sides[name] || [] }));
-    return { name: doc.name, kind: 'stage', W: c.grid[0], H: c.grid[1], bench: doc.stage.background, layers: {}, elements: els, unsupported: [...unsupported] };
+    return { name: doc.name, kind: 'stage', video: doc.video || null, W: c.grid[0], H: c.grid[1], bench: doc.stage.background, layers: {}, elements: els, unsupported: [...unsupported] };
   }
   return { name: doc.name, kind: doc.kind, W: c.grid[0], H: c.grid[1], rect: c.rect, r: c.r, pxmm, bench: doc.view?.bench || c.bench,
     stock: { color: STOCK[c.stock] || STOCK.stainless, rough: .28 }, sides, unsupported: [...unsupported] };
