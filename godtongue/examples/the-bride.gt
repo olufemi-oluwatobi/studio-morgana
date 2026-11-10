@@ -1,0 +1,108 @@
+-- The Bride (Kill Bill) · a character card in the style of a board-game deck.
+-- Every shape on this card is drawn here in words. Fan concept, not for sale.
+
+create a card called the-bride from stainless, seed 1973.
+
+-- ── the katana: built along its own line, guard at 0 0, blade pointing right ──
+define a katana with $size 600 as:
+  draw a shape called blade from 0 $size * -0.015 to $size * 0.3 $size * -0.025 to $size * 0.55 $size * -0.036 to $size * 0.8 $size * -0.052 to $size * 0.56 $size * -0.01 to $size * 0.3 $size * 0.003 to 0 $size * 0.015.
+  draw a line called hamon from $size * 0.03 $size * -0.004 to $size * 0.3 $size * -0.013 to $size * 0.55 $size * -0.024 to $size * 0.74 $size * -0.04, $size * 0.004 wide.
+  draw an ellipse called guard, $size * 0.04 by $size * 0.13, at $size * -0.013 0.
+  draw a rectangle called grip, $size * 0.26 by $size * 0.048, corners $size * 0.01, at $size * -0.167 0.
+  draw a rectangle called wrap, $size * 0.026 by $size * 0.026, at $size * -0.277 0.
+  turn the wrap 45 degrees in place.
+  copy the wrap 6 times, $size * 0.043 apart.
+  draw a circle called pommel, $size * 0.024 big, at $size * -0.31 0.
+end.
+
+-- ── frame, title and cost badges ─────────────────────────────────────────────
+draw a rectangle called frame, 1046 by 1635, corners 40, hollow, 34 wide.
+draw a rectangle called keyline, 984 by 1573, corners 36, hollow, 3 wide.
+write "The Bride" called title in Mr Dafoe, at 380 250, size 124.
+
+draw a circle called badge-red, 46 big, at 900 214.
+draw a circle called badge-black, 46 big, at 1010 214.
+place a katana called badge-sword at 886 228, size 82, turned -45.
+draw a star called badge-splat, 9 points, 30 big, 13 inner, at 1010 214.
+
+-- ── the art window: plain yellow, kept clear for a picture (print @bride.jpg in the art.) ──
+draw a rectangle called art, 900 by 800, at 620 770.
+place a katana called sword at 434 1128, size 760.
+
+-- ── the ability band ─────────────────────────────────────────────────────────
+draw a rectangle called band, 1080 by 214, at 620 1300.
+write "Strike first. Gain 5 blades." called rule-1 in Jost 500, at 620 1282, size 50.
+write "Cross one name off your list." called rule-2 in Jost 500, at 620 1352, size 50.
+
+-- ── the stats row: tiers, numbers and blade pips ─────────────────────────────
+draw a line called rule-line from 150 1462 to 1090 1462, 3 wide.
+draw a line called divider-1 from 446 1488 to 446 1648, 3 wide.
+draw a line called divider-2 from 794 1488 to 794 1648, 3 wide.
+
+draw a circle called tier-1, 8 big, at 290 1512.
+draw a circle called tier-2, 8 big, at 608 1512.
+copy the tier-2 2 times, 24 apart.
+draw a circle called tier-3, 8 big, at 932 1512.
+copy the tier-3 3 times, 24 apart.
+
+write "1" called stat-1 in Big Shoulders Display 800, at 262 1622, size 104.
+write "2" called stat-2 in Big Shoulders Display 800, at 594 1622, size 104.
+write "5" called stat-3 in Big Shoulders Display 800, at 932 1622, size 104.
+draw a star called pip, 5 points, 24 big, 10 inner, at 330 1586.
+copy the pip, by 336 0, called pip-2.
+copy the pip, by 674 0, called pip-3.
+
+write "CONCEPT · NOT FOR SALE" called notice in Martian Mono, at 620 1700, size 22.
+
+-- ── the back: yellow and red squares, a cream panel, the sword ──────────────
+draw a rectangle called squares, 40 by 40, at 100 100.
+copy the squares 14 times, 80 apart.
+copy the squares 21 times, 80 apart, down.
+copy the squares, by 40 40, called squares-2.
+draw a rectangle called panel, 700 by 900, corners 30, at 620 860.
+write "Kill Bill" called back-title in Mr Dafoe, at 620 560, size 150.
+write "VOL. 1" called back-vol in Big Shoulders Display 800, at 620 650, size 56.
+place a katana called back-sword at 434 1580, size 760.
+
+-- ── making it ──────────────────────────────────────────────────────────────
+on the front.
+enamel the card in cream.
+enamel the frame in crimson.
+enamel the keyline in black.
+enamel the rule-line and the divider-1 and the divider-2 in grey.
+
+enamel the title in black.
+enamel the badge-red in crimson.
+enamel the badge-black in black.
+plate the badge-sword with chrome.
+enamel the badge-splat in red.
+
+enamel the art in yellow.
+outline the sword in black, 5 wide.
+plate the sword-blade with chrome.
+etch the sword-hamon.
+enamel the sword-grip in black.
+plate the sword-guard and the sword-wrap and the sword-pommel with gold.
+spray the art with gloss, 30 µm thick.
+
+enamel the band in yellow.
+enamel the rule-1 and the rule-2 in black.
+
+enamel the tier-1 and the tier-2 and the tier-3 in black.
+enamel the stat-1 and the stat-2 and the stat-3 in black.
+enamel the pip and the pip-2 and the pip-3 in crimson.
+enamel the notice in grey.
+
+on the back.
+enamel the card in yellow.
+enamel the squares and the squares-2 in crimson.
+outline the panel in black, 6 wide.
+enamel the panel in cream.
+enamel the frame in crimson.
+enamel the back-title in black.
+enamel the back-vol in crimson.
+outline the back-sword in black, 5 wide.
+plate the back-sword-blade with chrome.
+etch the back-sword-hamon.
+enamel the back-sword-grip in black.
+plate the back-sword-guard and the back-sword-wrap and the back-sword-pommel with gold.

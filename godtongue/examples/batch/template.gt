@@ -1,0 +1,12 @@
+-- Batch template: one card per row of cards.csv. Columns become $variables: $id, $name, $photo.
+-- Run: gt batch examples/batch/template.gt examples/batch/cards.csv
+create a card called $id, edition 1 of 100.
+use the studded bezel style.
+
+on the front.
+use $studded-finish.
+print $photo in the window, focused at 0.5 0.2.
+spray the window with gloss.
+write "fancard" called wordmark in Bodoni Moda italic, at 620 230, size 58.
+sign $name at 620 1478.
+use $gild on the wordmark and the signature.

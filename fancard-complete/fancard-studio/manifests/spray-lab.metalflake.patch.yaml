@@ -1,0 +1,11 @@
+# spray lab · metalflake: brushed stainless, coarse silver metal flake in clear
+id: spray-lab/metalflake
+sides:
+  front:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: spray, kind: metalflake, mask: card, params: { color: "#d9dde2", flake_um: 520, density: 0.8 } }
+  back:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: spray, kind: metalflake, mask: card, params: { color: "#d9dde2", flake_um: 520, density: 0.8 } }

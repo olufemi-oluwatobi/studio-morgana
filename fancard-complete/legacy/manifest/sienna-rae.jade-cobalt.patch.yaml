@@ -1,0 +1,21 @@
+# A variant is a small patch on top of a manifest, not a new design.
+# "Turn it green, turn the gold blue, new corners, new filter."
+extends: sienna-rae/set-03
+seed: 30190019                     # same seed → same grain, only the changes differ
+
+tokens:
+  enamel:
+    field: { name: jade, hex: "#0f4a3a", process: soft-enamel }
+  metal:
+    plate:  { finish: pvd-blue-titanium, polish: mirror }   # real process: PVD coating
+    accent: { finish: pvd-blue-titanium, polish: satin }
+  filter:
+    wash: teal-cold
+
+components:
+  corner:
+    kind: ornament.art-deco-sunburst
+    params: { rays: 11, spread_deg: 80, rivet: true }
+  lattice:
+    kind: pattern.guilloche
+    params: { waves: 9, frequency: 14, line: 2 }

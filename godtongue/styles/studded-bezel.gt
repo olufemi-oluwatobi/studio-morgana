@@ -1,0 +1,41 @@
+-- The studded bezel: Marilyn v6's frame as a reusable style.
+-- Draws the layers and defines two recipes:
+--   $studded-finish  makes the frame on the current side (use it on each side)
+--   $gild            gold glitter lettering with a black outline (use it on any text)
+
+draw a bezel called frame.
+draw ironwork called scrolls.
+draw a rule called keyline around the window, 2 out, 5 wide, corners 10.
+set studs along the frame, 38 apart, 11 big, clear of the corners and the middles.
+set jewels along the frame, 24 big.
+set rims around the studs and the jewels, 5 wide.
+set beads between the studs.
+draw a band called strip, from 54 to 126.
+fill the strip with crosshatch, 10 apart.
+grow a vine along the card, 88 in, leaving a gap at the top.
+set dots along the card, in 60 120, leaving a gap at the top 380.
+let the scrolls break the card edge.
+
+define $studded-finish as:
+  plate the card with black mirror.
+  engrave the crosshatch except the vine grown by 5 and the dots grown by 3, 0.015 mm deep.
+  inlay the vine and the dots with ivory.
+  outline the frame and the scrolls and the keyline except the studs and the jewels, 6 wide.
+  emboss the frame and the scrolls and the keyline, 0.16 mm high, soft 0.7.
+  plate the frame and the scrolls and the keyline with chrome.
+  inlay the scrolls-groove with niello, 0.03 mm deep.
+  emboss the beads, 0.12 mm high, soft 1.
+  plate the beads with chrome.
+  emboss the rims, 0.2 mm high, soft 0.8.
+  plate the rims with gold.
+  emboss the studs and the jewels, 0.24 mm high, soft 1.
+  plate the studs and the jewels with crystal.
+  spray the vine with pearl in ivory, opacity 0.3, 20 µm thick.
+end.
+
+define $gild as:
+  outline it, 8 wide.
+  emboss it, 0.2 mm high.
+  plate it with gold.
+  spray it with glitter in #f3d27a #e2b64e #fff0b8 #c99a3a, flakes 110 µm, density 0.7, 30 µm thick, overspray 0.
+end.

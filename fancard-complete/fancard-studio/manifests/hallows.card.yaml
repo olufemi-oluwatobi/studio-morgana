@@ -1,0 +1,279 @@
+# FANCARD MANIFEST v0.2 · All Hallows, Set 01 · "Candlelit Silver"
+# After the Paracosm poster: light silver ground drawn in black niello like pen on paper,
+# a thorny vine-and-rose frame wrapping a portrait window, starbursts, a swirly script title,
+# and candelabras with gold-foil flames in the bottom corners. The photo is printed as shot.
+# Artwork: art/hallows-candelabra.svg (regenerate with art/hallows-candelabra.py)
+# Build:  python3 fancard.py manifests/hallows.card.yaml
+
+fancard: 0.2
+id: hallows/set-01
+template: candlelit-silver@1
+seed: 20261031
+
+edition: { "no": 1, of: 100, set: 1 }
+creator: { name: All Hallows }     # card title; swap for her name when known
+
+blank:
+  stock: stainless
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]
+  grid: [1080, 1669]
+
+zones:
+  card:       { rect: [11, 11, 1058, 1647], r: 54 }
+  window:     { rect: [170, 320, 740, 940], r: 6 }
+  medallion:  { center: [540, 800], rx: 250, ry: 320 }
+  sig-title:  { center: [540, 238], max_width: 660, size: 200, rotate_deg: -4, overlay: true }
+
+tokens:
+  enamel:
+    niello: { name: niello, hex: "#0b0c0f", process: niello-inlay }
+  metal:
+    ground: { finish: silver, polish: satin }
+    relief: { finish: silver, polish: mirror }
+    glint:  { finish: mirror-chrome, polish: mirror }
+    flame:  { finish: gold-24k, polish: mirror }
+  type:
+    serif:  { family: Bodoni Moda, weight: 700, style: italic }
+    caps:   { family: Bodoni Moda, weight: 400 }
+    sans:   { family: Jost, weight: 700 }
+    sans-r: { family: Jost, weight: 500 }
+    script: { family: Mrs Saint Delafield }
+
+components:
+  outer-rules:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [26, 26, 1028, 1617], r: 46, w: 4 }
+      - { type: rect, rect: [40, 40, 1000, 1589], r: 34, w: 1.6 }
+  beads:
+    kind: shape.draw
+    items:
+      - { type: dotline, from: [100, 54], to: [980, 54], step: 14, r: 2 }
+      - { type: dotline, from: [100, 1615], to: [980, 1615], step: 14, r: 2 }
+  window-rule:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [160, 310, 760, 960], r: 10, w: 7 }
+  ink:
+    kind: shape.draw
+    items:
+      - { type: line, from: [104, 520], to: [121, 520], w: 2.6 }
+      - { type: line, from: [126, 520], to: [142, 520], w: 2.6 }
+      - { type: line, from: [102, 526], to: [107, 531], w: 1.8 }
+      - { type: line, from: [109, 533], to: [116, 540], w: 1.8 }
+      - { type: line, from: [96, 528], to: [96, 545], w: 2.6 }
+      - { type: line, from: [96, 550], to: [96, 566], w: 2.6 }
+      - { type: line, from: [90, 526], to: [85, 531], w: 1.8 }
+      - { type: line, from: [83, 533], to: [76, 540], w: 1.8 }
+      - { type: line, from: [88, 520], to: [71, 520], w: 2.6 }
+      - { type: line, from: [66, 520], to: [50, 520], w: 2.6 }
+      - { type: line, from: [90, 514], to: [85, 509], w: 1.8 }
+      - { type: line, from: [83, 507], to: [76, 500], w: 1.8 }
+      - { type: line, from: [96, 512], to: [96, 495], w: 2.6 }
+      - { type: line, from: [96, 490], to: [96, 474], w: 2.6 }
+      - { type: line, from: [102, 514], to: [107, 509], w: 1.8 }
+      - { type: line, from: [109, 507], to: [116, 500], w: 1.8 }
+      - { type: circle, c: [96, 520], r: 4.1, fill: true }
+      - { type: line, from: [994, 700], to: [1010, 700], w: 2.6 }
+      - { type: line, from: [1015, 700], to: [1030, 700], w: 2.6 }
+      - { type: line, from: [992, 706], to: [997, 711], w: 1.8 }
+      - { type: line, from: [999, 713], to: [1005, 719], w: 1.8 }
+      - { type: line, from: [986, 708], to: [986, 724], w: 2.6 }
+      - { type: line, from: [986, 729], to: [986, 744], w: 2.6 }
+      - { type: line, from: [980, 706], to: [975, 711], w: 1.8 }
+      - { type: line, from: [973, 713], to: [967, 719], w: 1.8 }
+      - { type: line, from: [978, 700], to: [962, 700], w: 2.6 }
+      - { type: line, from: [957, 700], to: [942, 700], w: 2.6 }
+      - { type: line, from: [980, 694], to: [975, 689], w: 1.8 }
+      - { type: line, from: [973, 687], to: [967, 681], w: 1.8 }
+      - { type: line, from: [986, 692], to: [986, 676], w: 2.6 }
+      - { type: line, from: [986, 671], to: [986, 656], w: 2.6 }
+      - { type: line, from: [992, 694], to: [997, 689], w: 1.8 }
+      - { type: line, from: [999, 687], to: [1005, 681], w: 1.8 }
+      - { type: circle, c: [986, 700], r: 4.0, fill: true }
+      - { type: line, from: [98, 1130], to: [111, 1130], w: 2.6 }
+      - { type: line, from: [114, 1130], to: [126, 1130], w: 2.6 }
+      - { type: line, from: [96, 1134], to: [100, 1138], w: 1.8 }
+      - { type: line, from: [102, 1140], to: [107, 1145], w: 1.8 }
+      - { type: line, from: [92, 1136], to: [92, 1149], w: 2.6 }
+      - { type: line, from: [92, 1152], to: [92, 1164], w: 2.6 }
+      - { type: line, from: [88, 1134], to: [84, 1138], w: 1.8 }
+      - { type: line, from: [82, 1140], to: [77, 1145], w: 1.8 }
+      - { type: line, from: [86, 1130], to: [73, 1130], w: 2.6 }
+      - { type: line, from: [70, 1130], to: [58, 1130], w: 2.6 }
+      - { type: line, from: [88, 1126], to: [84, 1122], w: 1.8 }
+      - { type: line, from: [82, 1120], to: [77, 1115], w: 1.8 }
+      - { type: line, from: [92, 1124], to: [92, 1111], w: 2.6 }
+      - { type: line, from: [92, 1108], to: [92, 1096], w: 2.6 }
+      - { type: line, from: [96, 1126], to: [100, 1122], w: 1.8 }
+      - { type: line, from: [102, 1120], to: [107, 1115], w: 1.8 }
+      - { type: circle, c: [92, 1130], r: 3.1, fill: true }
+      - { type: line, from: [893, 96], to: [904, 96], w: 2.6 }
+      - { type: line, from: [908, 96], to: [918, 96], w: 2.6 }
+      - { type: line, from: [892, 100], to: [895, 103], w: 1.8 }
+      - { type: line, from: [897, 105], to: [901, 109], w: 1.8 }
+      - { type: line, from: [888, 101], to: [888, 112], w: 2.6 }
+      - { type: line, from: [888, 116], to: [888, 126], w: 2.6 }
+      - { type: line, from: [884, 100], to: [881, 103], w: 1.8 }
+      - { type: line, from: [879, 105], to: [875, 109], w: 1.8 }
+      - { type: line, from: [883, 96], to: [872, 96], w: 2.6 }
+      - { type: line, from: [868, 96], to: [858, 96], w: 2.6 }
+      - { type: line, from: [884, 92], to: [881, 89], w: 1.8 }
+      - { type: line, from: [879, 87], to: [875, 83], w: 1.8 }
+      - { type: line, from: [888, 91], to: [888, 80], w: 2.6 }
+      - { type: line, from: [888, 76], to: [888, 66], w: 2.6 }
+      - { type: line, from: [892, 92], to: [895, 89], w: 1.8 }
+      - { type: line, from: [897, 87], to: [901, 83], w: 1.8 }
+      - { type: circle, c: [888, 96], r: 2.7, fill: true }
+      - { type: sparkle, at: [176, 112], size: 30 }
+      - { type: sparkle, at: [962, 300], size: 24 }
+      - { type: sparkle, at: [78, 820], size: 18 }
+      - { type: sparkle, at: [1000, 1000], size: 26 }
+      - { type: sparkle, at: [978, 1240], size: 14 }
+      - { type: sparkle, at: [84, 1300], size: 14 }
+      - { type: sparkle, at: [320, 1452], size: 11 }
+      - { type: sparkle, at: [760, 1452], size: 11 }
+      - { type: circle, c: [60, 690], r: 4, fill: true }
+      - { type: circle, c: [1010, 520], r: 4, fill: true }
+      - { type: circle, c: [1012, 1420], r: 4, fill: true }
+      - { type: circle, c: [66, 1470], r: 4, fill: true }
+      - { type: circle, c: [830, 150], r: 4, fill: true }
+      - { type: circle, c: [250, 200], r: 4, fill: true }
+  vines:
+    kind: ornament.thorn-rose
+    place: { at: window }
+    params:
+      weight: 6
+      off: 20
+      amp: 19
+      wave: 240
+      thorn: 46
+      thorn_len: 20
+      thorn_w: 4.5
+      leaf: 96
+      leaf_len: 50
+      roses:
+        - [176, 352, 44, 0.3]
+        - [908, 480, 36, 2.0]
+        - [160, 780, 32, 1.1]
+        - [920, 920, 42, 2.6]
+        - [176, 1200, 36, 0.7]
+        - [902, 1262, 46, 1.8]
+        - [470, 308, 30, 1.4]
+        - [650, 1272, 30, 0.2]
+  text-front:
+    kind: shape.draw
+    items:
+      - { type: text, at: [540, 1404], font: sans, size: 40, track: 1, text: "Nº {edition.no:03} / {edition.of}" }
+      - { type: text, at: [540, 1446], font: sans-r, size: 16, track: 2.4, text: "FANCARD  ·  ONE OF {edition.of}  ·  SET {edition.set:02}" }
+  text-back:
+    kind: shape.draw
+    items:
+      - { type: text, at: [540, 1404], font: sans, size: 40, track: 1, text: "FANCARD" }
+      - { type: text, at: [540, 1446], font: sans-r, size: 16, track: 2.4, text: "ALL HALLOWS' EVE  ·  SET {edition.set:02}" }
+  candelabra:
+    kind: artwork
+    src: ../art/hallows-candelabra.svg
+    layers: { fill: "#relief", ink: "#ink", flame: "#flame" }
+  title:
+    kind: type.signature
+    params: { text: "{creator.name}", font: script }
+  # back only
+  medallion-ring:
+    kind: frame.oval-medallion
+    params: { ring: 6, dots: 72 }
+    place: { at: medallion }
+  guilloche:
+    kind: shape.draw
+    items:
+      - { type: rosette, c: [540, 800], r0: 168, r1: 226, count: 132, w: 1.3 }
+      - { type: circle, c: [540, 800], r: 164, w: 3 }
+      - { type: circle, c: [540, 800], r: 230, w: 3 }
+  edition-type:
+    kind: type.stack
+    place: { in: medallion }
+    lines:
+      - { text: "Nº",              font: caps,  size: 22,  dy: -84, track: 8 }
+      - { text: "{edition.no:03}", font: serif, size: 150, dy: 48 }
+      - { text: "ONE OF {edition.of}  ·  SET {edition.set:02}", font: caps, size: 13, dy: 96, track: 4 }
+  stars-in:
+    kind: shape.draw
+    items:
+      - { type: scatter, rect: [190, 340, 700, 900], count: 70, r: [1.4, 3.4], seed: 31 }
+      - { type: sparkle, at: [250, 420], size: 22 }
+      - { type: sparkle, at: [832, 1150], size: 26 }
+      - { type: sparkle, at: [830, 430], size: 14 }
+      - { type: sparkle, at: [246, 1180], size: 14 }
+
+sides:
+  front:
+    ops:
+      - { op: brush,   params: { angle_deg: 90 } }
+      - { op: plate,   mask: card, metal: metal.ground }
+      # black pen-work on the silver: starbursts, sparkles, outlines round every raised part
+      - { op: engrave, mask: [ink, beads, text-front, "halo(outer-rules,3)", "halo(window-rule,3)", "halo(vines,3)", "halo(vines-leaf,3)", "halo(vines-thorns,2)", "halo(candelabra,3)", "grow(title,7)"], place: { title: sig-title }, params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: [ink, beads, text-front, "halo(outer-rules,3)", "halo(window-rule,3)", "halo(vines,3)", "halo(vines-leaf,3)", "halo(vines-thorns,2)", "halo(candelabra,3)", "grow(title,7)"], place: { title: sig-title }, color: enamel.niello }
+      # raised silver
+      - { op: emboss,  mask: [outer-rules, window-rule], params: { height_mm: 0.1 } }
+      - { op: plate,   mask: [outer-rules, window-rule], metal: metal.relief }
+      - { op: emboss,  mask: vines-leaf, params: { height_mm: 0.06, soft: 0.6 } }
+      - { op: plate,   mask: vines-leaf, metal: metal.relief }
+      - { op: emboss,  mask: vines, params: { height_mm: 0.12, soft: 0.7 } }
+      - { op: plate,   mask: vines, metal: metal.relief }
+      - { op: engrave, mask: [vines-detail, "&vines"], params: { depth_mm: 0.035 } }
+      - { op: enamel,  mask: [vines-detail, "&vines"], color: enamel.niello }
+      - { op: engrave, mask: [vines-detail, "&vines-leaf"], params: { depth_mm: 0.035 } }
+      - { op: enamel,  mask: [vines-detail, "&vines-leaf"], color: enamel.niello }
+      - { op: emboss,  mask: vines-thorns, params: { height_mm: 0.14 } }
+      - { op: plate,   mask: vines-thorns, metal: metal.glint }
+      - { op: emboss,  mask: candelabra, params: { height_mm: 0.12, soft: 0.7 } }
+      - { op: plate,   mask: candelabra, metal: metal.relief }
+      - { op: engrave, mask: [candelabra-ink, "&candelabra"], params: { depth_mm: 0.03 } }
+      - { op: enamel,  mask: [candelabra-ink, "&candelabra"], color: enamel.niello }
+      - { op: foil,    mask: candelabra-flame, metal: metal.flame, params: { emboss: 0.4 } }
+      # the photo, as shot
+      - op: print
+        mask: window
+        image:
+          src: ../assets/hallows.jpg
+          focus: [0.56, 0.42]
+          filters: []
+      # title script: raised mirror inside its black outline
+      - { op: emboss,  mask: title, place: { title: sig-title }, params: { height_mm: 0.2 } }
+      - { op: plate,   mask: title, place: { title: sig-title }, metal: metal.glint }
+
+  back:
+    ops:
+      - { op: brush,   params: { angle_deg: 90 } }
+      - { op: plate,   mask: card, metal: metal.ground }
+      - { op: engrave, mask: [window, ink, beads, text-back, "halo(outer-rules,3)", "halo(window-rule,3)", "halo(vines,3)", "halo(vines-leaf,3)", "halo(vines-thorns,2)", "halo(candelabra,3)", "grow(title,7)"], place: { title: sig-title }, params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: [window, ink, beads, text-back, "halo(outer-rules,3)", "halo(window-rule,3)", "halo(vines,3)", "halo(vines-leaf,3)", "halo(vines-thorns,2)", "halo(candelabra,3)", "grow(title,7)"], place: { title: sig-title }, color: enamel.niello }
+      - { op: emboss,  mask: [outer-rules, window-rule, medallion-ring, edition-type], params: { height_mm: 0.1 } }
+      - { op: plate,   mask: [outer-rules, window-rule, medallion-ring, edition-type], metal: metal.relief }
+      - { op: emboss,  mask: [guilloche, "-grow(edition-type,12)"], params: { height_mm: 0.04 } }
+      - { op: plate,   mask: [guilloche, "-grow(edition-type,12)"], metal: metal.relief }
+      - { op: foil,    mask: [stars-in, "&window", "-grow(medallion-ring,8)", "-grow(guilloche,10)"], metal: metal.glint, params: { emboss: 0.3 } }
+      - { op: emboss,  mask: vines-leaf, params: { height_mm: 0.06, soft: 0.6 } }
+      - { op: plate,   mask: vines-leaf, metal: metal.relief }
+      - { op: emboss,  mask: vines, params: { height_mm: 0.12, soft: 0.7 } }
+      - { op: plate,   mask: vines, metal: metal.relief }
+      - { op: engrave, mask: [vines-detail, "&vines"], params: { depth_mm: 0.035 } }
+      - { op: enamel,  mask: [vines-detail, "&vines"], color: enamel.niello }
+      - { op: engrave, mask: [vines-detail, "&vines-leaf"], params: { depth_mm: 0.035 } }
+      - { op: enamel,  mask: [vines-detail, "&vines-leaf"], color: enamel.niello }
+      - { op: emboss,  mask: vines-thorns, params: { height_mm: 0.14 } }
+      - { op: plate,   mask: vines-thorns, metal: metal.glint }
+      - { op: emboss,  mask: candelabra, params: { height_mm: 0.12, soft: 0.7 } }
+      - { op: plate,   mask: candelabra, metal: metal.relief }
+      - { op: engrave, mask: [candelabra-ink, "&candelabra"], params: { depth_mm: 0.03 } }
+      - { op: enamel,  mask: [candelabra-ink, "&candelabra"], color: enamel.niello }
+      - { op: foil,    mask: candelabra-flame, metal: metal.flame, params: { emboss: 0.4 } }
+      - { op: emboss,  mask: title, place: { title: sig-title }, params: { height_mm: 0.2 } }
+      - { op: plate,   mask: title, place: { title: sig-title }, metal: metal.glint }
+
+render:
+  lights: [-1, 0, 1]
+  bench: "#0e0f12"
+produce:
+  separations: per-op

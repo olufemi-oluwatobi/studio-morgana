@@ -1,0 +1,286 @@
+# FANCARD MANIFEST v0.2 · Marilyn Monroe · CONCEPT CARD v4 (not for sale)
+# Her photo fills the whole centre. Everything else lives in a studded bezel:
+#   heavy mirror-chrome ironwork with a black outline (breaks out of the card outline), crystal rhinestones, chrome beads,
+#   the flower band (vine, leaves, blossoms in ivory ink) over a crosshatch cut into the mirror, edged with ivory dot rows,
+#   and a square band of her films. "Marilyn" and "fancard" are gold glitter over gold mirror, outlined in black.
+# "fancard" in the gap at the top, her signature over the bottom of the photo.
+# Art: art/marilyn4-art.py   Build: python3 fancard.py manifests/marilyn4.card.yaml
+
+fancard: 0.2
+id: marilyn/concept-04
+template: studded-vanity@0
+seed: 19260601
+
+edition: { "no": 1, of: 1, set: 1 }
+creator: { name: Marilyn }
+
+blank:
+  stock: stainless
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]
+  grid: [1240, 1829]
+
+zones:
+  card:     { rect: [80, 80, 1080, 1669], r: 54 }
+  window:   { rect: [242, 242, 756, 1345], r: 9 }
+  sig-front: { center: [620, 1478], max_width: 620, size: 250, rotate_deg: -6, overlay: true }
+  sig-back:  { center: [620, 900], max_width: 680, size: 320, rotate_deg: -6, overlay: true }
+
+tokens:
+  enamel:
+    niello: { name: niello, hex: "#0b0c0f", process: niello-inlay }
+    ivory:  { name: ivory-pearl, hex: "#efe6d8", process: soft-enamel }
+  metal:
+    black:   { finish: mirror-black, polish: mirror }
+    chrome:  { finish: mirror-chrome, polish: mirror }
+    crystal: { finish: crystal }
+    gold:    { finish: gold-24k, polish: mirror }
+  type:
+    serif:  { family: Bodoni Moda, weight: 400, style: italic }
+    caps:   { family: Bodoni Moda, weight: 400 }
+    script: { family: Herr Von Muellerhoff }
+
+components:
+  art:
+    kind: artwork
+    src: ../art/marilyn4-art.svg
+    layers: { fill: "#frame", groove: "#groove", studs: "#studs", beads: "#beads", nature: "#nature", underlay: "#underlay", dots: "#dots", textfront: "#textfront", textback: "#textback" }
+  wordmark:
+    kind: shape.draw
+    items:
+      - { type: text, at: [620, 230], font: serif, size: 58, text: fancard }
+  rays:
+    kind: shape.draw
+    items:
+      - { type: line, from: [680, 914], to: [1520, 914], w: 2.2 }
+      - { type: line, from: [680, 916], to: [1519, 949], w: 1.1 }
+      - { type: line, from: [680, 919], to: [1517, 985], w: 2.2 }
+      - { type: line, from: [680, 921], to: [1514, 1020], w: 1.1 }
+      - { type: line, from: [679, 923], to: [1509, 1055], w: 2.2 }
+      - { type: line, from: [679, 926], to: [1503, 1090], w: 1.1 }
+      - { type: line, from: [678, 928], to: [1495, 1124], w: 2.2 }
+      - { type: line, from: [678, 930], to: [1486, 1158], w: 1.1 }
+      - { type: line, from: [677, 933], to: [1476, 1192], w: 2.2 }
+      - { type: line, from: [676, 935], to: [1464, 1226], w: 1.1 }
+      - { type: line, from: [675, 937], to: [1451, 1258], w: 2.2 }
+      - { type: line, from: [674, 939], to: [1437, 1291], w: 1.1 }
+      - { type: line, from: [673, 941], to: [1422, 1323], w: 2.2 }
+      - { type: line, from: [672, 943], to: [1405, 1354], w: 1.1 }
+      - { type: line, from: [671, 945], to: [1387, 1384], w: 2.2 }
+      - { type: line, from: [670, 947], to: [1368, 1414], w: 1.1 }
+      - { type: line, from: [669, 949], to: [1348, 1443], w: 2.2 }
+      - { type: line, from: [667, 951], to: [1327, 1471], w: 1.1 }
+      - { type: line, from: [666, 953], to: [1304, 1499], w: 2.2 }
+      - { type: line, from: [664, 955], to: [1281, 1525], w: 1.1 }
+      - { type: line, from: [662, 956], to: [1256, 1550], w: 2.2 }
+      - { type: line, from: [661, 958], to: [1231, 1575], w: 1.1 }
+      - { type: line, from: [659, 960], to: [1205, 1598], w: 2.2 }
+      - { type: line, from: [657, 961], to: [1177, 1621], w: 1.1 }
+      - { type: line, from: [655, 963], to: [1149, 1642], w: 2.2 }
+      - { type: line, from: [653, 964], to: [1120, 1662], w: 1.1 }
+      - { type: line, from: [651, 965], to: [1090, 1681], w: 2.2 }
+      - { type: line, from: [649, 966], to: [1060, 1699], w: 1.1 }
+      - { type: line, from: [647, 967], to: [1029, 1716], w: 2.2 }
+      - { type: line, from: [645, 968], to: [997, 1731], w: 1.1 }
+      - { type: line, from: [643, 969], to: [964, 1745], w: 2.2 }
+      - { type: line, from: [641, 970], to: [932, 1758], w: 1.1 }
+      - { type: line, from: [639, 971], to: [898, 1770], w: 2.2 }
+      - { type: line, from: [636, 972], to: [864, 1780], w: 1.1 }
+      - { type: line, from: [634, 972], to: [830, 1789], w: 2.2 }
+      - { type: line, from: [632, 973], to: [796, 1797], w: 1.1 }
+      - { type: line, from: [629, 973], to: [761, 1803], w: 2.2 }
+      - { type: line, from: [627, 974], to: [726, 1808], w: 1.1 }
+      - { type: line, from: [625, 974], to: [691, 1811], w: 2.2 }
+      - { type: line, from: [622, 974], to: [655, 1813], w: 1.1 }
+      - { type: line, from: [620, 974], to: [620, 1814], w: 2.2 }
+      - { type: line, from: [618, 974], to: [585, 1813], w: 1.1 }
+      - { type: line, from: [615, 974], to: [549, 1811], w: 2.2 }
+      - { type: line, from: [613, 974], to: [514, 1808], w: 1.1 }
+      - { type: line, from: [611, 973], to: [479, 1803], w: 2.2 }
+      - { type: line, from: [608, 973], to: [444, 1797], w: 1.1 }
+      - { type: line, from: [606, 972], to: [410, 1789], w: 2.2 }
+      - { type: line, from: [604, 972], to: [376, 1780], w: 1.1 }
+      - { type: line, from: [601, 971], to: [342, 1770], w: 2.2 }
+      - { type: line, from: [599, 970], to: [308, 1758], w: 1.1 }
+      - { type: line, from: [597, 969], to: [276, 1745], w: 2.2 }
+      - { type: line, from: [595, 968], to: [243, 1731], w: 1.1 }
+      - { type: line, from: [593, 967], to: [211, 1716], w: 2.2 }
+      - { type: line, from: [591, 966], to: [180, 1699], w: 1.1 }
+      - { type: line, from: [589, 965], to: [150, 1681], w: 2.2 }
+      - { type: line, from: [587, 964], to: [120, 1662], w: 1.1 }
+      - { type: line, from: [585, 963], to: [91, 1642], w: 2.2 }
+      - { type: line, from: [583, 961], to: [63, 1621], w: 1.1 }
+      - { type: line, from: [581, 960], to: [35, 1598], w: 2.2 }
+      - { type: line, from: [579, 958], to: [9, 1575], w: 1.1 }
+      - { type: line, from: [578, 956], to: [-16, 1550], w: 2.2 }
+      - { type: line, from: [576, 955], to: [-41, 1525], w: 1.1 }
+      - { type: line, from: [574, 953], to: [-64, 1498], w: 2.2 }
+      - { type: line, from: [573, 951], to: [-87, 1471], w: 1.1 }
+      - { type: line, from: [571, 949], to: [-108, 1443], w: 2.2 }
+      - { type: line, from: [570, 947], to: [-128, 1414], w: 1.1 }
+      - { type: line, from: [569, 945], to: [-147, 1384], w: 2.2 }
+      - { type: line, from: [568, 943], to: [-165, 1354], w: 1.1 }
+      - { type: line, from: [567, 941], to: [-182, 1323], w: 2.2 }
+      - { type: line, from: [566, 939], to: [-197, 1291], w: 1.1 }
+      - { type: line, from: [565, 937], to: [-211, 1258], w: 2.2 }
+      - { type: line, from: [564, 935], to: [-224, 1225], w: 1.1 }
+      - { type: line, from: [563, 933], to: [-236, 1192], w: 2.2 }
+      - { type: line, from: [562, 930], to: [-246, 1158], w: 1.1 }
+      - { type: line, from: [562, 928], to: [-255, 1124], w: 2.2 }
+      - { type: line, from: [561, 926], to: [-263, 1090], w: 1.1 }
+      - { type: line, from: [561, 923], to: [-269, 1055], w: 2.2 }
+      - { type: line, from: [560, 921], to: [-274, 1020], w: 1.1 }
+      - { type: line, from: [560, 919], to: [-277, 985], w: 2.2 }
+      - { type: line, from: [560, 916], to: [-279, 949], w: 1.1 }
+      - { type: line, from: [560, 914], to: [-280, 914], w: 2.2 }
+      - { type: line, from: [560, 912], to: [-279, 879], w: 1.1 }
+      - { type: line, from: [560, 909], to: [-277, 843], w: 2.2 }
+      - { type: line, from: [560, 907], to: [-274, 808], w: 1.1 }
+      - { type: line, from: [561, 905], to: [-269, 773], w: 2.2 }
+      - { type: line, from: [561, 902], to: [-263, 738], w: 1.1 }
+      - { type: line, from: [562, 900], to: [-255, 704], w: 2.2 }
+      - { type: line, from: [562, 898], to: [-246, 670], w: 1.1 }
+      - { type: line, from: [563, 895], to: [-236, 636], w: 2.2 }
+      - { type: line, from: [564, 893], to: [-224, 602], w: 1.1 }
+      - { type: line, from: [565, 891], to: [-211, 570], w: 2.2 }
+      - { type: line, from: [566, 889], to: [-197, 537], w: 1.1 }
+      - { type: line, from: [567, 887], to: [-182, 505], w: 2.2 }
+      - { type: line, from: [568, 885], to: [-165, 474], w: 1.1 }
+      - { type: line, from: [569, 883], to: [-147, 444], w: 2.2 }
+      - { type: line, from: [570, 881], to: [-128, 414], w: 1.1 }
+      - { type: line, from: [571, 879], to: [-108, 385], w: 2.2 }
+      - { type: line, from: [573, 877], to: [-87, 357], w: 1.1 }
+      - { type: line, from: [574, 875], to: [-64, 329], w: 2.2 }
+      - { type: line, from: [576, 873], to: [-41, 303], w: 1.1 }
+      - { type: line, from: [578, 872], to: [-16, 278], w: 2.2 }
+      - { type: line, from: [579, 870], to: [9, 253], w: 1.1 }
+      - { type: line, from: [581, 868], to: [36, 230], w: 2.2 }
+      - { type: line, from: [583, 867], to: [63, 207], w: 1.1 }
+      - { type: line, from: [585, 865], to: [91, 186], w: 2.2 }
+      - { type: line, from: [587, 864], to: [120, 166], w: 1.1 }
+      - { type: line, from: [589, 863], to: [150, 147], w: 2.2 }
+      - { type: line, from: [591, 862], to: [180, 129], w: 1.1 }
+      - { type: line, from: [593, 861], to: [211, 112], w: 2.2 }
+      - { type: line, from: [595, 860], to: [243, 97], w: 1.1 }
+      - { type: line, from: [597, 859], to: [276, 83], w: 2.2 }
+      - { type: line, from: [599, 858], to: [309, 70], w: 1.1 }
+      - { type: line, from: [601, 857], to: [342, 58], w: 2.2 }
+      - { type: line, from: [604, 856], to: [376, 48], w: 1.1 }
+      - { type: line, from: [606, 856], to: [410, 39], w: 2.2 }
+      - { type: line, from: [608, 855], to: [444, 31], w: 1.1 }
+      - { type: line, from: [611, 855], to: [479, 25], w: 2.2 }
+      - { type: line, from: [613, 854], to: [514, 20], w: 1.1 }
+      - { type: line, from: [615, 854], to: [549, 17], w: 2.2 }
+      - { type: line, from: [618, 854], to: [585, 15], w: 1.1 }
+      - { type: line, from: [620, 854], to: [620, 14], w: 2.2 }
+      - { type: line, from: [622, 854], to: [655, 15], w: 1.1 }
+      - { type: line, from: [625, 854], to: [691, 17], w: 2.2 }
+      - { type: line, from: [627, 854], to: [726, 20], w: 1.1 }
+      - { type: line, from: [629, 855], to: [761, 25], w: 2.2 }
+      - { type: line, from: [632, 855], to: [796, 31], w: 1.1 }
+      - { type: line, from: [634, 856], to: [830, 39], w: 2.2 }
+      - { type: line, from: [636, 856], to: [864, 48], w: 1.1 }
+      - { type: line, from: [639, 857], to: [898, 58], w: 2.2 }
+      - { type: line, from: [641, 858], to: [932, 70], w: 1.1 }
+      - { type: line, from: [643, 859], to: [964, 83], w: 2.2 }
+      - { type: line, from: [645, 860], to: [997, 97], w: 1.1 }
+      - { type: line, from: [647, 861], to: [1029, 112], w: 2.2 }
+      - { type: line, from: [649, 862], to: [1060, 129], w: 1.1 }
+      - { type: line, from: [651, 863], to: [1090, 147], w: 2.2 }
+      - { type: line, from: [653, 864], to: [1120, 166], w: 1.1 }
+      - { type: line, from: [655, 865], to: [1149, 186], w: 2.2 }
+      - { type: line, from: [657, 867], to: [1177, 207], w: 1.1 }
+      - { type: line, from: [659, 868], to: [1205, 230], w: 2.2 }
+      - { type: line, from: [661, 870], to: [1231, 253], w: 1.1 }
+      - { type: line, from: [662, 872], to: [1256, 278], w: 2.2 }
+      - { type: line, from: [664, 873], to: [1281, 303], w: 1.1 }
+      - { type: line, from: [666, 875], to: [1304, 330], w: 2.2 }
+      - { type: line, from: [667, 877], to: [1327, 357], w: 1.1 }
+      - { type: line, from: [669, 879], to: [1348, 385], w: 2.2 }
+      - { type: line, from: [670, 881], to: [1368, 414], w: 1.1 }
+      - { type: line, from: [671, 883], to: [1387, 444], w: 2.2 }
+      - { type: line, from: [672, 885], to: [1405, 474], w: 1.1 }
+      - { type: line, from: [673, 887], to: [1422, 505], w: 2.2 }
+      - { type: line, from: [674, 889], to: [1437, 537], w: 1.1 }
+      - { type: line, from: [675, 891], to: [1451, 570], w: 2.2 }
+      - { type: line, from: [676, 893], to: [1464, 603], w: 1.1 }
+      - { type: line, from: [677, 895], to: [1476, 636], w: 2.2 }
+      - { type: line, from: [678, 898], to: [1486, 670], w: 1.1 }
+      - { type: line, from: [678, 900], to: [1495, 704], w: 2.2 }
+      - { type: line, from: [679, 902], to: [1503, 738], w: 1.1 }
+      - { type: line, from: [679, 905], to: [1509, 773], w: 2.2 }
+      - { type: line, from: [680, 907], to: [1514, 808], w: 1.1 }
+      - { type: line, from: [680, 909], to: [1517, 843], w: 2.2 }
+      - { type: line, from: [680, 912], to: [1519, 879], w: 1.1 }
+  back-lines:
+    kind: shape.draw
+    items:
+      - { type: text, at: [620, 1300], font: caps, size: 28, track: 14, text: "Nº 001" }
+      - { type: text, at: [620, 1342], font: caps, size: 15, track: 8, text: "CONCEPT CARD  ·  NOT FOR SALE" }
+      - { type: sparkle, at: [620, 560], size: 30 }
+      - { type: sparkle, at: [470, 600], size: 12 }
+      - { type: sparkle, at: [770, 600], size: 12 }
+  signature:
+    kind: type.signature
+    params: { text: "{creator.name}", font: script }
+
+sides:
+  front:
+    silhouette: [art]
+    ops:
+      - { op: brush,   params: { angle_deg: 0 } }
+      - { op: plate,   mask: card, metal: metal.black }
+      - { op: engrave, mask: [art-underlay, "-grow(art-nature,5)", "-grow(art-dots,3)"], params: { depth_mm: 0.015 } }
+      - { op: engrave, mask: [art-nature, art-textfront, art-dots], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: [art-nature, art-textfront, art-dots], color: enamel.ivory }
+      - { op: engrave, mask: ["halo(art,6)", -art-studs], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: ["halo(art,6)", -art-studs], color: enamel.niello }
+      - { op: emboss,  mask: art, params: { height_mm: 0.16, soft: 0.7 } }
+      - { op: plate,   mask: art, metal: metal.chrome }
+      - { op: engrave, mask: [art-groove, "&art"], params: { depth_mm: 0.03 } }
+      - { op: enamel,  mask: [art-groove, "&art"], color: enamel.niello }
+      - { op: emboss,  mask: art-beads, params: { height_mm: 0.12, soft: 1 } }
+      - { op: plate,   mask: art-beads, metal: metal.chrome }
+      - { op: emboss,  mask: art-studs, params: { height_mm: 0.24, soft: 1 } }
+      - { op: plate,   mask: art-studs, metal: metal.crystal }
+      - op: print
+        mask: window
+        image: { src: ../assets/marilyn.jpg, focus: [0.5, 0.2], filters: [] }
+      - { op: spray,   kind: gloss, mask: window, params: { thickness_um: 30 } }
+      - { op: spray,   kind: pearl, mask: [art-nature, art-textfront], params: { color: "#efe6d8", opacity: 0.3, thickness_um: 20 } }
+      - { op: engrave, mask: ["grow(wordmark,7)", "grow(signature,9)"], place: { signature: sig-front }, params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: ["grow(wordmark,7)", "grow(signature,9)"], place: { signature: sig-front }, color: enamel.niello }
+      - { op: emboss,  mask: [wordmark, signature], place: { signature: sig-front }, params: { height_mm: 0.2 } }
+      - { op: plate,   mask: [wordmark, signature], place: { signature: sig-front }, metal: metal.gold }
+      - { op: spray,   kind: glitter, mask: [wordmark, signature], place: { signature: sig-front }, params: { color: ["#f3d27a", "#e2b64e", "#fff0b8", "#c99a3a"], flake_um: 110, density: 0.7, binder: gloss, thickness_um: 30, overspray_px: 0 } }
+  back:
+    silhouette: [art]
+    ops:
+      - { op: brush,   params: { angle_deg: 0 } }
+      - { op: plate,   mask: card, metal: metal.black }
+      - { op: engrave, mask: [rays, "&window", "-grow(signature,18)", "-grow(back-lines,12)"], place: { signature: sig-back }, params: { depth_mm: 0.02 } }
+      - { op: engrave, mask: [art-underlay, "-grow(art-nature,5)", "-grow(art-dots,3)"], params: { depth_mm: 0.015 } }
+      - { op: engrave, mask: [art-nature, art-textback, back-lines, art-dots], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: [art-nature, art-textback, back-lines, art-dots], color: enamel.ivory }
+      - { op: engrave, mask: ["halo(art,6)", -art-studs], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: ["halo(art,6)", -art-studs], color: enamel.niello }
+      - { op: emboss,  mask: art, params: { height_mm: 0.16, soft: 0.7 } }
+      - { op: plate,   mask: art, metal: metal.chrome }
+      - { op: engrave, mask: [art-groove, "&art"], params: { depth_mm: 0.03 } }
+      - { op: enamel,  mask: [art-groove, "&art"], color: enamel.niello }
+      - { op: emboss,  mask: art-beads, params: { height_mm: 0.12, soft: 1 } }
+      - { op: plate,   mask: art-beads, metal: metal.chrome }
+      - { op: emboss,  mask: art-studs, params: { height_mm: 0.24, soft: 1 } }
+      - { op: plate,   mask: art-studs, metal: metal.crystal }
+      - { op: spray,   kind: pearl, mask: [art-nature, art-textback, back-lines], params: { color: "#efe6d8", opacity: 0.3, thickness_um: 20 } }
+      - { op: engrave, mask: ["grow(wordmark,7)", "grow(signature,10)"], place: { signature: sig-back }, params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: ["grow(wordmark,7)", "grow(signature,10)"], place: { signature: sig-back }, color: enamel.niello }
+      - { op: emboss,  mask: [wordmark, signature], place: { signature: sig-back }, params: { height_mm: 0.2 } }
+      - { op: plate,   mask: [wordmark, signature], place: { signature: sig-back }, metal: metal.gold }
+      - { op: spray,   kind: glitter, mask: [wordmark, signature], place: { signature: sig-back }, params: { color: ["#f3d27a", "#e2b64e", "#fff0b8", "#c99a3a"], flake_um: 110, density: 0.7, binder: gloss, thickness_um: 30, overspray_px: 0 } }
+
+render:
+  lights: [-1, 0, 1]
+  bench: "#0e0f12"
+produce:
+  separations: per-op

@@ -1,0 +1,181 @@
+# FANCARD MANIFEST v0.2 · "90s Camera", Set 04
+# Template: lineart-tech@1 — anodised navy aluminium, monoline drawing engraved and filled
+# with lime glow-in-the-dark enamel; photo printed with a 90s flash-on-film night grade.
+# Build:  python3 fancard.py manifests/90s-camera.card.yaml
+
+fancard: 0.2
+id: 90s-camera/set-04
+template: lineart-tech@1
+seed: 19981107
+
+edition: { "no": 1, of: 100, set: 4 }
+card:    { title: "90s CAMERA", tagline: "NIGHT MODE  ·  FLASH ON  ·  ISO 400", stamp: "'98 11 07" }
+
+blank:
+  stock: anodized-navy
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]
+  grid: [1080, 1669]
+
+zones:
+  card:   { rect: [11, 11, 1058, 1647], r: 54 }
+  window: { rect: [156, 406, 768, 888], r: 52 }
+
+tokens:
+  enamel:
+    line: { name: lime-glow, hex: "#d9f53c", process: glow-enamel }
+  metal:
+    overlay: { finish: lime-foil, polish: satin }
+  type:
+    title: { family: Big Shoulders Display, weight: 900 }
+    label: { family: Michroma }
+    logo:  { family: Lilita One }
+  filter:
+    wash: night-flash
+
+components:
+  # shared top bar: pixel hearts (lives) + pixel bolts (battery), like a game HUD
+  topbar:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [40, 40, 1000, 1589], r: 34, w: 3.5 }
+      - { type: rect, rect: [54, 54, 972, 1561], r: 24, w: 1.5 }
+      - { type: pixelart, at: [84, 94], px: 6, rows: [".XX.XX.", "XXXXXXX", "XXXXXXX", ".XXXXX.", "..XXX..", "...X..."] }
+      - { type: pixelart, at: [134, 94], px: 6, rows: [".XX.XX.", "XXXXXXX", "XXXXXXX", ".XXXXX.", "..XXX..", "...X..."] }
+      - { type: pixelart, at: [184, 94], px: 6, rows: [".XX.XX.", "X..X..X", "X.....X", ".X...X.", "..X.X..", "...X..."] }
+      - { type: pixelart, at: [234, 94], px: 6, rows: [".XX.XX.", "X..X..X", "X.....X", ".X...X.", "..X.X..", "...X..."] }
+      - { type: pixelart, at: [880, 88], px: 6, rows: ["...XX", "..XX.", ".XX..", "XXXXX", "..XX.", ".XX..", "XX..."] }
+      - { type: pixelart, at: [922, 88], px: 6, rows: ["...XX", "..XX.", ".XX..", "XXXXX", "..XX.", ".XX..", "XX..."] }
+      - { type: pixelart, at: [964, 88], px: 6, rows: ["...XX", "..X..", ".X...", "XXXXX", "...X.", "..X..", "XX..."] }
+      - { type: text, at: [540, 112], font: label, size: 15, track: 3, text: "FANCARD  ·  SET {edition.set:02}" }
+      - { type: text, at: [540, 138], font: label, size: 12, track: 3, text: "Nº {edition.no:03} / {edition.of}" }
+      - { type: line, from: [54, 162], to: [1026, 162], w: 2.2 }
+
+  front-lineart:
+    kind: shape.draw
+    items:
+      # title block
+      - { type: text, at: [540, 312], font: title, size: 150, max_width: 760, text: "{card.title}" }
+      - { type: text, at: [540, 356], font: label, size: 14, track: 2, text: "{card.tagline}" }
+      - { type: dotline, from: [120, 350], to: [262, 350], step: 10 }
+      - { type: dotline, from: [818, 350], to: [960, 350], step: 10 }
+      # side meters
+      - { type: rect, rect: [72, 188, 36, 150], r: 18, w: 3 }
+      - { type: rect, rect: [80, 250, 20, 80], r: 10, fill: true }
+      - { type: rect, rect: [972, 188, 36, 150], r: 18, w: 3 }
+      - { type: rect, rect: [980, 218, 20, 112], r: 10, fill: true }
+      # CRT / viewfinder housing
+      - { type: rect, rect: [124, 374, 832, 952], r: 6, w: 3 }
+      - { type: rect, rect: [156, 406, 768, 888], r: 52, w: 3.5 }
+      - { type: line, from: [124, 374], to: [172, 422], w: 3 }
+      - { type: line, from: [956, 374], to: [908, 422], w: 3 }
+      - { type: line, from: [124, 1326], to: [172, 1278], w: 3 }
+      - { type: line, from: [956, 1326], to: [908, 1278], w: 3 }
+      # left side panel: speaker, chevrons, grille
+      - { type: circle, c: [90, 420], r: 20, w: 3 }
+      - { type: path, at: [82, 410], d: "M0 6 H6 L14 0 V20 L6 14 H0 Z", w: 2.5 }
+      - { type: line, from: [54, 456], to: [124, 456], w: 2 }
+      - { type: path, at: [74, 476], d: "M0 16 L16 0 L32 16 M0 34 L16 18 L32 34", w: 3 }
+      - { type: line, from: [54, 530], to: [124, 530], w: 2 }
+      - { type: hatch, rect: [62, 548, 54, 260], angle: 0, step: 14, w: 2.6 }
+      # right side panel: help button, chevrons, grille
+      - { type: circle, c: [990, 420], r: 20, w: 3 }
+      - { type: text, at: [990, 430], font: label, size: 22, text: "?" }
+      - { type: line, from: [956, 456], to: [1026, 456], w: 2 }
+      - { type: path, at: [974, 476], d: "M0 16 L16 0 L32 16 M0 34 L16 18 L32 34", w: 3 }
+      - { type: line, from: [956, 530], to: [1026, 530], w: 2 }
+      - { type: hatch, rect: [964, 548, 54, 260], angle: 0, step: 14, w: 2.6 }
+      # cables out of the housing into the 90s kit
+      - { type: path, d: "M250 1326 V1366 H168 V1434", w: 3 }
+      - { type: path, d: "M400 1326 V1376 H352 V1408", w: 3 }
+      - { type: path, d: "M544 1326 V1418", w: 3 }
+      - { type: path, d: "M688 1326 V1376 H716 V1414", w: 3 }
+      - { type: path, d: "M830 1326 V1366 H920 V1428", w: 3 }
+      # point-and-shoot, headphones, cassette, film canister, disposable
+      - { type: path, at: [96, 1418], w: 3.5, d: "M8 16 H136 Q144 16 144 24 V88 Q144 96 136 96 H8 Q0 96 0 88 V24 Q0 16 8 16 Z M18 6 H44 V16 M14 28 H46 V44 H14 Z M100 26 H128 V40 H100 Z M58 56 a26 26 0 1 0 52 0 a26 26 0 1 0 -52 0 M70 56 a14 14 0 1 0 28 0 a14 14 0 1 0 -28 0 M0 66 H40" }
+      - { type: path, at: [296, 1404], w: 3.5, d: "M12 66 V46 A44 44 0 0 1 100 46 V66 M0 56 H22 V96 H0 Z M90 56 H112 V96 H90 Z M22 76 H30 M82 76 H90" }
+      - { type: path, at: [474, 1418], w: 3.5, d: "M4 0 H136 Q140 0 140 4 V84 Q140 88 136 88 H4 Q0 88 0 84 V4 Q0 0 4 0 Z M28 20 H112 V52 H28 Z M40 36 a8 8 0 1 0 16 0 a8 8 0 1 0 -16 0 M84 36 a8 8 0 1 0 16 0 a8 8 0 1 0 -16 0 M56 36 H84 M30 88 L40 66 H100 L110 88" }
+      - { type: path, at: [676, 1404], w: 3.5, d: "M10 22 H70 V108 H10 Z M26 10 H54 V22 M10 36 H70 M10 94 H70 M70 40 H118 V90 H70 M80 46 h7 v7 h-7 z M98 46 h7 v7 h-7 z M80 77 h7 v7 h-7 z M98 77 h7 v7 h-7 z" }
+      - { type: path, at: [850, 1418], w: 3.5, d: "M0 10 H140 V90 H0 Z M12 22 H40 V36 H12 Z M88 50 a20 20 0 1 0 40 0 a20 20 0 1 0 -40 0 M100 50 a8 8 0 1 0 16 0 a8 8 0 1 0 -16 0 M12 54 H70 M12 66 H70 M12 78 H70 M110 10 V2 H130 V10" }
+      # footer
+      - { type: rect, rect: [430, 1546, 220, 60], r: 4, w: 3 }
+      - { type: text, at: [540, 1589], font: logo, size: 36, text: fancard }
+      - { type: text, at: [96, 1586], align: left, font: label, size: 12, track: 2, text: "SHOT ON FILM" }
+      - { type: text, at: [984, 1586], align: right, font: label, size: 12, track: 2, text: "36 EXP" }
+
+  viewfinder:            # foil over the print: what you'd see through the camera
+    kind: shape.draw
+    items:
+      - { type: path, d: "M196 488 V448 H236 M844 448 H884 V488 M196 1212 V1252 H236 M844 1252 H884 V1212", w: 4 }
+      - { type: pixelart, at: [214, 466], px: 4, rows: ["...XX", "..XX.", ".XX..", "XXXXX", "..XX.", ".XX..", "XX..."] }
+      - { type: path, d: "M820 466 H856 V486 H820 Z M856 472 H861 V480", w: 2.6 }
+      - { type: rect, rect: [824, 470, 22, 12], fill: true }
+
+  back-lineart:
+    kind: shape.draw
+    items:
+      # camera LCD panel: exposure counter = edition number
+      - { type: rect, rect: [170, 196, 740, 330], r: 34, w: 3.5 }
+      - { type: rect, rect: [200, 226, 680, 270], r: 16, w: 2 }
+      - { type: text, at: [232, 264], align: left, font: label, size: 15, track: 2, text: EXP }
+      - { type: text, at: [848, 264], align: right, font: label, size: 15, track: 2, text: ISO 400 }
+      - { type: seg7, at: [540, 282], h: 160, w: 15, align: center, text: "{edition.no:03}" }
+      - { type: text, at: [232, 480], align: left, font: label, size: 13, track: 2, text: "ONE OF {edition.of}" }
+      - { type: text, at: [848, 480], align: right, font: label, size: 13, track: 2, text: "SET {edition.set:02}" }
+      # night scene: camera firing its flash over a pixel-dust horizon and a perspective grid
+      - { type: path, at: [404, 596], scale: 1.9, w: 3.5, d: "M8 16 H136 Q144 16 144 24 V88 Q144 96 136 96 H8 Q0 96 0 88 V24 Q0 16 8 16 Z M18 6 H44 V16 M14 28 H46 V44 H14 Z M100 26 H128 V40 H100 Z M58 56 a26 26 0 1 0 52 0 a26 26 0 1 0 -52 0 M70 56 a14 14 0 1 0 28 0 a14 14 0 1 0 -28 0 M0 66 H40" }
+      - { type: path, d: "M420 640 L360 600 M414 664 L346 664 M420 688 L360 724", w: 3.5 }
+      - { type: pixels, rect: [170, 800, 740, 200], count: 3200, size: 8, falloff: 2.4, seed: 7 }
+      - { type: grid3d, rect: [70, 1000, 940, 300], lines_v: 12, lines_h: 7, w: 2.4 }
+      - { type: pixelart, at: [796, 586], px: 6, rows: ["..X..", "..X..", "XXXXX", "..X..", "..X.."] }
+      - { type: pixelart, at: [226, 760], px: 6, rows: ["..X..", "..X..", "XXXXX", "..X..", "..X.."] }
+      - { type: pixelart, at: [866, 860], px: 5, rows: [".X.", "XXX", ".X."] }
+      - { type: pixelart, at: [270, 610], px: 5, rows: [".X.", "XXX", ".X."] }
+      - { type: scatter, rect: [80, 560, 920, 400], count: 26, r: [2, 3.2], seed: 3 }
+      # footer
+      - { type: line, from: [54, 1330], to: [1026, 1330], w: 2.2 }
+      - { type: text, at: [540, 1444], font: title, size: 96, max_width: 700, text: "{card.title}" }
+      - { type: text, at: [540, 1494], font: label, size: 13, track: 2, text: "{card.tagline}" }
+      - { type: dotline, from: [120, 1488], to: [262, 1488], step: 10 }
+      - { type: dotline, from: [818, 1488], to: [960, 1488], step: 10 }
+      - { type: rect, rect: [430, 1530, 220, 62], r: 4, w: 3 }
+      - { type: text, at: [540, 1574], font: logo, size: 36, text: fancard }
+
+  lcd-ghost:             # unlit LCD segments, lightly debossed like a real display
+    kind: shape.draw
+    items:
+      - { type: seg7, at: [540, 282], h: 160, w: 15, align: center, text: "888" }
+
+sides:
+  front:
+    ops:
+      - { op: brush,   params: { angle_deg: 0 } }
+      - { op: engrave, mask: [topbar, front-lineart], params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: [topbar, front-lineart], color: enamel.line }
+      - op: print
+        mask: window
+        image:
+          src: ../assets/tiara-night.jpg
+          focus: [0.5, 0.6]
+          filters:
+            - { kind: grade,      preset: filter.wash }
+            - { kind: split-tone, shadows: "#1c5f5a", highlights: "#ffd6a0", amount: 0.24 }
+            - { kind: fade,       amount: 0.06, color: "#121c26" }
+            - { kind: halation,   threshold: 0.8, radius: 16, color: "#ff5a2a", amount: 0.5 }
+            - { kind: vignette,   amount: 0.65 }
+            - { kind: grain,      amount: 0.05, size: 0.8, chroma: 0.018 }
+            - { kind: datestamp,  text: "{card.stamp}", color: "#ff8a1e", size: 0.048, pos: [0.88, 0.93] }
+      - { op: foil, mask: viewfinder, metal: metal.overlay, params: { emboss: 0.25 } }
+
+  back:
+    ops:
+      - { op: brush,   params: { angle_deg: 0 } }
+      - { op: deboss,  mask: lcd-ghost, params: { height_mm: 0.012 } }
+      - { op: engrave, mask: [topbar, back-lineart], params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: [topbar, back-lineart], color: enamel.line }
+
+render:
+  lights: [-1, 0, 1]
+  bench: "#d9561a"
+produce:
+  separations: per-op

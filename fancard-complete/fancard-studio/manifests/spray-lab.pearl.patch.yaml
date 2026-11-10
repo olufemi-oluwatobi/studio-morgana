@@ -1,0 +1,11 @@
+# spray lab · pearl: brushed stainless, white pearl (pink/blue/gold flop)
+id: spray-lab/pearl
+sides:
+  front:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: spray, kind: pearl, mask: card, params: { opacity: 0.6, thickness_um: 40 } }
+  back:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: spray, kind: pearl, mask: card, params: { opacity: 0.6, thickness_um: 40 } }

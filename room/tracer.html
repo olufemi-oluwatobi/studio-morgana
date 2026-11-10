@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Room Light Test</title>
+<style>
+:root{--bg:#0e0e0f;--panel:#17171a;--ink:#ecebe7;--mute:#8d8b86;--line:#2a2a2e;--accent:#e69d27}
+:root[data-theme="light"]{--bg:#f4f2ee;--panel:#ffffff;--ink:#1b1b1d;--mute:#6b6964;--line:#dedbd4}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#f4f2ee;--panel:#ffffff;--ink:#1b1b1d;--mute:#6b6964;--line:#dedbd4}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:20px;margin:0 0 4px;letter-spacing:-.01em}
+p.sub{margin:0 0 16px;color:var(--mute)}
+.stage{position:relative;width:100%;aspect-ratio:3/2;background:#000;border-radius:10px;overflow:hidden;touch-action:none}
+.stage canvas,.stage img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.stage img{clip-path:inset(0 0 0 var(--split,100%))}
+.divider{position:absolute;top:0;bottom:0;width:2px;background:var(--accent);left:var(--split,100%);pointer-events:none}
+.tag{position:absolute;top:10px;padding:3px 8px;border-radius:4px;background:rgba(0,0,0,.55);color:#fff;font-size:12px}
+.tag.l{left:10px}.tag.r{right:10px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:7px 12px;cursor:pointer}
+button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.stat b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.stat span{color:var(--mute);font-size:12px}
+.msg{padding:14px;border:1px solid var(--line);border-radius:8px;background:var(--panel);margin-top:12px;display:none}
+</style>
+</head>
+<body>
+<main>
+<h1>Room light test</h1>
+<p class="sub">One living room, path traced live on your GPU with WebGPU. Drag across the image to compare with the offline reference.</p>
+<div class="stage" id="stage">
+  <canvas id="c" width="960" height="640"></canvas><canvas id="c2" width="960" height="640" hidden></canvas>
+  <img id="ref" alt="Offline reference render" src="__REF__">
+  <div class="divider"></div>
+  <span class="tag l">WebGPU, live</span><span class="tag r" id="reftag" hidden>Reference</span>
+</div>
+<div class="row">
+  <button id="cmp" aria-pressed="false">Compare with reference</button>
+  <button id="dn" aria-pressed="true">Denoise</button>
+  <button id="restart">Restart</button>
+</div>
+<div class="stats">
+  <div class="stat"><b id="spp">0</b><span>samples per pixel</span></div>
+  <div class="stat"><b id="sps">–</b><span>samples per second</span></div>
+  <div class="stat"><b id="t64">–</b><span>time to 64 spp</span></div>
+  <div class="stat"><b id="t256">–</b><span>time to 256 spp</span></div>
+  <div class="stat"><b id="t1024">–</b><span>time to 1024 spp</span></div>
+</div>
+<div class="msg" id="msg"></div>
+</main>
+<script>
+const SCENE = __SCENE__;
+const $ = id => document.getElementById(id);
+
+const WGSL = /* wgsl */`
+struct Prim { a: vec4f, b: vec4f, c: vec4f, k: vec4f };      // k.x type (0 box, 1 sphere, 2 rect), k.y material
+struct Mat  { base: vec4f, emit: vec4f };                      // base.w roughness, emit.w metal flag
+struct U {
+  org: vec4f, fwd: vec4f, right: vec4f, up: vec4f,             // right.w = tan(hfov/2), up.w = aspect
+  size: vec4u,                                                  // w, h, frame, spp this dispatch
+  misc: vec4f,                                                  // exposure, nprims, nlights, bounces
+  opt: vec4f,                                                   // denoise on, total spp
+};
+@group(0) @binding(0) var<uniform> u: U;
+@group(0) @binding(1) var<storage, read> prims: array<Prim>;
+@group(0) @binding(2) var<storage, read> mats: array<Mat>;
+@group(0) @binding(3) var<storage, read> lights: array<u32>;
+@group(0) @binding(4) var<storage, read_write> acc: array<vec4f>;
+@group(0) @binding(5) var<storage, read_write> gbuf: array<vec4f>;   // per pixel: normal+hit, albedo, position
+
+const PI = 3.14159265;
+const EPS = 1e-4;
+var<private> rng: u32;
+fn rand() -> f32 {
+  rng = rng * 747796405u + 2891336453u;
+  var w = ((rng >> ((rng >> 28u) + 4u)) ^ rng) * 277803737u;
+  w = (w >> 22u) ^ w;
+  return f32(w) / 4294967296.0;
+}
+
+struct Hit { t: f32, n: vec3f, id: i32 };
+
+fn hitPrim(i: i32, o: vec3f, d: vec3f, tmax: f32) -> Hit {
+  let p = prims[i];
+  var h = Hit(tmax, vec3f(0.), -1);
+  let kind = i32(p.k.x);
+  if (kind == 0) {
+    let inv = 1.0 / d;
+    let t0 = (p.a.xyz - o) * inv;
+    let t1 = (p.b.xyz - o) * inv;
+    let tn = min(t0, t1); let tf = max(t0, t1);
+    let tnear = max(max(tn.x, tn.y), tn.z);
+    let tfar = min(min(tf.x, tf.y), tf.z);
+    if (tnear <= tfar && tfar > EPS) {
+      var t = tnear; var inside = false;
+      if (t < EPS) { t = tfar; inside = true; }
+      if (t < tmax) {
+        var n = vec3f(0.);
+        if (!inside) {
+          if (tnear == tn.x) { n = vec3f(-sign(d.x), 0., 0.); }
+          else if (tnear == tn.y) { n = vec3f(0., -sign(d.y), 0.); }
+          else { n = vec3f(0., 0., -sign(d.z)); }
+        } else {
+          if (tfar == tf.x) { n = vec3f(-sign(d.x), 0., 0.); }
+          else if (tfar == tf.y) { n = vec3f(0., -sign(d.y), 0.); }
+          else { n = vec3f(0., 0., -sign(d.z)); }
+        }
+        h = Hit(t, n, i);
+      }
+    }
+  } else if (kind == 1) {
+    let oc = o - p.a.xyz; let r = p.a.w;
+    let b = dot(oc, d); let c = dot(oc, oc) - r * r;
+    let disc = b * b - c;
+    if (disc > 0.) {
+      let s = sqrt(disc);
+      var t = -b - s;
+      if (t < EPS) { t = -b + s; }
+      if (t > EPS && t < tmax) { h = Hit(t, normalize(o + d * t - p.a.xyz), i); }
+    }
+  } else {
+    let n = normalize(cross(p.b.xyz, p.c.xyz));
+    let dn = dot(d, n);
+    if (abs(dn) > 1e-8) {
+      let t = dot(p.a.xyz - o, n) / dn;
+      if (t > EPS && t < tmax) {
+        let q = o + d * t - p.a.xyz;
+        let s = dot(q, p.b.xyz) / dot(p.b.xyz, p.b.xyz);
+        let v = dot(q, p.c.xyz) / dot(p.c.xyz, p.c.xyz);
+        if (s >= 0. && s <= 1. && v >= 0. && v <= 1.) { h = Hit(t, n, i); }
+      }
+    }
+  }
+  return h;
+}
+
+fn trace(o: vec3f, d: vec3f, tmax: f32) -> Hit {
+  var best = Hit(tmax, vec3f(0.), -1);
+  let n = i32(u.misc.y);
+  for (var i = 0; i < n; i++) {
+    let h = hitPrim(i, o, d, best.t);
+    if (h.id >= 0) { best = h; }
+  }
+  return best;
+}
+
+fn basis(n: vec3f) -> mat3x3f {
+  let s = select(-1.0, 1.0, n.z >= 0.);
+  let a = -1.0 / (s + n.z); let b = n.x * n.y * a;
+  return mat3x3f(vec3f(1. + s * n.x * n.x * a, s * b, -s * n.x), vec3f(b, s + n.y * n.y * a, -n.y), n);
+}
+
+// GGX, alpha = roughness^2, Smith separable G
+fn D_ggx(nh: f32, a: f32) -> f32 { let a2 = a * a; let d = nh * nh * (a2 - 1.) + 1.; return a2 / (PI * d * d); }
+fn G1(nx: f32, a: f32) -> f32 { let a2 = a * a; return 2. * nx / (nx + sqrt(a2 + (1. - a2) * nx * nx)); }
+fn fresnel(f0: vec3f, c: f32) -> vec3f { return f0 + (1. - f0) * pow(1. - c, 5.); }
+
+// emitted radiance seen leaving prim id towards direction -d
+fn emitted(id: i32, n: vec3f, d: vec3f) -> vec3f {
+  let m = mats[i32(prims[id].k.y)];
+  if (dot(n, d) >= 0.) { return vec3f(0.); }            // one-sided emitters; sphere normal always faces out
+  return m.emit.xyz;
+}
+fn isEmitter(id: i32) -> bool { let e = mats[i32(prims[id].k.y)].emit.xyz; return dot(e, e) > 0.; }
+
+// solid-angle pdf of the light sampler picking direction wi from x that hits light id at distance t
+fn lightPdf(id: i32, x: vec3f, wi: vec3f, t: f32) -> f32 {
+  let p = prims[id]; let nl = u.misc.z;
+  if (i32(p.k.x) == 1) {
+    let to = p.a.xyz - x; let d2 = dot(to, to); let r = p.a.w;
+    let cmax = sqrt(max(0., 1. - r * r / d2));
+    return 1. / (2. * PI * max(1. - cmax, 1e-7)) / nl;
+  }
+  let cr = cross(p.b.xyz, p.c.xyz); let area = length(cr);
+  let cl = abs(dot(wi, cr / area));
+  return t * t / (area * max(cl, 1e-7)) / nl;
+}
+
+struct LS { wi: vec3f, pdf: f32, le: vec3f, dist: f32 };
+fn sampleLight(x: vec3f) -> LS {
+  let nl = u32(u.misc.z);
+  let li = i32(lights[min(u32(rand() * f32(nl)), nl - 1u)]);
+  let p = prims[li];
+  var s = LS(vec3f(0., 1., 0.), 0., vec3f(0.), 0.);
+  if (i32(p.k.x) == 1) {
+    let to = p.a.xyz - x; let d2 = dot(to, to); let r = p.a.w;
+    let cmax = sqrt(max(0., 1. - r * r / d2));
+    let ct = 1. - rand() * (1. - cmax);
+    let st = sqrt(max(0., 1. - ct * ct)); let ph = 2. * PI * rand();
+    let wi = basis(normalize(to)) * vec3f(cos(ph) * st, sin(ph) * st, ct);
+    let h = hitPrim(li, x, wi, 1e9);
+    if (h.id < 0) { return s; }
+    s = LS(wi, 1. / (2. * PI * (1. - cmax)) / f32(nl), mats[i32(p.k.y)].emit.xyz, h.t);
+  } else {
+    let q = p.a.xyz + rand() * p.b.xyz + rand() * p.c.xyz;
+    let cr = cross(p.b.xyz, p.c.xyz); let area = length(cr);
+    let to = q - x; let d2 = dot(to, to); let dist = sqrt(d2); let wi = to / dist;
+    let cl = dot(-wi, cr / area);
+    if (cl <= 0.) { return s; }
+    s = LS(wi, d2 / (area * cl) / f32(nl), mats[i32(p.k.y)].emit.xyz, dist);
+  }
+  return s;
+}
+
+// BSDF times cosine, and its sampling pdf. base.w roughness, emit.w metal flag
+fn bsdfF(m: Mat, n: vec3f, wo: vec3f, wi: vec3f) -> vec3f {
+  let nl = dot(n, wi); let nv = dot(n, wo);
+  if (nl <= 0. || nv <= 0.) { return vec3f(0.); }
+  if (m.emit.w < 0.5) { return m.base.xyz / PI * nl; }
+  let a = max(m.base.w * m.base.w, 1e-3);
+  let hv = normalize(wo + wi); let nh = max(dot(n, hv), 0.); let vh = max(dot(wo, hv), 0.);
+  return fresnel(m.base.xyz, vh) * D_ggx(nh, a) * G1(nl, a) * G1(nv, a) / (4. * nv);
+}
+fn bsdfPdf(m: Mat, n: vec3f, wo: vec3f, wi: vec3f) -> f32 {
+  let nl = dot(n, wi);
+  if (nl <= 0.) { return 0.; }
+  if (m.emit.w < 0.5) { return nl / PI; }
+  let a = max(m.base.w * m.base.w, 1e-3);
+  let hv = normalize(wo + wi); let nh = max(dot(n, hv), 0.); let vh = max(dot(wo, hv), 1e-7);
+  return D_ggx(nh, a) * nh / (4. * vh);
+}
+fn bsdfSample(m: Mat, n: vec3f, wo: vec3f) -> vec3f {
+  let r1 = rand(); let r2 = rand(); let ph = 2. * PI * r2;
+  if (m.emit.w < 0.5) {
+    let rr = sqrt(r1);
+    return basis(n) * vec3f(cos(ph) * rr, sin(ph) * rr, sqrt(max(0., 1. - r1)));
+  }
+  let a = max(m.base.w * m.base.w, 1e-3);
+  let ct = sqrt((1. - r1) / (1. + (a * a - 1.) * r1));
+  let st = sqrt(max(0., 1. - ct * ct));
+  let hv = basis(n) * vec3f(cos(ph) * st, sin(ph) * st, ct);
+  return reflect(-wo, hv);
+}
+fn power2(a: f32, b: f32) -> f32 { return a * a / max(a * a + b * b, 1e-20); }
+
+// path tracer with next-event estimation and multiple importance sampling (power heuristic)
+fn radiance(o0: vec3f, d0: vec3f) -> vec3f {
+  var o = o0; var d = d0;
+  var L = vec3f(0.); var thr = vec3f(1.);
+  var prevPdf = 0.; var prevX = o0;
+  let maxB = i32(u.misc.w);
+  for (var b = 0; b < maxB; b++) {
+    let h = trace(o, d, 1e9);
+    if (h.id < 0) { break; }
+    if (isEmitter(h.id)) {
+      let le = emitted(h.id, h.n, d);
+      var w = 1.;
+      if (b > 0) { w = power2(prevPdf, lightPdf(h.id, prevX, d, h.t)); }
+      L += thr * le * w;
+      break;
+    }
+    let m = mats[i32(prims[h.id].k.y)];
+    let x = o + d * h.t;
+    var n = h.n; if (dot(n, d) > 0.) { n = -n; }
+    let wo = -d;
+    let xo = x + n * EPS * 10.;
+    // light sample
+    let ls = sampleLight(xo);
+    if (ls.pdf > 0.) {
+      let f = bsdfF(m, n, wo, ls.wi);
+      if (any(f > vec3f(0.))) {
+        let s = trace(xo, ls.wi, ls.dist * (1. - 1e-3));
+        if (s.id < 0) { L += thr * ls.le * f / ls.pdf * power2(ls.pdf, bsdfPdf(m, n, wo, ls.wi)); }
+      }
+    }
+    // bsdf sample
+    let wi = bsdfSample(m, n, wo);
+    let pdf = bsdfPdf(m, n, wo, wi);
+    let f = bsdfF(m, n, wo, wi);
+    if (pdf <= 0. || !any(f > vec3f(0.))) { break; }
+    thr *= f / pdf;
+    prevPdf = pdf; prevX = xo; o = xo; d = wi;
+    if (b >= 3) {
+      let q = min(max(thr.x, max(thr.y, thr.z)), 0.95);
+      if (rand() > q) { break; }
+      thr /= q;
+    }
+  }
+  return L;
+}
+
+fn pcg(v: u32) -> u32 {
+  let s = v * 747796405u + 2891336453u;
+  let w = ((s >> ((s >> 28u) + 4u)) ^ s) * 277803737u;
+  return (w >> 22u) ^ w;
+}
+
+@compute @workgroup_size(8, 8)
+fn trace_main(@builtin(global_invocation_id) gid: vec3u) {
+  let w = u.size.x; let hgt = u.size.y;
+  if (gid.x >= w || gid.y >= hgt) { return; }
+  let idx = gid.y * w + gid.x;
+  rng = pcg(idx ^ pcg(u.size.z + 0x9E3779B9u));
+  rand(); rand();
+  if (u.size.z == 0u) {
+    let px = (f32(gid.x) + .5) / f32(w) * 2. - 1.;
+    let py = 1. - (f32(gid.y) + .5) / f32(hgt) * 2.;
+    let d = normalize(u.fwd.xyz + u.right.xyz * px * u.right.w + u.up.xyz * py * u.right.w / u.up.w);
+    let hh = trace(u.org.xyz, d, 1e9);
+    if (hh.id >= 0) {
+      var n = hh.n; if (dot(n, d) > 0.) { n = -n; }
+      let m = mats[i32(prims[hh.id].k.y)];
+      var alb = m.base.xyz;
+      if (isEmitter(hh.id)) { alb = vec3f(1.); }
+      gbuf[idx * 3u] = vec4f(n, 1.);
+      gbuf[idx * 3u + 1u] = vec4f(max(alb, vec3f(0.02)), 0.);
+      gbuf[idx * 3u + 2u] = vec4f(u.org.xyz + d * hh.t, f32(isEmitter(hh.id)));
+    } else {
+      gbuf[idx * 3u] = vec4f(0.); gbuf[idx * 3u + 1u] = vec4f(1.); gbuf[idx * 3u + 2u] = vec4f(0.);
+    }
+  }
+  var sum = vec3f(0.);
+  for (var s = 0u; s < u.size.w; s++) {
+    let px = (f32(gid.x) + rand()) / f32(w) * 2. - 1.;
+    let py = 1. - (f32(gid.y) + rand()) / f32(hgt) * 2.;
+    let tx = u.right.w; let ty = tx / u.up.w;
+    let d = normalize(u.fwd.xyz + u.right.xyz * px * tx + u.up.xyz * py * ty);
+    let c = radiance(u.org.xyz, d);
+    sum += select(c, vec3f(0.), any(c != c));      // drop NaNs
+  }
+  acc[idx] += vec4f(sum, f32(u.size.w));
+}
+
+@group(0) @binding(0) var<uniform> du: U;
+@group(0) @binding(4) var<storage, read> dacc: array<vec4f>;
+@group(0) @binding(5) var<storage, read> gread: array<vec4f>;
+@group(0) @binding(6) var<storage, read> dsrc: array<vec4f>;
+@group(0) @binding(7) var<uniform> pass_: vec4u;                // x step, y 1 = init
+@group(0) @binding(8) var<storage, read_write> ddst: array<vec4f>;
+@group(0) @binding(9) var<storage, read> dfin: array<vec4f>;
+
+fn lum(c: vec3f) -> f32 { return dot(c, vec3f(.2126, .7152, .0722)); }
+
+// edge-aware a-trous wavelet filter on albedo-demodulated radiance
+@compute @workgroup_size(8, 8)
+fn denoise_main(@builtin(global_invocation_id) gid: vec3u) {
+  let w = du.size.x; let h = du.size.y;
+  if (gid.x >= w || gid.y >= h) { return; }
+  let i = gid.y * w + gid.x;
+  if (pass_.y == 1u) {
+    let a = dacc[i];
+    ddst[i] = vec4f(a.xyz / max(a.w, 1.) / gread[i * 3u + 1u].xyz, 1.);
+    return;
+  }
+  let n = gread[i * 3u].xyz; let p = gread[i * 3u + 2u].xyz; let al = gread[i * 3u + 1u].xyz;
+  let c = dsrc[i].xyz; let lc = lum(c);
+  if (gread[i * 3u].w == 0. || gread[i * 3u + 2u].w == 1.) { ddst[i] = vec4f(c, 1.); return; }
+  let spp = max(du.opt.y, 1.);
+  let sigC = clamp(3. / sqrt(spp), 0.08, 3.);
+  let k = array<f32, 3>(3. / 8., 1. / 4., 1. / 16.);
+  let step = i32(pass_.x);
+  var sum = vec3f(0.); var ws = 0.;
+  for (var dy = -2; dy <= 2; dy++) {
+    for (var dx = -2; dx <= 2; dx++) {
+      let qx = i32(gid.x) + dx * step; let qy = i32(gid.y) + dy * step;
+      if (qx < 0 || qy < 0 || qx >= i32(w) || qy >= i32(h)) { continue; }
+      let j = u32(qy) * w + u32(qx);
+      if (gread[j * 3u].w == 0. || gread[j * 3u + 2u].w == 1.) { continue; }
+      let cq = dsrc[j].xyz;
+      let wn = pow(max(dot(n, gread[j * 3u].xyz), 0.), 64.);
+      let wp = exp(-abs(dot(n, gread[j * 3u + 2u].xyz - p)) / 0.01);
+      let da = al - gread[j * 3u + 1u].xyz;
+      let wa = exp(-dot(da, da) * 80.);
+      let wc = exp(-abs(lc - lum(cq)) / (sigC * (0.05 + lc)));
+      let wt = k[abs(dx)] * k[abs(dy)] * wn * wp * wa * wc;
+      sum += cq * wt; ws += wt;
+    }
+  }
+  ddst[i] = vec4f(sum / max(ws, 1e-6), 1.);
+}
+
+struct VO { @builtin(position) p: vec4f, @location(0) uv: vec2f };
+@vertex fn vs(@builtin(vertex_index) i: u32) -> VO {
+  let p = vec2f(f32((i << 1u) & 2u), f32(i & 2u));
+  return VO(vec4f(p * 2. - 1., 0., 1.), vec2f(p.x, 1. - p.y));
+}
+@fragment fn fs(v: VO) -> @location(0) vec4f {
+  let w = du.size.x; let h = du.size.y;
+  let ix = min(u32(v.uv.x * f32(w)), w - 1u); let iy = min(u32(v.uv.y * f32(h)), h - 1u);
+  let i = iy * w + ix;
+  let a = dacc[i];
+  var x = a.xyz / max(a.w, 1.);
+  if (du.opt.x > 0.5) { x = dfin[i].xyz * gread[i * 3u + 1u].xyz; }
+  x = x * du.misc.x;
+  x = clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), vec3f(0.), vec3f(1.));
+  let lo = 12.92 * x; let hi = 1.055 * pow(x, vec3f(1. / 2.4)) - 0.055;
+  return vec4f(select(hi, lo, x <= vec3f(0.0031308)), 1.);
+}
+`;
+
+function packScene(S) {
+  const names = Object.keys(S.materials);
+  const mi = Object.fromEntries(names.map((n, i) => [n, i]));
+  const mats = new Float32Array(names.length * 8);
+  names.forEach((n, i) => {
+    const m = S.materials[n], e = m.emit || [0, 0, 0];
+    mats.set([...m.base, m.rough ?? 1, ...e, m.metal ? 1 : 0], i * 8);
+  });
+  const prims = new Float32Array(S.prims.length * 16);
+  const lights = [];
+  S.prims.forEach((p, i) => {
+    const o = i * 16, k = mi[p.mat];
+    if (p.type === 'box') prims.set([...p.min, 0, ...p.max, 0, 0, 0, 0, 0, 0, k, 0, 0], o);
+    else if (p.type === 'sphere') prims.set([...p.center, p.radius, 0, 0, 0, 0, 0, 0, 0, 0, 1, k, 0, 0], o);
+    else prims.set([...p.corner, 0, ...p.u, 0, ...p.v, 0, 2, k, 0, 0], o);
+    if (S.materials[p.mat].emit) lights.push(i);
+  });
+  return { mats, prims, lights: new Uint32Array(lights) };
+}
+
+function camera(S) {
+  const c = S.camera, sub = (a, b) => a.map((v, i) => v - b[i]);
+  const norm = a => { const l = Math.hypot(...a); return a.map(v => v / l); };
+  const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  const f = norm(sub(c.target, c.origin));
+  const r = norm(cross(f, [0, 1, 0]));
+  const up = cross(r, f);
+  return { f, r, up, tanh: 18 / c.focal_mm, aspect: c.width / c.height };
+}
+
+const Q = new URLSearchParams(location.search);
+const HEADLESS = Q.has('headless');
+const READBACK = Q.has('readback');   // fallback when the WebGPU canvas cannot present
+const state = { spp: 0, frame: 0, t0: 0, marks: {}, running: true, denoise: true };
+
+async function main() {
+  const msg = $('msg');
+  const fail = t => { msg.style.display = 'block'; msg.textContent = t; $('cmp').click(); };
+  if (!navigator.gpu) return fail('This browser has no WebGPU. Try a recent Chrome, Edge or Safari. The reference image is shown instead.');
+  const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+  if (!adapter) return fail('WebGPU is present but no GPU adapter was found. The reference image is shown instead.');
+  const device = await adapter.requestDevice();
+  device.lost.then(info => {
+    if (info.reason === 'destroyed' && !READBACK && !HEADLESS) { const q = new URLSearchParams(location.search); q.set('readback', ''); location.search = q.toString(); }
+    else if (!HEADLESS) fail('The GPU device was lost: ' + info.message);
+  });
+  const S = SCENE, W = S.camera.width, H = S.camera.height;
+  let canvas = $('c'), ctx = null, c2d = null;
+  const format = navigator.gpu.getPreferredCanvasFormat();
+  for (const cv of [$('c'), $('c2')]) { cv.width = W; cv.height = H; }
+  if (READBACK) { $('c').hidden = true; $('c2').hidden = false; canvas = $('c2'); c2d = canvas.getContext('2d'); }
+  else { ctx = canvas.getContext('webgpu'); ctx.configure({ device, format, alphaMode: 'opaque' }); }
+
+  const pk = packScene(S), cam = camera(S);
+  const buf = (data, usage) => { const b = device.createBuffer({ size: Math.max(16, data.byteLength), usage: usage | GPUBufferUsage.COPY_DST }); device.queue.writeBuffer(b, 0, data); return b; };
+  const primB = buf(pk.prims, GPUBufferUsage.STORAGE);
+  const matB = buf(pk.mats, GPUBufferUsage.STORAGE);
+  const lightB = buf(pk.lights, GPUBufferUsage.STORAGE);
+  const accB = device.createBuffer({ size: W * H * 16, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC });
+  const gB = device.createBuffer({ size: W * H * 48, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC });
+  const dn = [0, 1].map(() => device.createBuffer({ size: W * H * 16, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC }));
+  const STEPS = [1, 2, 4, 8, 16];
+  const passB = [0, ...STEPS].map((s, i) => buf(new Uint32Array([s, i === 0 ? 1 : 0, 0, 0]), GPUBufferUsage.UNIFORM));
+  const uB = device.createBuffer({ size: 112, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+
+  const mod = device.createShaderModule({ code: WGSL });
+  const info = await mod.getCompilationInfo();
+  const errs = info.messages.filter(m => m.type === 'error');
+  if (errs.length) return fail('Shader error: ' + errs.map(e => `${e.lineNum}:${e.message}`).join('; '));
+
+  const tracePipe = device.createComputePipeline({ layout: 'auto', compute: { module: mod, entryPoint: 'trace_main' } });
+  const dnPipe = device.createComputePipeline({ layout: 'auto', compute: { module: mod, entryPoint: 'denoise_main' } });
+  const drawPipe = device.createRenderPipeline({ layout: 'auto', vertex: { module: mod, entryPoint: 'vs' }, fragment: { module: mod, entryPoint: 'fs', targets: [{ format }] }, primitive: { topology: 'triangle-list' } });
+  const traceBG = device.createBindGroup({ layout: tracePipe.getBindGroupLayout(0), entries: [uB, primB, matB, lightB, accB, gB].map((b, i) => ({ binding: i, resource: { buffer: b } })) });
+  // init writes dn[0]; then ping-pong so the last of five passes lands in dn[1]
+  const dnBG = passB.map((pb, i) => {
+    const src = i === 0 ? dn[1] : dn[(i + 1) % 2], dst = i === 0 ? dn[0] : dn[i % 2];
+    return device.createBindGroup({ layout: dnPipe.getBindGroupLayout(0), entries: [
+      { binding: 0, resource: { buffer: uB } }, { binding: 4, resource: { buffer: accB } }, { binding: 5, resource: { buffer: gB } },
+      { binding: 6, resource: { buffer: src } }, { binding: 7, resource: { buffer: pb } }, { binding: 8, resource: { buffer: dst } }] });
+  });
+  const drawBG = device.createBindGroup({ layout: drawPipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: uB } }, { binding: 4, resource: { buffer: accB } }, { binding: 5, resource: { buffer: gB } }, { binding: 9, resource: { buffer: dn[1] } }] });
+
+  let sppPerDispatch = 1;
+  const uData = new ArrayBuffer(112), uf = new Float32Array(uData), uu = new Uint32Array(uData);
+  function writeU() {
+    uf.set([...S.camera.origin, 0, ...cam.f, 0, ...cam.r, cam.tanh, ...cam.up, cam.aspect], 0);
+    uu.set([W, H, state.frame, sppPerDispatch], 16);
+    uf.set([S.exposure, S.prims.length, pk.lights.length, S.bounces, state.denoise ? 1 : 0, state.spp + sppPerDispatch], 20);
+    device.queue.writeBuffer(uB, 0, uData);
+  }
+  function restart() {
+    device.queue.writeBuffer(accB, 0, new Float32Array(W * H * 4));
+    Object.assign(state, { spp: 0, frame: 0, t0: performance.now(), marks: {} });
+    for (const k of ['t64', 't256', 't1024']) $(k).textContent = '–';
+  }
+  restart();
+  $('restart').onclick = restart;
+
+  let last = performance.now(), sppWindow = [], busy = false;
+  async function tick() {
+    if (!state.running) { requestAnimationFrame(tick); return; }
+    if (busy) { requestAnimationFrame(tick); return; }
+    busy = true;
+    writeU();
+    const enc = device.createCommandEncoder();
+    const cp = enc.beginComputePass(); cp.setPipeline(tracePipe); cp.setBindGroup(0, traceBG);
+    cp.dispatchWorkgroups(Math.ceil(W / 8), Math.ceil(H / 8)); cp.end();
+    if (state.denoise) for (const bg of dnBG) {
+      const dp = enc.beginComputePass(); dp.setPipeline(dnPipe); dp.setBindGroup(0, bg);
+      dp.dispatchWorkgroups(Math.ceil(W / 8), Math.ceil(H / 8)); dp.end();
+    }
+    if (!HEADLESS && !READBACK) {
+    const rp = enc.beginRenderPass({ colorAttachments: [{ view: ctx.getCurrentTexture().createView(), loadOp: 'clear', storeOp: 'store', clearValue: [0, 0, 0, 1] }] });
+    rp.setPipeline(drawPipe); rp.setBindGroup(0, drawBG); rp.draw(3); rp.end();
+    }
+    const t = performance.now();
+    device.queue.submit([enc.finish()]);
+    await device.queue.onSubmittedWorkDone();
+    const dt = performance.now() - t;
+    state.frame++; state.spp += sppPerDispatch;
+    // keep each dispatch near 30 ms so the page stays responsive
+    if (dt < 20 && sppPerDispatch < 16) sppPerDispatch++; else if (dt > 45 && sppPerDispatch > 1) sppPerDispatch--;
+    const now = performance.now(), el = (now - state.t0) / 1000;
+    sppWindow.push([now, state.spp]); while (sppWindow.length > 30) sppWindow.shift();
+    $('spp').textContent = state.spp;
+    if (sppWindow.length > 1) { const [a, b] = [sppWindow[0], sppWindow.at(-1)]; $('sps').textContent = ((b[1] - a[1]) / ((b[0] - a[0]) / 1000)).toFixed(1); }
+    for (const n of [64, 256, 1024]) if (state.spp >= n && !state.marks[n]) { state.marks[n] = el; $('t' + n).textContent = el.toFixed(1) + ' s'; }
+    if (READBACK && (state.frame % 4 === 1 || state.spp >= 4096)) await drawReadback();
+    window.__room = { spp: state.spp, elapsed: el };
+    busy = false;
+    if (state.spp < 4096) requestAnimationFrame(tick);
+  }
+  // linear radiance readback, used by the test harness
+  window.__readAccum = async () => {
+    const rb = device.createBuffer({ size: W * H * 16, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const e = device.createCommandEncoder(); e.copyBufferToBuffer(accB, 0, rb, 0, W * H * 16); device.queue.submit([e.finish()]);
+    await rb.mapAsync(GPUMapMode.READ); const a = Array.from(new Float32Array(rb.getMappedRange())); rb.unmap(); return a;
+  };
+  window.__readDenoised = async () => {
+    const rb = device.createBuffer({ size: W * H * 16, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const e = device.createCommandEncoder(); e.copyBufferToBuffer(dn[1], 0, rb, 0, W * H * 16); device.queue.submit([e.finish()]);
+    await rb.mapAsync(GPUMapMode.READ); const a = Array.from(new Float32Array(rb.getMappedRange())); rb.unmap(); return a;
+  };
+  let albedo = null;
+  async function drawReadback() {
+    if (!albedo) { const g = await window.__readGuide(); albedo = new Float32Array(W * H * 3); for (let i = 0; i < W * H; i++) albedo.set(g.slice(i * 12 + 4, i * 12 + 7), i * 3); }
+    const src = state.denoise ? await window.__readDenoised() : await window.__readAccum();
+    const img = c2d.createImageData(W, H), e = S.exposure;
+    for (let i = 0; i < W * H; i++) for (let c = 0; c < 3; c++) {
+      let x = state.denoise ? src[i * 4 + c] * albedo[i * 3 + c] : src[i * 4 + c] / Math.max(src[i * 4 + 3], 1);
+      x *= e; x = Math.min(1, Math.max(0, (x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14)));
+      img.data[i * 4 + c] = 255 * (x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055);
+    }
+    for (let i = 0; i < W * H; i++) img.data[i * 4 + 3] = 255;
+    c2d.putImageData(img, 0, 0);
+  }
+  window.__readGuide = async () => {
+    const rb = device.createBuffer({ size: W * H * 48, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const e = device.createCommandEncoder(); e.copyBufferToBuffer(gB, 0, rb, 0, W * H * 48); device.queue.submit([e.finish()]);
+    await rb.mapAsync(GPUMapMode.READ); const a = Array.from(new Float32Array(rb.getMappedRange())); rb.unmap(); return a;
+  };
+  $('dn').onclick = e => { state.denoise = !state.denoise; e.currentTarget.setAttribute('aria-pressed', state.denoise); if (state.spp >= 4096) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}
+
+// comparison slider
+const stage = $('stage');
+function setSplit(x) { stage.style.setProperty('--split', (x * 100).toFixed(2) + '%'); }
+$('cmp').onclick = e => {
+  const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
+  e.currentTarget.setAttribute('aria-pressed', on); $('reftag').hidden = !on; setSplit(on ? 0.5 : 1);
+};
+stage.addEventListener('pointermove', e => {
+  if ($('cmp').getAttribute('aria-pressed') !== 'true') return;
+  const r = stage.getBoundingClientRect(); setSplit(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)));
+});
+main();
+</script>
+</body>
+</html>

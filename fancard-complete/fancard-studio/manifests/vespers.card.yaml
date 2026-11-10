@@ -1,0 +1,236 @@
+# FANCARD MANIFEST v0.2 · "Vespers", Set 01
+# Template: holo-crescent@1 — dyed navy anodised blank; faceted holographic crescent; silver mirror line work
+# (dagger-cross and candles in the medallion); frosted engraved edition block. No photo.
+# Build:  python3 fancard.py manifests/vespers.card.yaml
+
+fancard: 0.2
+id: vespers/set-01
+template: holo-crescent@1
+seed: 20261107
+
+edition: { "no": 1, of: 100, set: 1 }
+creator: { name: Vespers }
+
+blank:
+  stock: anodized-midnight
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]
+  grid: [1080, 1669]
+
+zones:
+  card: { rect: [11, 11, 1058, 1647], r: 54 }
+  window: { rect: [190, 400, 700, 720], r: 0 }   # preview crop only; no photo on this card
+
+tokens:
+  metal:
+    holo:   { finish: holo-ice }
+    ice:    { finish: holo-ice }
+    silver: { finish: silver, polish: mirror }
+  type:
+    script:  { family: Mr Dafoe }
+    caps-r:  { family: Bodoni Moda, weight: 400 }
+    serif-r: { family: Bodoni Moda, weight: 400, style: italic }
+
+components:
+  moon-outer:
+    kind: shape.draw
+    items:
+      - { type: circle, c: [540, 760], r: 360, fill: true }
+  moon-cut:
+    kind: shape.draw
+    items:
+      - { type: circle, c: [668, 690], r: 300, fill: true }
+  facets:
+    kind: shape.draw
+    items:
+      - { type: line, from: [474, 1134], to: [330, 600], w: 7 }
+      - { type: line, from: [322, 1071], to: [300, 980], w: 7 }
+      - { type: line, from: [211, 950], to: [560, 1060], w: 7 }
+      - { type: line, from: [166, 826], to: [420, 1150], w: 7 }
+      - { type: line, from: [166, 694], to: [700, 1050], w: 7 }
+      - { type: line, from: [229, 542], to: [250, 780], w: 7 }
+      - { type: line, from: [350, 431], to: [820, 960], w: 7 }
+      - { type: line, from: [487, 384], to: [330, 600], w: 7 }
+      - { type: line, from: [638, 393], to: [300, 980], w: 7 }
+      - { type: line, from: [330, 600], to: [250, 780], w: 7 }
+      - { type: line, from: [250, 780], to: [300, 980], w: 7 }
+      - { type: line, from: [300, 980], to: [420, 1150], w: 7 }
+      - { type: line, from: [420, 1150], to: [560, 1060], w: 7 }
+      - { type: line, from: [560, 1060], to: [700, 1050], w: 7 }
+      - { type: line, from: [700, 1050], to: [820, 960], w: 7 }
+      - { type: line, from: [330, 600], to: [300, 980], w: 7 }
+      - { type: line, from: [300, 980], to: [560, 1060], w: 7 }
+      - { type: line, from: [560, 1060], to: [820, 960], w: 7 }
+  medallion-clear:
+    kind: shape.draw
+    items:
+      - { type: circle, c: [470, 730], r: 196, fill: true }
+  medallion-ring:
+    kind: shape.draw
+    items:
+      - { type: circle, c: [470, 730], r: 182, w: 12 }
+      - { type: circle, c: [470, 730], r: 162, w: 2.5 }
+  art:                      # dagger-cross between two candles
+    kind: shape.draw
+    items:
+      - { type: line, from: [470, 618], to: [470, 868], w: 11 }
+      - { type: line, from: [408, 676], to: [532, 676], w: 11 }
+      - { type: circle, c: [470, 604], r: 15, fill: true }
+      - { type: circle, c: [400, 676], r: 10, fill: true }
+      - { type: circle, c: [540, 676], r: 10, fill: true }
+      - { type: rect, rect: [352, 790, 26, 82], r: 4, fill: true }
+      - { type: rect, rect: [562, 790, 26, 82], r: 4, fill: true }
+      - { type: sparkle, at: [365, 768], size: 16 }
+      - { type: sparkle, at: [575, 768], size: 16 }
+      - { type: line, from: [540, 730], to: [585, 730], w: 2 }
+      - { type: line, from: [538, 748], to: [615, 769], w: 2 }
+      - { type: line, from: [531, 765], to: [570, 788], w: 2 }
+      - { type: line, from: [519, 779], to: [576, 836], w: 2 }
+      - { type: line, from: [505, 791], to: [528, 830], w: 2 }
+      - { type: line, from: [488, 798], to: [509, 875], w: 2 }
+      - { type: line, from: [470, 800], to: [470, 845], w: 2 }
+      - { type: line, from: [452, 798], to: [431, 875], w: 2 }
+      - { type: line, from: [435, 791], to: [412, 830], w: 2 }
+      - { type: line, from: [421, 779], to: [364, 836], w: 2 }
+      - { type: line, from: [409, 765], to: [370, 788], w: 2 }
+      - { type: line, from: [402, 748], to: [325, 769], w: 2 }
+      - { type: line, from: [400, 730], to: [355, 730], w: 2 }
+      - { type: line, from: [402, 712], to: [325, 691], w: 2 }
+      - { type: line, from: [409, 695], to: [370, 672], w: 2 }
+      - { type: line, from: [421, 681], to: [364, 624], w: 2 }
+      - { type: line, from: [435, 669], to: [412, 630], w: 2 }
+      - { type: line, from: [452, 662], to: [431, 585], w: 2 }
+      - { type: line, from: [470, 660], to: [470, 615], w: 2 }
+      - { type: line, from: [488, 662], to: [509, 585], w: 2 }
+      - { type: line, from: [505, 669], to: [528, 630], w: 2 }
+      - { type: line, from: [519, 681], to: [576, 624], w: 2 }
+      - { type: line, from: [531, 695], to: [570, 672], w: 2 }
+      - { type: line, from: [538, 712], to: [615, 691], w: 2 }
+  rays:
+    kind: shape.draw
+    items:
+      - { type: line, from: [728, 1113], to: [759, 1171], w: 2 }
+      - { type: line, from: [696, 1128], to: [739, 1229], w: 3 }
+      - { type: line, from: [664, 1140], to: [684, 1203], w: 2 }
+      - { type: line, from: [630, 1150], to: [655, 1257], w: 3 }
+      - { type: line, from: [596, 1156], to: [605, 1221], w: 2 }
+      - { type: line, from: [561, 1159], to: [566, 1269], w: 3 }
+      - { type: line, from: [526, 1160], to: [524, 1226], w: 2 }
+      - { type: line, from: [491, 1157], to: [478, 1266], w: 3 }
+      - { type: line, from: [457, 1151], to: [443, 1216], w: 2 }
+      - { type: line, from: [423, 1143], to: [391, 1248], w: 3 }
+      - { type: line, from: [390, 1131], to: [365, 1192], w: 2 }
+      - { type: line, from: [358, 1116], to: [308, 1214], w: 3 }
+  crosses:
+    kind: shape.draw
+    items:
+      - { type: line, from: [700, 300], to: [700, 352], w: 5 }
+      - { type: line, from: [682, 318], to: [718, 318], w: 5 }
+      - { type: line, from: [540, 1438], to: [540, 1490], w: 5 }
+      - { type: line, from: [522, 1456], to: [558, 1456], w: 5 }
+  rule:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [40, 40, 1000, 1589], r: 44, w: 3 }
+  title:
+    kind: shape.draw
+    items:
+      - { type: text, at: [540, 230], font: script, size: 104, text: Vespers }
+  sparkles:
+    kind: shape.draw
+    items:
+      - { type: sparkle, at: [250, 214], size: 34 }
+      - { type: sparkle, at: [312, 262], size: 14 }
+      - { type: sparkle, at: [838, 214], size: 34 }
+      - { type: sparkle, at: [880, 268], size: 16 }
+  info:
+    kind: shape.draw
+    items:
+      - { type: text, at: [250, 1338], font: caps-r, size: 30, track: 4, text: "Nº {edition.no:03}" }
+      - { type: line, from: [150, 1352], to: [350, 1352], w: 2 }
+      - { type: text, at: [250, 1408], font: caps-r, size: 30, track: 4, text: "OF {edition.of}" }
+      - { type: line, from: [150, 1422], to: [350, 1422], w: 2 }
+      - { type: text, at: [250, 1478], font: caps-r, size: 30, track: 4, text: "SET {edition.set:02}" }
+      - { type: line, from: [150, 1492], to: [350, 1492], w: 2 }
+  footer:
+    kind: shape.draw
+    items:
+      - { type: text, at: [540, 1570], font: serif-r, size: 32, track: 2, text: "— fancard —" }
+
+  # ── back ──
+  bmoon-outer:
+    kind: shape.draw
+    items:
+      - { type: circle, c: [540, 720], r: 230, fill: true }
+  bmoon-cut:
+    kind: shape.draw
+    items:
+      - { type: circle, c: [615, 672], r: 192, fill: true }
+  brays:
+    kind: shape.draw
+    items:
+      - { type: line, from: [800, 720], to: [850, 720], w: 2 }
+      - { type: line, from: [796, 765], to: [914, 786], w: 3 }
+      - { type: line, from: [784, 809], to: [831, 826], w: 2 }
+      - { type: line, from: [765, 850], to: [869, 910], w: 3 }
+      - { type: line, from: [739, 887], to: [777, 919], w: 2 }
+      - { type: line, from: [707, 919], to: [784, 1011], w: 3 }
+      - { type: line, from: [670, 945], to: [695, 988], w: 2 }
+      - { type: line, from: [629, 964], to: [670, 1077], w: 3 }
+      - { type: line, from: [585, 976], to: [594, 1025], w: 2 }
+      - { type: line, from: [540, 980], to: [540, 1100], w: 3 }
+      - { type: line, from: [495, 976], to: [486, 1025], w: 2 }
+      - { type: line, from: [451, 964], to: [410, 1077], w: 3 }
+      - { type: line, from: [410, 945], to: [385, 988], w: 2 }
+      - { type: line, from: [373, 919], to: [296, 1011], w: 3 }
+      - { type: line, from: [341, 887], to: [303, 919], w: 2 }
+      - { type: line, from: [315, 850], to: [211, 910], w: 3 }
+      - { type: line, from: [296, 809], to: [249, 826], w: 2 }
+      - { type: line, from: [284, 765], to: [166, 786], w: 3 }
+      - { type: line, from: [280, 720], to: [230, 720], w: 2 }
+      - { type: line, from: [284, 675], to: [166, 654], w: 3 }
+      - { type: line, from: [296, 631], to: [249, 614], w: 2 }
+      - { type: line, from: [315, 590], to: [211, 530], w: 3 }
+      - { type: line, from: [341, 553], to: [303, 521], w: 2 }
+      - { type: line, from: [373, 521], to: [296, 429], w: 3 }
+      - { type: line, from: [410, 495], to: [385, 452], w: 2 }
+      - { type: line, from: [451, 476], to: [410, 363], w: 3 }
+      - { type: line, from: [495, 464], to: [486, 415], w: 2 }
+      - { type: line, from: [540, 460], to: [540, 340], w: 3 }
+      - { type: line, from: [585, 464], to: [594, 415], w: 2 }
+      - { type: line, from: [629, 476], to: [670, 363], w: 3 }
+      - { type: line, from: [670, 495], to: [695, 452], w: 2 }
+      - { type: line, from: [707, 521], to: [784, 429], w: 3 }
+      - { type: line, from: [739, 553], to: [777, 521], w: 2 }
+      - { type: line, from: [765, 590], to: [869, 530], w: 3 }
+      - { type: line, from: [784, 631], to: [831, 614], w: 2 }
+      - { type: line, from: [796, 675], to: [914, 654], w: 3 }
+  bnumber:
+    kind: shape.draw
+    items:
+      - { type: text, at: [540, 1260], font: serif-r, size: 150, text: "{edition.no:03}" }
+      - { type: text, at: [540, 1330], font: caps-r, size: 24, track: 6, text: "ONE OF {edition.of} · SET {edition.set:02}" }
+
+sides:
+  front:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: foil,  mask: [moon-outer, -moon-cut, -facets, -medallion-clear], metal: metal.holo, params: { emboss: 0.25 } }
+      - { op: foil,  mask: [medallion-ring, art, rays, crosses, rule, title], metal: metal.silver, params: { emboss: 0.3 } }
+      - { op: foil,  mask: sparkles, metal: metal.ice, params: { emboss: 0.3 } }
+      - { op: engrave, mask: [info, footer], params: { depth_mm: 0.04 } }
+      - { op: etch,    mask: [info, footer] }
+  back:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: foil,  mask: [bmoon-outer, -bmoon-cut], metal: metal.holo, params: { emboss: 0.25 } }
+      - { op: foil,  mask: [brays, rule, crosses, bnumber], metal: metal.silver, params: { emboss: 0.3 } }
+      - { op: foil,  mask: sparkles, metal: metal.ice, params: { emboss: 0.3 } }
+      - { op: engrave, mask: footer, params: { depth_mm: 0.04 } }
+      - { op: etch,    mask: footer }
+
+render:
+  lights: [-1, 0, 1]
+  bench: "#070a1c"
+produce:
+  separations: per-op

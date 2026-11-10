@@ -1,0 +1,447 @@
+# FANCARD MANIFEST v0.2 · Marilyn Monroe · CONCEPT CARD v2 (not for sale)
+# From the edge in: (1) heavy chrome ironwork covering the card edges, breaking out of the outline,
+# (2) a band of natural vine-and-leaf engraving cut into the mirror, (3) a square band of her films
+# and years round the photo. "fancard" at the top, her signature at the bottom.
+# Inks: ivory pearl enamel in the engravings, blush-pearl spray on the ironwork, black only in the grooves
+# and the signature outline. No red, no gold in the design (photo printed as shot).
+# Art: art/marilyn2-art.py   Build: python3 fancard.py manifests/marilyn2.card.yaml
+
+fancard: 0.2
+id: marilyn/concept-02
+template: vanity-mirror@0
+seed: 19260601
+
+edition: { "no": 1, of: 1, set: 1 }
+creator: { name: Marilyn }
+
+blank:
+  stock: stainless
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]
+  grid: [1240, 1829]
+
+zones:
+  card:     { rect: [80, 80, 1080, 1669], r: 54 }
+  window:   { rect: [300, 342, 640, 884], r: 6 }
+  panel:    { rect: [204, 204, 832, 1421], r: 18 }
+  band:     { rect: [272, 300, 696, 954], r: 24 }
+  sig:      { center: [620, 1432], max_width: 620, size: 230, rotate_deg: -6, overlay: true }
+
+tokens:
+  enamel:
+    niello: { name: niello, hex: "#0b0c0f", process: niello-inlay }
+    ivory:  { name: ivory-pearl, hex: "#efe6d8", process: soft-enamel }
+  metal:
+    black:  { finish: mirror-black, polish: mirror }
+    chrome: { finish: mirror-chrome, polish: mirror }
+  type:
+    serif:  { family: Bodoni Moda, weight: 400, style: italic }
+    caps:   { family: Bodoni Moda, weight: 400 }
+    script: { family: Herr Von Muellerhoff }
+
+components:
+  art:
+    kind: artwork
+    src: ../art/marilyn2-art.svg
+    layers: { fill: "#frame", groove: "#groove", nature: "#nature", textfront: "#textfront", textback: "#textback" }
+  rays-front:
+    kind: shape.draw
+    items:
+      - { type: line, from: [620, 784], to: [1720, 784], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1719, 827], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1717, 870], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1712, 913], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1706, 956], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1699, 999], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1690, 1041], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1679, 1083], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1666, 1124], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1652, 1165], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1636, 1205], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1619, 1245], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1600, 1283], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1580, 1321], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1558, 1359], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1535, 1395], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1510, 1431], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1484, 1465], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1456, 1498], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1428, 1531], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1398, 1562], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1367, 1592], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1334, 1620], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1301, 1648], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1267, 1674], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1231, 1699], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1195, 1722], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1157, 1744], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1119, 1764], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1081, 1783], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1041, 1800], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1001, 1816], w: 1.1 }
+      - { type: line, from: [620, 784], to: [960, 1830], w: 2.2 }
+      - { type: line, from: [620, 784], to: [919, 1843], w: 1.1 }
+      - { type: line, from: [620, 784], to: [877, 1854], w: 2.2 }
+      - { type: line, from: [620, 784], to: [835, 1863], w: 1.1 }
+      - { type: line, from: [620, 784], to: [792, 1870], w: 2.2 }
+      - { type: line, from: [620, 784], to: [749, 1876], w: 1.1 }
+      - { type: line, from: [620, 784], to: [706, 1881], w: 2.2 }
+      - { type: line, from: [620, 784], to: [663, 1883], w: 1.1 }
+      - { type: line, from: [620, 784], to: [620, 1884], w: 2.2 }
+      - { type: line, from: [620, 784], to: [577, 1883], w: 1.1 }
+      - { type: line, from: [620, 784], to: [534, 1881], w: 2.2 }
+      - { type: line, from: [620, 784], to: [491, 1876], w: 1.1 }
+      - { type: line, from: [620, 784], to: [448, 1870], w: 2.2 }
+      - { type: line, from: [620, 784], to: [405, 1863], w: 1.1 }
+      - { type: line, from: [620, 784], to: [363, 1854], w: 2.2 }
+      - { type: line, from: [620, 784], to: [321, 1843], w: 1.1 }
+      - { type: line, from: [620, 784], to: [280, 1830], w: 2.2 }
+      - { type: line, from: [620, 784], to: [239, 1816], w: 1.1 }
+      - { type: line, from: [620, 784], to: [199, 1800], w: 2.2 }
+      - { type: line, from: [620, 784], to: [159, 1783], w: 1.1 }
+      - { type: line, from: [620, 784], to: [121, 1764], w: 2.2 }
+      - { type: line, from: [620, 784], to: [83, 1744], w: 1.1 }
+      - { type: line, from: [620, 784], to: [45, 1722], w: 2.2 }
+      - { type: line, from: [620, 784], to: [9, 1699], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-27, 1674], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-61, 1648], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-94, 1620], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-127, 1592], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-158, 1562], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-188, 1531], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-216, 1498], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-244, 1465], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-270, 1431], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-295, 1395], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-318, 1359], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-340, 1321], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-360, 1283], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-379, 1245], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-396, 1205], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-412, 1165], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-426, 1124], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-439, 1083], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-450, 1041], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-459, 999], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-466, 956], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-472, 913], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-477, 870], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-479, 827], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-480, 784], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-479, 741], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-477, 698], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-472, 655], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-466, 612], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-459, 569], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-450, 527], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-439, 485], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-426, 444], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-412, 403], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-396, 363], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-379, 323], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-360, 285], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-340, 247], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-318, 209], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-295, 173], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-270, 137], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-244, 103], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-216, 70], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-188, 37], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-158, 6], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-127, -24], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-94, -52], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-61, -80], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-27, -106], w: 2.2 }
+      - { type: line, from: [620, 784], to: [9, -131], w: 1.1 }
+      - { type: line, from: [620, 784], to: [45, -154], w: 2.2 }
+      - { type: line, from: [620, 784], to: [83, -176], w: 1.1 }
+      - { type: line, from: [620, 784], to: [121, -196], w: 2.2 }
+      - { type: line, from: [620, 784], to: [159, -215], w: 1.1 }
+      - { type: line, from: [620, 784], to: [199, -232], w: 2.2 }
+      - { type: line, from: [620, 784], to: [239, -248], w: 1.1 }
+      - { type: line, from: [620, 784], to: [280, -262], w: 2.2 }
+      - { type: line, from: [620, 784], to: [321, -275], w: 1.1 }
+      - { type: line, from: [620, 784], to: [363, -286], w: 2.2 }
+      - { type: line, from: [620, 784], to: [405, -295], w: 1.1 }
+      - { type: line, from: [620, 784], to: [448, -302], w: 2.2 }
+      - { type: line, from: [620, 784], to: [491, -308], w: 1.1 }
+      - { type: line, from: [620, 784], to: [534, -313], w: 2.2 }
+      - { type: line, from: [620, 784], to: [577, -315], w: 1.1 }
+      - { type: line, from: [620, 784], to: [620, -316], w: 2.2 }
+      - { type: line, from: [620, 784], to: [663, -315], w: 1.1 }
+      - { type: line, from: [620, 784], to: [706, -313], w: 2.2 }
+      - { type: line, from: [620, 784], to: [749, -308], w: 1.1 }
+      - { type: line, from: [620, 784], to: [792, -302], w: 2.2 }
+      - { type: line, from: [620, 784], to: [835, -295], w: 1.1 }
+      - { type: line, from: [620, 784], to: [877, -286], w: 2.2 }
+      - { type: line, from: [620, 784], to: [919, -275], w: 1.1 }
+      - { type: line, from: [620, 784], to: [960, -262], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1001, -248], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1041, -232], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1081, -215], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1119, -196], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1157, -176], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1195, -154], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1231, -131], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1267, -106], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1301, -80], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1334, -52], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1367, -24], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1398, 6], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1428, 37], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1456, 70], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1484, 103], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1510, 137], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1535, 173], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1558, 209], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1580, 247], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1600, 285], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1619, 323], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1636, 363], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1652, 403], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1666, 444], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1679, 485], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1690, 527], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1699, 569], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1706, 612], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1712, 655], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1717, 698], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1719, 741], w: 1.1 }
+  rays-back:
+    kind: shape.draw
+    items:
+      - { type: line, from: [620, 784], to: [1720, 784], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1719, 827], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1717, 870], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1712, 913], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1706, 956], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1699, 999], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1690, 1041], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1679, 1083], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1666, 1124], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1652, 1165], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1636, 1205], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1619, 1245], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1600, 1283], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1580, 1321], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1558, 1359], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1535, 1395], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1510, 1431], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1484, 1465], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1456, 1498], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1428, 1531], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1398, 1562], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1367, 1592], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1334, 1620], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1301, 1648], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1267, 1674], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1231, 1699], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1195, 1722], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1157, 1744], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1119, 1764], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1081, 1783], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1041, 1800], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1001, 1816], w: 1.1 }
+      - { type: line, from: [620, 784], to: [960, 1830], w: 2.2 }
+      - { type: line, from: [620, 784], to: [919, 1843], w: 1.1 }
+      - { type: line, from: [620, 784], to: [877, 1854], w: 2.2 }
+      - { type: line, from: [620, 784], to: [835, 1863], w: 1.1 }
+      - { type: line, from: [620, 784], to: [792, 1870], w: 2.2 }
+      - { type: line, from: [620, 784], to: [749, 1876], w: 1.1 }
+      - { type: line, from: [620, 784], to: [706, 1881], w: 2.2 }
+      - { type: line, from: [620, 784], to: [663, 1883], w: 1.1 }
+      - { type: line, from: [620, 784], to: [620, 1884], w: 2.2 }
+      - { type: line, from: [620, 784], to: [577, 1883], w: 1.1 }
+      - { type: line, from: [620, 784], to: [534, 1881], w: 2.2 }
+      - { type: line, from: [620, 784], to: [491, 1876], w: 1.1 }
+      - { type: line, from: [620, 784], to: [448, 1870], w: 2.2 }
+      - { type: line, from: [620, 784], to: [405, 1863], w: 1.1 }
+      - { type: line, from: [620, 784], to: [363, 1854], w: 2.2 }
+      - { type: line, from: [620, 784], to: [321, 1843], w: 1.1 }
+      - { type: line, from: [620, 784], to: [280, 1830], w: 2.2 }
+      - { type: line, from: [620, 784], to: [239, 1816], w: 1.1 }
+      - { type: line, from: [620, 784], to: [199, 1800], w: 2.2 }
+      - { type: line, from: [620, 784], to: [159, 1783], w: 1.1 }
+      - { type: line, from: [620, 784], to: [121, 1764], w: 2.2 }
+      - { type: line, from: [620, 784], to: [83, 1744], w: 1.1 }
+      - { type: line, from: [620, 784], to: [45, 1722], w: 2.2 }
+      - { type: line, from: [620, 784], to: [9, 1699], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-27, 1674], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-61, 1648], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-94, 1620], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-127, 1592], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-158, 1562], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-188, 1531], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-216, 1498], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-244, 1465], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-270, 1431], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-295, 1395], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-318, 1359], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-340, 1321], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-360, 1283], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-379, 1245], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-396, 1205], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-412, 1165], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-426, 1124], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-439, 1083], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-450, 1041], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-459, 999], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-466, 956], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-472, 913], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-477, 870], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-479, 827], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-480, 784], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-479, 741], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-477, 698], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-472, 655], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-466, 612], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-459, 569], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-450, 527], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-439, 485], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-426, 444], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-412, 403], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-396, 363], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-379, 323], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-360, 285], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-340, 247], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-318, 209], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-295, 173], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-270, 137], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-244, 103], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-216, 70], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-188, 37], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-158, 6], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-127, -24], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-94, -52], w: 2.2 }
+      - { type: line, from: [620, 784], to: [-61, -80], w: 1.1 }
+      - { type: line, from: [620, 784], to: [-27, -106], w: 2.2 }
+      - { type: line, from: [620, 784], to: [9, -131], w: 1.1 }
+      - { type: line, from: [620, 784], to: [45, -154], w: 2.2 }
+      - { type: line, from: [620, 784], to: [83, -176], w: 1.1 }
+      - { type: line, from: [620, 784], to: [121, -196], w: 2.2 }
+      - { type: line, from: [620, 784], to: [159, -215], w: 1.1 }
+      - { type: line, from: [620, 784], to: [199, -232], w: 2.2 }
+      - { type: line, from: [620, 784], to: [239, -248], w: 1.1 }
+      - { type: line, from: [620, 784], to: [280, -262], w: 2.2 }
+      - { type: line, from: [620, 784], to: [321, -275], w: 1.1 }
+      - { type: line, from: [620, 784], to: [363, -286], w: 2.2 }
+      - { type: line, from: [620, 784], to: [405, -295], w: 1.1 }
+      - { type: line, from: [620, 784], to: [448, -302], w: 2.2 }
+      - { type: line, from: [620, 784], to: [491, -308], w: 1.1 }
+      - { type: line, from: [620, 784], to: [534, -313], w: 2.2 }
+      - { type: line, from: [620, 784], to: [577, -315], w: 1.1 }
+      - { type: line, from: [620, 784], to: [620, -316], w: 2.2 }
+      - { type: line, from: [620, 784], to: [663, -315], w: 1.1 }
+      - { type: line, from: [620, 784], to: [706, -313], w: 2.2 }
+      - { type: line, from: [620, 784], to: [749, -308], w: 1.1 }
+      - { type: line, from: [620, 784], to: [792, -302], w: 2.2 }
+      - { type: line, from: [620, 784], to: [835, -295], w: 1.1 }
+      - { type: line, from: [620, 784], to: [877, -286], w: 2.2 }
+      - { type: line, from: [620, 784], to: [919, -275], w: 1.1 }
+      - { type: line, from: [620, 784], to: [960, -262], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1001, -248], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1041, -232], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1081, -215], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1119, -196], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1157, -176], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1195, -154], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1231, -131], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1267, -106], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1301, -80], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1334, -52], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1367, -24], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1398, 6], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1428, 37], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1456, 70], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1484, 103], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1510, 137], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1535, 173], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1558, 209], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1580, 247], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1600, 285], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1619, 323], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1636, 363], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1652, 403], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1666, 444], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1679, 485], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1690, 527], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1699, 569], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1706, 612], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1712, 655], w: 1.1 }
+      - { type: line, from: [620, 784], to: [1717, 698], w: 2.2 }
+      - { type: line, from: [620, 784], to: [1719, 741], w: 1.1 }
+  wordmark:
+    kind: shape.draw
+    items:
+      - { type: text, at: [620, 284], font: serif, size: 64, text: fancard }
+      - { type: sparkle, at: [500, 262], size: 10 }
+      - { type: sparkle, at: [740, 262], size: 10 }
+  sparkles:
+    kind: shape.draw
+    items:
+      - { type: sparkle, at: [300, 1330], size: 16 }
+      - { type: sparkle, at: [944, 1520], size: 13 }
+      - { type: sparkle, at: [262, 1560], size: 9 }
+      - { type: sparkle, at: [978, 1312], size: 9 }
+  back-centre:
+    kind: shape.draw
+    items:
+      - { type: text, at: [620, 800], font: serif, size: 168, text: fancard }
+      - { type: text, at: [620, 884], font: caps, size: 26, track: 14, text: "Nº 001" }
+      - { type: text, at: [620, 924], font: caps, size: 15, track: 8, text: "CONCEPT CARD  ·  NOT FOR SALE" }
+      - { type: sparkle, at: [620, 640], size: 26 }
+  signature:
+    kind: type.signature
+    params: { text: "{creator.name}", font: script }
+
+sides:
+  front:
+    silhouette: [art]
+    ops:
+      - { op: brush,   params: { angle_deg: 0 } }
+      - { op: plate,   mask: card, metal: metal.black }
+      # mirror engraving: spotlight rays inside the panel, left unfilled so they catch light
+      - { op: engrave, mask: [rays-front, "&panel", -band, "-grow(signature,16)", "-grow(wordmark,10)"], place: { signature: sig }, params: { depth_mm: 0.02 } }
+      # ivory ink: natural engraving band, text band, wordmark, sparkles
+      - { op: engrave, mask: [art-nature, art-textfront, wordmark, sparkles], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: [art-nature, art-textfront, wordmark, sparkles], color: enamel.ivory }
+      # frame 1: heavy chrome ironwork, black grooves, blush-pearl spray
+      - { op: emboss,  mask: art, params: { height_mm: 0.16, soft: 0.7 } }
+      - { op: plate,   mask: art, metal: metal.chrome }
+      - { op: engrave, mask: [art-groove, "&art"], params: { depth_mm: 0.03 } }
+      - { op: enamel,  mask: [art-groove, "&art"], color: enamel.niello }
+      - { op: spray,   kind: pearl, mask: art, params: { color: "#f6e3e6", flop: ["#ffd6e0", "#efe6da", "#e4dcf6"], opacity: 0.5, thickness_um: 35 } }
+      - op: print
+        mask: window
+        image: { src: ../assets/marilyn.jpg, focus: [0.5, 0.25], filters: [] }
+      - { op: spray,   kind: gloss, mask: window, params: { thickness_um: 30 } }
+      - { op: spray,   kind: pearl, mask: [art-nature, art-textfront, wordmark], params: { color: "#efe6d8", opacity: 0.35, thickness_um: 20 } }
+      # signature: black outline, raised chrome
+      - { op: engrave, mask: "grow(signature,9)", place: { signature: sig }, params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: "grow(signature,9)", place: { signature: sig }, color: enamel.niello }
+      - { op: emboss,  mask: signature, place: { signature: sig }, params: { height_mm: 0.2 } }
+      - { op: plate,   mask: signature, place: { signature: sig }, metal: metal.chrome }
+  back:
+    silhouette: [art]
+    ops:
+      - { op: brush,   params: { angle_deg: 0 } }
+      - { op: plate,   mask: card, metal: metal.black }
+      - { op: engrave, mask: [rays-back, "&panel", "-grow(back-centre,14)", "-grow(signature,16)"], place: { signature: sig }, params: { depth_mm: 0.02 } }
+      - { op: engrave, mask: [art-nature, art-textback, back-centre, sparkles], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: [art-nature, art-textback, back-centre, sparkles], color: enamel.ivory }
+      - { op: emboss,  mask: art, params: { height_mm: 0.16, soft: 0.7 } }
+      - { op: plate,   mask: art, metal: metal.chrome }
+      - { op: engrave, mask: [art-groove, "&art"], params: { depth_mm: 0.03 } }
+      - { op: enamel,  mask: [art-groove, "&art"], color: enamel.niello }
+      - { op: spray,   kind: pearl, mask: art, params: { color: "#f6e3e6", flop: ["#ffd6e0", "#efe6da", "#e4dcf6"], opacity: 0.5, thickness_um: 35 } }
+      - { op: spray,   kind: pearl, mask: [art-nature, art-textback, back-centre], params: { color: "#efe6d8", opacity: 0.35, thickness_um: 20 } }
+      - { op: engrave, mask: "grow(signature,9)", place: { signature: sig }, params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: "grow(signature,9)", place: { signature: sig }, color: enamel.niello }
+      - { op: emboss,  mask: signature, place: { signature: sig }, params: { height_mm: 0.2 } }
+      - { op: plate,   mask: signature, place: { signature: sig }, metal: metal.chrome }
+
+render:
+  lights: [-1, 0, 1]
+  bench: "#0e0f12"
+produce:
+  separations: per-op

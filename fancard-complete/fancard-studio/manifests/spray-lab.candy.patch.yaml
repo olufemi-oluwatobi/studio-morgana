@@ -1,0 +1,13 @@
+# spray lab · candy: mirror chrome base, candy red lacquer
+id: spray-lab/candy
+sides:
+  front:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: plate, mask: card, metal: metal.chrome }
+      - { op: spray, kind: candy, mask: card, params: { color: "#c4121e", tint: 0.85, thickness_um: 60 } }
+  back:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: plate, mask: card, metal: metal.chrome }
+      - { op: spray, kind: candy, mask: card, params: { color: "#c4121e", tint: 0.85, thickness_um: 60 } }

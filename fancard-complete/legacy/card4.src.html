@@ -1,0 +1,64 @@
+<title>The Pilot Card</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* One card on a dark bench. Each side is three finished images lit from left, centre and right; tilting cross-fades them, so the phone only moves and fades pictures. */
+:root{--bg:#0f0f12;--mute:#8a8792;--focus:#ffd27a;--ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);font-family:var(--ui);overflow-x:hidden}
+.page{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding-block:16px 20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.stage{position:relative;width:min(calc(100vw - 24px),430px,calc((100svh - 80px) / 1.545));aspect-ratio:1080/1669;max-width:100%;perspective:1200px;touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab;-webkit-tap-highlight-color:transparent}
+.stage:focus-visible{outline:2px solid var(--focus);outline-offset:6px;border-radius:6%/3.9%}
+.card{position:absolute;inset:0;will-change:transform}
+.shadow{position:absolute;left:9%;right:9%;bottom:-2.5%;height:4%;background:radial-gradient(closest-side,rgba(0,0,0,.8),transparent);filter:blur(8px)}
+.face{position:absolute;inset:0}
+.face[hidden]{display:none}
+.back{transform:scaleX(-1)}
+.face img{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;-webkit-user-drag:none}
+.ph{position:absolute;left:5%;top:3.236%;width:90%;height:80.91%;overflow:hidden;background:#cbb46e}
+.ph img{position:absolute;left:-12.22%;top:-1.93%;width:112.22%;height:auto;inset:auto;left:-12.22%;top:-1.93%}
+.face .l,.face .r{opacity:0;will-change:opacity}
+.hint{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);text-align:center}
+</style>
+<div class="page">
+  <div class="stage" id="stage" tabindex="0" role="button" aria-label="Signed fan card, edition 024 of 100. Drag to tilt, tap or press Enter to flip.">
+    <div class="shadow"></div>
+    <div class="card" id="card">
+      <div class="face front" id="front"><div class="ph"><img src="__photo__" alt=""></div><img src="__front1__" alt="Full-body portrait of the creator, signed"><img class="l" src="__front0__" alt=""><img class="r" src="__front2__" alt=""></div>
+      <div class="face back" id="back" hidden><img src="__back1__" alt="Back: engraved wings, edition 024 of 100, signed"><img class="l" src="__back0__" alt=""><img class="r" src="__back2__" alt=""></div>
+    </div>
+  </div>
+  <div class="hint">Drag to tilt · Tap to flip</div>
+</div>
+<script>
+(()=>{
+const stage=document.getElementById('stage'),card=document.getElementById('card'),F=document.getElementById('front'),B=document.getElementById('back');
+const L=[F.querySelector('.l'),B.querySelector('.l')],R=[F.querySelector('.r'),B.querySelector('.r')];
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let target={x:0,y:0},tilt={x:0,y:0},vel={x:0,y:0},dragging=false,lastMove=-1e9,flip=0,flipT=0,fv=0,down=null,side=0,running=false,last=0;
+function tiltFrom(e){const r=stage.getBoundingClientRect();target.x=Math.max(-1,Math.min(1,(((e.clientX-r.left)/r.width)*2-1)*1.1));target.y=Math.max(-1,Math.min(1,-(((e.clientY-r.top)/r.height)*2-1)*1.1));lastMove=performance.now();wake();}
+stage.addEventListener('pointerdown',e=>{dragging=true;stage.setPointerCapture(e.pointerId);down={x:e.clientX,y:e.clientY,t:performance.now()};tiltFrom(e);});
+stage.addEventListener('pointermove',e=>{if(dragging||e.pointerType==='mouse')tiltFrom(e);});
+stage.addEventListener('pointerup',e=>{if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)<8&&performance.now()-down.t<350)flipT=flipT?0:1;down=null;dragging=false;target.x=0;target.y=0;wake();});
+stage.addEventListener('pointercancel',()=>{dragging=false;target.x=0;target.y=0;wake();});
+stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'){dragging=false;target.x=0;target.y=0;wake();}});
+stage.addEventListener('keydown',e=>{const k={ArrowLeft:[-.7,0],ArrowRight:[.7,0],ArrowUp:[0,.7],ArrowDown:[0,-.7]}[e.key];if(k){target.x=k[0];target.y=k[1];lastMove=performance.now();e.preventDefault();wake();}
+  if(e.key==='Enter'||e.key===' '){flipT=flipT?0:1;e.preventDefault();wake();}});
+function wake(){if(!running){running=true;last=performance.now();requestAnimationFrame(frame);}}
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;const t=now/1000;
+  let tx=target.x,ty=target.y;const idle=!dragging&&!reduce&&now-lastMove>1500;
+  if(idle){tx=Math.sin(t*.6)*.4;ty=Math.sin(t*.45+1)*.26;}
+  const k=dragging?80:36,dd=dragging?13:8;
+  vel.x+=((tx-tilt.x)*k-vel.x*dd)*dt;vel.y+=((ty-tilt.y)*k-vel.y*dd)*dt;tilt.x+=vel.x*dt;tilt.y+=vel.y*dt;
+  if(reduce)flip=flipT;else{fv+=((flipT-flip)*70-fv*12)*dt;flip+=fv*dt;}
+  const b=flip>.5?1:0;if(b!==side){side=b;F.hidden=!!b;B.hidden=!b;}
+  card.style.transform=`rotateY(${(tilt.x*14+flip*180).toFixed(2)}deg) rotateX(${(tilt.y*10).toFixed(2)}deg)`;
+  const s=Math.max(-1,Math.min(1,((b?-tilt.x:tilt.x)*1.1-tilt.y*.35)));
+  L[b].style.opacity=Math.max(0,-s).toFixed(3);R[b].style.opacity=Math.max(0,s).toFixed(3);
+  const moving=idle||dragging||Math.abs(vel.x)+Math.abs(vel.y)+Math.abs(fv)>.001||Math.abs(tx-tilt.x)+Math.abs(ty-tilt.y)+Math.abs(flipT-flip)>.001;
+  if(moving)requestAnimationFrame(frame);else running=false;
+}
+wake();
+})();
+</script>

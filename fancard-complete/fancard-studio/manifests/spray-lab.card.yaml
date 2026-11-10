@@ -1,0 +1,46 @@
+# FANCARD MANIFEST v0.2 · spray lab · bare card, one finish, nothing else on it
+# Base manifest = gloss. Other finishes: --patch manifests/spray-lab.<kind>.patch.yaml
+# Build:  python3 fancard.py manifests/spray-lab.card.yaml [--patch manifests/spray-lab.glitter.patch.yaml]
+
+fancard: 0.2
+id: spray-lab/gloss
+template: spray-lab@0
+seed: 20261108
+
+edition: { "no": 1, of: 1, set: 1 }
+creator: { name: Spray Lab }
+
+blank:
+  stock: stainless
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]
+  grid: [1080, 1669]
+
+zones:
+  card:   { rect: [11, 11, 1058, 1647], r: 54 }
+  window: { rect: [11, 11, 1058, 1647], r: 54 }   # card shell needs one; nothing is printed
+
+tokens:
+  metal:
+    chrome: { finish: mirror-chrome, polish: mirror }
+    black:  { finish: mirror-black, polish: mirror }
+  type:
+    caps: { family: Bodoni Moda, weight: 400 }
+
+components: {}
+
+sides:
+  front:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: spray, kind: gloss, mask: card, params: { thickness_um: 45 } }
+  back:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: spray, kind: gloss, mask: card, params: { thickness_um: 45 } }
+
+render:
+  lights: [-1, 0, 1]
+  bench: "#0e0f12"
+produce:
+  separations: per-op

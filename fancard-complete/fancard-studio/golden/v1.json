@@ -1,0 +1,243 @@
+{
+ "90s-camera": {
+  "back": "423885d3ab2918b485ed2ab6a98fc563de66bad8a19aae1c99be212ff76c19aa",
+  "front": "6330b22d5323d4ed057e507dd8a725472ebdf18d5d34807b052b781516f0ebff",
+  "manifest": "90s-camera.card.yaml",
+  "patches": []
+ },
+ "hallows": {
+  "back": "b6084e1fd6577069a08085ca853094b71c5550596d2febcc3ee191c02dd5a080",
+  "front": "c0a993ccbe1f1a2bce213c1fddc3fe242b5457feb797b954cc7ddd2b6e3212fd",
+  "manifest": "hallows.card.yaml",
+  "patches": []
+ },
+ "illus-enamel": {
+  "back": "4bc8dcae13cc9a9e09fdaafe740d8b9a5f5fc552a87a9446d0b2184f36970d33",
+  "front": "ac5fcdb5bd79a0fa22f17026dcd902dc1ddbc327f13407fa2c9a1d18e3fbe1b2",
+  "manifest": "illus-enamel.card.yaml",
+  "patches": []
+ },
+ "illus-print": {
+  "back": "4bc8dcae13cc9a9e09fdaafe740d8b9a5f5fc552a87a9446d0b2184f36970d33",
+  "front": "a0491b7015dafe0f41219878f39b817b8af45999ff5efe4a7a68a8209f2de992",
+  "manifest": "illus-print.card.yaml",
+  "patches": []
+ },
+ "lab-rosefrost": {
+  "front": "81a74609e86238e17b4acde5afcc44e0fbf092e0510ba3a314e0711f995b3bd1",
+  "manifest": "lab-rosefrost.card.yaml",
+  "patches": []
+ },
+ "lab-spectra": {
+  "front": "41d49db98923f8d8fd71a6cb9e1155b9da3c0949d90c2db8e59bab41d84e77ea",
+  "manifest": "lab-spectra.card.yaml",
+  "patches": []
+ },
+ "lab-sunray": {
+  "front": "12182273e2e0bb491f6e330a2001956bdd7d7ddd153f9f32bc18762226443872",
+  "manifest": "lab-sunray.card.yaml",
+  "patches": []
+ },
+ "marilyn": {
+  "back": "308bb6d47325d9a1e22409bc1b6eb4533db6d8e61005efceeb650fa2ff3209a0",
+  "front": "28193c86bd3c20df82da72bd752c9f527b1a892196d21d452ba0c008216352e9",
+  "manifest": "marilyn.card.yaml",
+  "patches": []
+ },
+ "marilyn3": {
+  "back": "873ef40cf1fa37f40096f764e577e13d389084d2d21d43e8f5c79b3f8ebe16cb",
+  "front": "5c24396b68fd8750e2abfd895744bb506ae3d11d4ba1ebf615e325e478299c8a",
+  "manifest": "marilyn3.card.yaml",
+  "patches": []
+ },
+ "marilyn4": {
+  "back": "05771659989ab22c94d788a5390631effb76d332c5fbea1cb2771b5c08c00b06",
+  "front": "106507867487a1e599810bf9678349045879857aeb0d23d1775bb30e35e3ac79",
+  "manifest": "marilyn4.card.yaml",
+  "patches": []
+ },
+ "marilyn5": {
+  "back": "07c671760e80d0f34a78a7ce89e7fb21ef12b9b788d74ab2ea8ecad5257103f4",
+  "front": "c479b5a4750ad68e3f18a9326dc9930b9b2681f4b31d07747f6fad1a95243fe6",
+  "manifest": "marilyn5.card.yaml",
+  "patches": []
+ },
+ "marilyn6": {
+  "back": "cc6e68441c368a94033f3dd3fa9f2c52ee253b4f63955f305ce6b6660fe88986",
+  "front": "894ce27383c99f1b3da4b40162dbaecef32f6c2ed9868156864047ece18230ca",
+  "manifest": "marilyn6.card.yaml",
+  "patches": []
+ },
+ "oxana": {
+  "back": "925f6ea43781b3a767b4211491483b1b83196f419cb72991d6aa39857e7a68e1",
+  "front": "ba3cb0116e6f8441e6add9e78a81dbde15bbb3fb9de58c574f6d3ac50a1eaa3d",
+  "manifest": "oxana.card.yaml",
+  "patches": []
+ },
+ "oxana-red": {
+  "back": "80d01f68836fa0b17bf1842a4ba19c43a36c81c859ae838423668cf86fc08e02",
+  "front": "929c29c452d2a2a50033c525ff2aeb66b95bea29d87a7405effffbb72f1cdbe3",
+  "manifest": "oxana-red.card.yaml",
+  "patches": []
+ },
+ "prom-queen": {
+  "back": "b0de75a7d44d9fc41f35020dae4925ee22b64c669afc9ae573fea51e2ac10eba",
+  "front": "ac79c497492e43848f593a626cdce3ab2748ef729fad48707ed6ccebe8087a45",
+  "manifest": "prom-queen.card.yaml",
+  "patches": []
+ },
+ "prom-queen-tiara": {
+  "back": "98b4d4fbe56f1fc23c5ad96e22cc4d46cfa5c563158cfdd99e4b0bd10f59614e",
+  "front": "bf8fcde62a4559f9920a5abb52606223d314e09771aebb39775349568e3d982e",
+  "manifest": "prom-queen.tiara.card.yaml",
+  "patches": []
+ },
+ "sienna-rae": {
+  "back": "a3606015df99dfa1e4383ef54ecfffd1a77f8d8ff1e6615ec7744ba1c2c5b746",
+  "front": "ab267424243502475a731136897e14c0da7bd2c738cfce185c671a4d717e865a",
+  "manifest": "sienna-rae.card.yaml",
+  "patches": []
+ },
+ "sienna-rae-jade-cobalt": {
+  "back": "07d72fc475b0ea0147a307fa6441639f6aed1abfe9618b066d1547c67a13fc62",
+  "front": "8a2551129b9182c41779a5aa6704acf440e6d4a9f4580c80f3db7c8fff16da54",
+  "manifest": "sienna-rae.card.yaml",
+  "patches": [
+   "sienna-rae.jade-cobalt.patch.yaml"
+  ]
+ },
+ "spray-candy": {
+  "back": "27d87433819ec2810ebb6b239ce0989d9e3e3ebe497784817b76986f30fe8eb9",
+  "front": "ebda2e2cf56b6cef95437d4f4ad5467f8ae324c3532bdd1b3487b2edffcfc4c6",
+  "manifest": "spray-lab.card.yaml",
+  "patches": [
+   "spray-lab.candy.patch.yaml"
+  ]
+ },
+ "spray-chameleon": {
+  "back": "cd9888c6aad3fc135b27bb3fac81d104ad22a0abc76a642f229d2c9826362bf2",
+  "front": "90f3869038f685d2fbd6f8e1355d7d53c77c22cc4f38ec041b5f780caa537b44",
+  "manifest": "spray-lab.card.yaml",
+  "patches": [
+   "spray-lab.chameleon.patch.yaml"
+  ]
+ },
+ "spray-glitter": {
+  "back": "9f7f2291a8164645038a6dd2f0c8a04f76387878ce25c1457d9859bb08473655",
+  "front": "ae691426b8a04c2964c7e53036b66d12171564ccb250769842edc2c422bfa61e",
+  "manifest": "spray-lab.card.yaml",
+  "patches": [
+   "spray-lab.glitter.patch.yaml"
+  ]
+ },
+ "spray-gloss": {
+  "back": "aee6a29558b3f6fc6a0d168d0a89e1d0dfb345829d57a86497514415efc2c45d",
+  "front": "00e33173e642c5884d72d89e0996af9c02ce2f9eb4c9e5e9d1ed3b24379e93c2",
+  "manifest": "spray-lab.card.yaml",
+  "patches": []
+ },
+ "spray-matte": {
+  "back": "c8fa9e7e5ba225541e1847bdd8e9eb4a8024b054af261e3d2059e4e3bdddbcfd",
+  "front": "0cddfd113e98f125e7d0d4e93b3e2b0a17b646cfd4fef977b849bc357753b257",
+  "manifest": "spray-lab.card.yaml",
+  "patches": [
+   "spray-lab.matte.patch.yaml"
+  ]
+ },
+ "spray-metalflake": {
+  "back": "f426ad1a512ce401141f0433f9cdccbc52d10ec88cbf143f6d438c76f71e55aa",
+  "front": "182eec17bc8f0242cb114f9d92ddde8b3773ced92dc144e5dbe81f0b34543960",
+  "manifest": "spray-lab.card.yaml",
+  "patches": [
+   "spray-lab.metalflake.patch.yaml"
+  ]
+ },
+ "spray-pearl": {
+  "back": "9f70d6b82978a898878d6fb867fabf5d6dd594f6f7790471843499bb904663c5",
+  "front": "5845c29031149c46548052cedbf6ad5f18f4e607f980964e9172a091aeef337a",
+  "manifest": "spray-lab.card.yaml",
+  "patches": [
+   "spray-lab.pearl.patch.yaml"
+  ]
+ },
+ "star": {
+  "back": "0ede216d626ea80a9adbbf4e9551438ab93cee9f6e21aca938c9b7b97845ddd0",
+  "front": "b1bf99fc659b3d06b50c17a1b7b991ae6dcac9847b480f1221945ca306cef2a1",
+  "manifest": "star.card.yaml",
+  "patches": []
+ },
+ "star-rainbow": {
+  "back": "c19e09d13826468a0b8aa48db9a077f3f1df76b246a377db28cc3c916afec78a",
+  "front": "7664a152d78e95d1b9bf159da117fdb0e5168516ce47a3b13086db6f66b40945",
+  "manifest": "star.card.yaml",
+  "patches": [
+   "star.rainbow.patch.yaml"
+  ]
+ },
+ "star-relief": {
+  "back": "3cafceb83f98614a84611fdfb580f39da843cd13fc2b8c64e4b656fa9e89b606",
+  "front": "b1bf99fc659b3d06b50c17a1b7b991ae6dcac9847b480f1221945ca306cef2a1",
+  "manifest": "star-relief.card.yaml",
+  "patches": []
+ },
+ "talon-queen": {
+  "back": "5fb43cceba203f730ce0c379367862320e2762ee4ffb29c6a0ecda296660dff0",
+  "front": "a8392ca89e01228ac531ae7db7c1be8e4984f8e3d3c1b3e6fd8ce0c3cee97550",
+  "manifest": "talon-queen.card.yaml",
+  "patches": []
+ },
+ "tinsel-acanthus": {
+  "back": "42f1869bb24deec8d5abdf769f906bf6670e66542a32ac162f943ccc67a5f364",
+  "front": "0f88d1c66225a55a07ee076b6126196c1872f3ac9ebd477411fce94852df7fc4",
+  "manifest": "tinsel-queen.silver-acanthus.card.yaml",
+  "patches": []
+ },
+ "tinsel-acanthus-artwork": {
+  "back": "84f330c05b794211056397ac5f34e4c9968a988a61d5e9d93869a7c96ea5a2ff",
+  "front": "1fd40d56cb87231952824da6267bd97982b7e077f96aaa132ce48b3b94a810d7",
+  "manifest": "tinsel-queen.silver-acanthus.card.yaml",
+  "patches": [
+   "tinsel-queen.silver-acanthus.artwork.patch.yaml"
+  ]
+ },
+ "tinsel-acanthus-glass": {
+  "back": "64d1a4b4e969cd0d119c2a9a591d81879ca089440663fe0a218e5bf30dc6fae3",
+  "front": "d8b5fec36a820c55d8cba9320ea4a44d03187a3b997a14263552f629d91b4fdc",
+  "manifest": "tinsel-queen.silver-acanthus.card.yaml",
+  "patches": [
+   "tinsel-queen.silver-acanthus.glass.patch.yaml"
+  ]
+ },
+ "tinsel-acanthus-mirror": {
+  "back": "befff8dd9424e70a0b02d9bdb61d0ebb596094df329bf9c1ce8e6e912b126524",
+  "front": "7c8f5477bd40301bdbfbb3576659225f7b5d9cfde7c8154b4460aa2e83f8148d",
+  "manifest": "tinsel-queen.silver-acanthus.card.yaml",
+  "patches": [
+   "tinsel-queen.silver-acanthus.mirror.patch.yaml"
+  ]
+ },
+ "tinsel-queen": {
+  "back": "75158836680dbb42b67f5461fd4bf44596267fda3afa98988bac22e3cf50f4ea",
+  "front": "e80b4efef863e5144eddecb572ba8e64e3300b3a7e6c404757858791be004e73",
+  "manifest": "tinsel-queen.card.yaml",
+  "patches": []
+ },
+ "tirzee": {
+  "back": "4fcfb8ec91b76e3835f90336c857498c0494d61fef0a99de2c133d1a2f547c25",
+  "front": "65f82c5734565850f5e1f68f061ff2511bf85f28d66cda53112b23c206813626",
+  "manifest": "tirzee.card.yaml",
+  "patches": []
+ },
+ "tirzee-2": {
+  "back": "592d9ab28e0ab86e8f426c2b992f86d50e8e93ba18d44a0a11f30bb3a5055916",
+  "front": "a2b147d8c4a0787377b99535c6e42c52f1a83250852b5a7e6e76086ab2849a08",
+  "manifest": "tirzee-2.card.yaml",
+  "patches": []
+ },
+ "vespers": {
+  "back": "4367dd85a73a8ce804531b89c45fd6f76d3def73427b4ef086a7233b7d24835b",
+  "front": "34b1d2e29f3fb657e516aaf1b4e4715d6ba74d8c6877f873f9589d3ca8be3af3",
+  "manifest": "vespers.card.yaml",
+  "patches": []
+ }
+}

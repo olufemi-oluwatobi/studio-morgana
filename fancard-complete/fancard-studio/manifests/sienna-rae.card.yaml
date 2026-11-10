@@ -1,0 +1,118 @@
+# FANCARD MANIFEST v0.2 · Sienna Rae, Set 03
+# Same manifest + same seed = same card. Build:  python3 fancard.py manifests/sienna-rae.card.yaml
+
+fancard: 0.2
+id: sienna-rae/set-03
+template: filigree-oxblood@1
+seed: 30190019
+
+edition: { "no": 19, of: 100, set: 3 }
+creator: { name: Sienna Rae }
+
+# ── 1. BLANK (locked) ───────────────────────────────────────────────────────
+blank:
+  stock: brass
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]            # Law 1: 1 : 1.545
+  grid: [1080, 1669]              # design units (px at 1x)
+
+# ── 2. ZONES (locked) · px on the 1080 × 1669 grid ──────────────────────────
+zones:
+  card:      { rect: [11, 11, 1058, 1647], r: 54 }
+  window:    { rect: [65, 65, 950, 1539], r: 17 }
+  field:     { rect: [76, 76, 928, 1517], r: 13 }
+  cartouche: { center: [540, 78], rx: 162, ry: 45 }
+  finial:    { center: [540, 1626] }
+  medallion: { center: [540, 799], rx: 313, ry: 378 }
+  sig-front: { center: [540, 1469], max_width: 842, size: 216, rotate_deg: -6.3, overlay: true }
+  sig-back:  { center: [540, 1053], max_width: 410, size: 130, rotate_deg: -5.7, overlay: true }
+
+# ── 3. TOKENS (what the UI changes) ─────────────────────────────────────────
+tokens:
+  enamel:
+    field: { name: oxblood, hex: "#5a1218", process: soft-enamel }
+  metal:
+    plate:  { finish: gold-24k, polish: mirror }
+    accent: { finish: gold-24k, polish: satin }
+  type:
+    script: { family: Mr Dafoe }
+    serif:  { family: Bodoni Moda, weight: 700, style: italic }
+    caps:   { family: Bodoni Moda, weight: 400 }
+  filter:
+    wash: amber-sepia
+
+# ── 4. COMPONENTS (parametric masks: shape only, no colour) ─────────────────
+components:
+  frame:
+    kind: frame.double-rule
+    params: { inset: 17, gap: 39, radius: 43, weight: [6, 3.8] }
+  corner:
+    kind: ornament.palmette-fan
+    params: { petals: 5, spread_deg: 69, length: 108, curl: 1, rivet: true }
+    place: { at: corners }
+  ribbon:
+    kind: border.wave-scroll
+    params: { period: 76, amplitude: 7, offset: 37, margin: 270 }
+  cartouche:
+    kind: frame.oval-cartouche
+    params: { border: 4.3, text: fancard, font: serif, size: 52 }
+    place: { at: cartouche }
+  finial:
+    kind: ornament.palmette-finial
+    params: { petals: 5, length: 43 }
+    place: { at: finial }
+  lattice:
+    kind: pattern.ogee
+    params: { period_x: 173, period_y: 216, amplitude: 59, line: 2.8, node: 23 }
+    clip: { exclude: medallion, margin: 11 }
+  medallion:
+    kind: frame.oval-medallion
+    params: { ring: 6, dots: 64 }
+    place: { at: medallion }
+  edition-type:
+    kind: type.stack
+    place: { in: medallion }
+    lines:
+      - { text: "fancard",          font: serif, size: 54,  dy: -200 }
+      - { text: "Nº",               font: caps,  size: 26,  dy: -119, track: 8.6 }
+      - { text: "{edition.no:03}",  font: serif, size: 216, dy: 76 }
+      - { text: "ONE OF {edition.of}  ·  SET {edition.set:02}", font: caps, size: 28, dy: 141, track: 9.7 }
+  signature:
+    kind: type.signature
+    params: { text: "{creator.name}", font: script }
+
+# ── 5. SIDES = production runs, in factory order ────────────────────────────
+sides:
+  front:
+    ops:
+      - { op: brush,   params: { angle_deg: 35 } }
+      - { op: engrave, mask: [card, -window, cartouche-fill], params: { depth_mm: 0.12 } }
+      - { op: enamel,  mask: [card, -window, cartouche-fill], color: enamel.field }
+      - { op: emboss,  mask: [frame, corner, ribbon, cartouche, finial], params: { height_mm: 0.08 } }
+      - { op: plate,   mask: [frame, corner, ribbon, cartouche, finial], metal: metal.plate }
+      - op: print
+        mask: [window, -cartouche-fill]
+        image:
+          src: ../assets/sienna-shoreline.jpg
+          focus: [0.52, 0.30]
+          filters:
+            - { kind: grade,    preset: filter.wash, strength: 1.0 }
+            - { kind: vignette, amount: 0.55 }
+            - { kind: grain,    amount: 0.028 }
+      - { op: foil, mask: [cartouche-text, signature], place: { signature: sig-front }, metal: metal.accent, params: { emboss: 0.5 } }
+
+  back:
+    ops:
+      - { op: brush,   params: { angle_deg: 35 } }
+      - { op: engrave, mask: card, params: { depth_mm: 0.12 } }
+      - { op: enamel,  mask: card, color: enamel.field }
+      - { op: emboss,  mask: [frame, corner, ribbon, lattice, medallion, edition-type], params: { height_mm: 0.08 } }
+      - { op: plate,   mask: [frame, corner, ribbon, lattice, medallion, edition-type], metal: metal.plate }
+      - { op: foil,    mask: signature, place: { signature: sig-back }, metal: metal.accent, params: { emboss: 0.5 } }
+
+# ── 6. OUTPUTS ──────────────────────────────────────────────────────────────
+render:
+  lights: [-1, 0, 1]
+  bench: "#120a0a"
+produce:
+  separations: per-op

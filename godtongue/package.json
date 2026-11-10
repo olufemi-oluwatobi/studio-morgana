@@ -1,0 +1,9 @@
+{
+  "name": "godtongue",
+  "version": "0.1.0",
+  "description": "Godtongue: a plain-English language for manufacturing fancards, with swappable engines and a studio.",
+  "type": "module",
+  "bin": { "gt": "bin/gt.js" },
+  "scripts": { "studio": "node studio/server.js", "test": "node test/run.js" },
+  "engines": { "node": ">=18" }
+}

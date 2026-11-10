@@ -1,0 +1,5 @@
+# Same card on the existing holo-rainbow foil (more glitter grain) for comparison.
+id: star/set-01-rainbow
+tokens:
+  metal:
+    foil: { finish: holo-rainbow }

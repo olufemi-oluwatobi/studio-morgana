@@ -1,0 +1,15 @@
+-- The light-test living room, written in godtongue. Metres; east is on your right when you face north.
+create a room called test-lounge, 4.5 by 3.6, 2.75 high.
+make the floor oak.
+paint the walls warm white.
+
+cut a window in the north wall, 1.7 wide, 1.5 high, sill 0.8, at 2.25.
+
+place a sofa against the west wall, at 2.15, 2.1 long, 0.85 deep, in green velvet.
+place a coffee table in front of the sofa, 0.4 away, 0.9 by 0.85, in walnut.
+place an armchair facing the sofa, at 3.55 2.175, in #e69d27.
+lay a rug under the coffee table, 3.2 by 2.25, at 2.15 2.025, in terracotta.
+hang art on the east wall, 0.8 by 0.5, at 2.0, 1.45 high, in navy.
+hang a pendant over the coffee table, 1.95 high.
+
+photograph the room called overview, from 4.1 0.22 1.25, looking at 1.8 3.2 0.95, 28 mm.

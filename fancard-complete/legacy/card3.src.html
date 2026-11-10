@@ -1,0 +1,83 @@
+<title>The Pilot Card</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* One card on a dark bench. Burnt titanium: baked brushed metal and cut edges, with the heat colours and light moved live by tilt. */
+:root{--bg:#0f0f12;--mute:#8a8792;--focus:#ffd27a;--ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);font-family:var(--ui);overflow-x:hidden}
+.page{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding-block:16px 20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.stage{position:relative;width:min(calc(100vw - 24px),430px,calc((100svh - 80px) / 1.545));aspect-ratio:1080/1669;max-width:100%;perspective:1200px;touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab;-webkit-tap-highlight-color:transparent}
+.stage:focus-visible{outline:2px solid var(--focus);outline-offset:6px;border-radius:6%/3.9%}
+.card3d{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+.shadow{position:absolute;left:9%;right:9%;bottom:-3%;height:5%;background:radial-gradient(closest-side,rgba(0,0,0,.85),transparent);filter:blur(9px);transform:translateZ(-60px)}
+.face{position:absolute;inset:0;isolation:isolate;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;-webkit-mask:url(__card__) center/100% 100% no-repeat;mask:url(__card__) center/100% 100% no-repeat}
+.back{transform:rotateY(180deg)}
+.face>*{position:absolute}
+.face img{inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.lb{opacity:var(--mix,.5)}
+/* heat colours of burnt titanium: multiplied over the metal, so its grain stays */
+.tint{left:-110%;top:-60%;width:320%;height:220%;mix-blend-mode:multiply;will-change:transform;pointer-events:none;
+  background:linear-gradient(122deg,#e2a236 0%,#ff9a52 7%,#ff4d8f 15%,#a24dff 23%,#3f7dff 31%,#2fdcc4 39%,#d9a233 48%,#ff9a52 55%,#ff4d8f 63%,#a24dff 71%,#3f7dff 79%,#2fdcc4 87%,#e2a236 96%)}
+.shine{left:-80%;top:-40%;width:260%;height:180%;mix-blend-mode:overlay;will-change:transform;pointer-events:none;
+  background:linear-gradient(112deg,rgba(255,255,255,0) 34%,rgba(255,255,255,.75) 46%,rgba(255,255,255,.95) 50%,rgba(255,255,255,.55) 54%,rgba(255,255,255,0) 66%)}
+.win{inset:0;-webkit-mask:url(__win__) center/100% 100% no-repeat;mask:url(__win__) center/100% 100% no-repeat}
+.win img{position:absolute;left:-6%;top:2.6%;width:101%;height:auto;inset:auto;left:-6%;top:2.59%}
+.glint{inset:0;overflow:hidden;-webkit-mask:var(--gm) center/100% 100% no-repeat;mask:var(--gm) center/100% 100% no-repeat;pointer-events:none}
+.glint i{position:absolute;left:-60%;top:-30%;width:220%;height:160%;will-change:transform;background:linear-gradient(112deg,rgba(255,255,255,0) 40%,#fff 50%,rgba(255,255,255,0) 60%)}
+.front .glint{--gm:url(__front_glint__)}.back .glint{--gm:url(__back_glint__)}
+.hint{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);text-align:center}
+</style>
+<div class="page">
+  <div class="stage" id="stage" tabindex="0" role="button" aria-label="Signed fan card, edition 024 of 100. Drag to tilt, tap or press Enter to flip.">
+    <div class="card3d" id="card">
+      <div class="shadow"></div>
+      <div class="face front">
+        <img src="__front_a__" alt=""><img class="lb" src="__front_b__" alt="">
+        <div class="tint"></div><div class="shine"></div>
+        <div class="win"><img src="__photo__" alt="Full-body portrait of the creator"></div>
+        <img src="__front_bare__" alt=""><div class="glint"><i></i></div>
+      </div>
+      <div class="face back">
+        <img src="__back_a__" alt=""><img class="lb" src="__back_b__" alt="">
+        <div class="tint"></div><div class="shine"></div>
+        <img src="__back_bare__" alt=""><div class="glint"><i></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="hint">Drag to tilt · Tap to flip</div>
+</div>
+<script>
+(()=>{
+const stage=document.getElementById('stage'),card=document.getElementById('card');
+const tints=[...card.querySelectorAll('.tint')],shines=[...card.querySelectorAll('.shine')],gl=[...card.querySelectorAll('.glint i')];
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let target={x:0,y:0},tilt={x:0,y:0},vel={x:0,y:0},dragging=false,lastMove=-1e9,flip=0,flipT=0,fv=0,down=null;
+function tiltFrom(e){const r=stage.getBoundingClientRect();const nx=((e.clientX-r.left)/r.width)*2-1,ny=((e.clientY-r.top)/r.height)*2-1;target.x=Math.max(-1,Math.min(1,nx*1.1));target.y=Math.max(-1,Math.min(1,-ny*1.1));lastMove=performance.now();}
+stage.addEventListener('pointerdown',e=>{dragging=true;stage.setPointerCapture(e.pointerId);down={x:e.clientX,y:e.clientY,t:performance.now()};tiltFrom(e);});
+stage.addEventListener('pointermove',e=>{if(dragging||e.pointerType==='mouse')tiltFrom(e);});
+stage.addEventListener('pointerup',e=>{if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)<8&&performance.now()-down.t<350)flipT=flipT?0:1;down=null;dragging=false;target.x=0;target.y=0;});
+stage.addEventListener('pointercancel',()=>{dragging=false;target.x=0;target.y=0;});
+stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'){dragging=false;target.x=0;target.y=0;}});
+stage.addEventListener('keydown',e=>{const k={ArrowLeft:[-.7,0],ArrowRight:[.7,0],ArrowUp:[0,.7],ArrowDown:[0,-.7]}[e.key];if(k){target.x=k[0];target.y=k[1];lastMove=performance.now();e.preventDefault();}
+  if(e.key==='Enter'||e.key===' '){flipT=flipT?0:1;e.preventDefault();}});
+const t0=performance.now();let last=t0;
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;const t=(now-t0)/1000;
+  let tx=target.x,ty=target.y;
+  if(!dragging&&!reduce&&now-lastMove>1500){tx=Math.sin(t*.6)*.4;ty=Math.sin(t*.45+1)*.26;}
+  const k=dragging?80:36,dd=dragging?13:8;
+  vel.x+=((tx-tilt.x)*k-vel.x*dd)*dt;vel.y+=((ty-tilt.y)*k-vel.y*dd)*dt;tilt.x+=vel.x*dt;tilt.y+=vel.y*dt;
+  if(reduce)flip=flipT;else{fv+=((flipT-flip)*70-fv*12)*dt;flip+=fv*dt;}
+  const sx=flip>.5?-tilt.x:tilt.x,sy=tilt.y;
+  card.style.transform=`rotateY(${(tilt.x*14+flip*180).toFixed(2)}deg) rotateX(${(sy*10).toFixed(2)}deg)`;
+  card.style.setProperty('--mix',(.5+sx*.62-sy*.2).toFixed(3));
+  const a=`translate3d(${(-sx*14+sy*4).toFixed(2)}%,${(sy*7-sx*3).toFixed(2)}%,0)`;
+  const b=`translate3d(${(sx*17).toFixed(2)}%,${(-sy*12).toFixed(2)}%,0)`;
+  const c=`translate3d(${(sx*24).toFixed(2)}%,${(-sy*16).toFixed(2)}%,0)`;
+  tints.forEach(el=>el.style.transform=a);shines.forEach(el=>el.style.transform=b);gl.forEach(el=>el.style.transform=c);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>

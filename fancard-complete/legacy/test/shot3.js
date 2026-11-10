@@ -1,0 +1,10 @@
+const {chromium}=require('playwright');const path=require('path');
+(async()=>{const b=await chromium.launch();
+const ctx=await b.newContext({viewport:{width:470,height:780},deviceScaleFactor:2,reducedMotion:'reduce'});const p=await ctx.newPage();
+p.on('pageerror',e=>console.log('ERR',e.message));
+await p.goto('file://'+path.resolve(__dirname,'../pilot-card.html'));await p.waitForTimeout(1500);
+const st=p.locator('#stage');const out=path.resolve(__dirname,'../out');
+await st.screenshot({path:out+'/r-front.png'});
+const r=await st.boundingBox();await p.mouse.move(r.x+r.width*.9,r.y+r.height*.2);await p.waitForTimeout(900);await st.screenshot({path:out+'/r-tilt.png'});
+await p.mouse.move(5,5);await p.waitForTimeout(600);await st.focus();await p.keyboard.press('Enter');await p.waitForTimeout(800);await st.screenshot({path:out+'/r-back.png'});
+await b.close();})();

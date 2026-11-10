@@ -1,0 +1,48 @@
+-- Goku · fan concept card, not for sale. Art supplied by the owner of this file.
+-- Red and gold. Front: the art (with painted flames under Goku, goku_fire.py) fills the card inside a wide gold band,
+-- the inscription engraved into the gold.
+-- Back: gold line work on red (seigaiha scales, a fireball sun stamp with brand and number,
+-- the seven dragon balls in medallions) inside the same engraved gold band as the front. Line art: goku_art.py.
+create a card called goku, seed 1984.
+
+make the window 976 by 1565, at 132 132, corners 14.
+
+draw @goku-edge.svg called trim.
+draw @goku-edge-text.svg called lore.
+draw @goku-edge-grain.svg called grain.
+draw @goku-back.svg called ornament.
+draw @goku-scales.svg called scales.
+
+sign "Goku" called signature-front, at 620 1600, 520 wide, size 160, tilted -4.
+sign "Goku" called signature-back, at 620 1112, 420 wide, size 150, tilted -4.
+
+define $gild as:
+  outline it, 8 wide.
+  emboss it, 0.2 mm high.
+  plate it with gold.
+  spray it with glitter in #f3d27a #e2b64e #fff0b8 #c99a3a, flakes 110 µm, density 0.7, 30 µm thick, overspray 0.
+end.
+
+on the front.
+enamel the card in #a8141d.
+print @goku-art-fire.png in the window, focused at 0.5 0.5.
+emboss the trim, 0.12 mm high, soft 0.7.
+plate the trim with gold.
+etch the grain.
+engrave the lore, 0.05 mm deep.
+inlay the lore with #6e0c12, 0.02 mm deep.
+spray the card with gloss, 30 µm thick.
+use $gild on the signature-front.
+
+on the back.
+enamel the card in #a8141d.
+emboss the trim, 0.12 mm high, soft 0.7.
+plate the trim with gold.
+etch the grain.
+engrave the lore, 0.05 mm deep.
+inlay the lore with #6e0c12, 0.02 mm deep.
+plate the scales with gold.
+emboss the ornament, 0.1 mm high, soft 0.6.
+plate the ornament with gold.
+spray the card with gloss, 30 µm thick.
+use $gild on the signature-back.

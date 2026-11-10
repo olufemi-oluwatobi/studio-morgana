@@ -1,0 +1,231 @@
+<title>The Pilot Card</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;700;800&family=Mrs+Saint+Delafield&display=swap">
+<style>
+/* Layout: one card, centered. A machined anodized plate: top tab, full-body photo window, four cut plates at the bottom. */
+:root{--bg:#121113;--ink:#e6dfd8;--mute:#9b928c;--focus:#f2c4b4;--ui:"Saira Condensed","Arial Narrow",sans-serif;color-scheme:dark}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);overflow-x:hidden}
+.page{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding-block:16px 20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.stage{position:relative;perspective:1100px;touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab;max-width:100%}
+.stage:focus-visible{outline:2px solid var(--focus);outline-offset:6px}
+.card3d{position:relative;width:100%;height:100%;transform-style:preserve-3d;will-change:transform}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block}
+.shadow{position:absolute;left:8%;right:8%;bottom:-2.5%;height:5%;background:radial-gradient(closest-side,rgba(0,0,0,.85),transparent);filter:blur(8px);transform:translateZ(-60px)}
+.hint{font-weight:500;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);text-align:center}
+.fallback{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;text-align:center;padding:16px;font-size:14px;color:#fff;background-size:cover;background-position:center;border-radius:5%/3.2%}
+</style>
+<div class="page">
+  <div class="stage" id="stage" tabindex="0" role="button" aria-label="The Pilot, a fan card by @creator, edition 024 of 100. Drag to tilt, tap or press Enter to flip.">
+    <div class="card3d" id="card"><div class="shadow"></div><canvas id="gl"></canvas>
+      <div class="fallback" id="fallback" hidden>Your browser can't show the metal finish. Open this card in a current Safari or Chrome.</div></div>
+  </div>
+  <div class="hint">Drag to tilt · Tap to flip</div>
+</div>
+<script>
+(()=>{
+const PHOTO="__PHOTO__";
+/* The card is data. Change these and the photo; the template stays fixed. */
+const D={title:"The Pilot",name:"Nova Kade",handle:"@creator",no:"024",of:"100",to:"@yourfan",set:"02",issued:"03 NOV 2026"};
+const FINISH={tint:[.70,.035,.03],bare:[.95,.92,.88],recess:[.135,.14,.155]};
+const H=1.545;
+const stage=document.getElementById('stage'),card=document.getElementById('card'),cv=document.getElementById('gl');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const gl=cv.getContext('webgl2',{premultipliedAlpha:true,antialias:false,alpha:true});
+function fail(){const f=document.getElementById('fallback');f.hidden=false;f.style.backgroundImage=`url(${PHOTO})`;}
+const VS=`#version 300 es
+in vec2 a;out vec2 vUv;void main(){vUv=a*.5+.5;gl_Position=vec4(a,0.,1.);}`;
+const FS=`#version 300 es
+precision highp float;
+in vec2 vUv;out vec4 o;
+uniform sampler2D uPhoto,uOver;
+uniform vec2 uTilt;uniform vec3 uTint,uBare,uRecess;uniform float uBack;
+const float H=1.545;
+const vec2 W0=vec2(.05,.05),W1=vec2(.95,1.22);
+float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+1.),f.x),f.y);}
+float sdRR(vec2 p,vec2 b,float r){vec2 q=abs(p)-b+r;return length(max(q,0.))+min(max(q.x,q.y),0.)-r;}
+float smax(float a,float b,float k){float h=max(k-abs(a-b),0.)/k;return max(a,b)+h*h*k*.25;}
+float cardSD(vec2 p){return sdRR(p-vec2(.5,H*.5),vec2(.5,H*.5)-.002,.052);}
+/* photo cut-out: a soft rectangle with a tab dropping in from the top edge */
+float winSD(vec2 p){
+  float r=sdRR(p-(W0+W1)*.5,(W1-W0)*.5,.03);
+  float tab=sdRR(p-vec2(.5,.055),vec2(.215,.122),.03);
+  return smax(r,-tab,.035);
+}
+float pillSD(vec2 p){
+  float d=1e3;
+  for(int i=0;i<4;i++){float y=1.2715+float(i)*.0635;d=min(d,sdRR(p-vec2(.5,y),vec2(.45,.0265),.0265));}
+  return d;
+}
+float height(vec2 p){
+  float cd=cardSD(p),wd=winSD(p),pd=pillSD(p);
+  float h=smoothstep(0.,.013,-cd);
+  h*=mix(.15,1.,smoothstep(0.,.0065,wd));
+  h-=.55*(1.-smoothstep(-.0048,0.,pd));
+  return h;
+}
+vec3 N3(vec2 p){float e=.0013;float hx=height(p+vec2(e,0.))-height(p-vec2(e,0.));float hy=height(p+vec2(0.,e))-height(p-vec2(0.,e));return normalize(vec3(-hx*5.5,-hy*5.5,1.));}
+float g(float x,float s){return exp(-x*x/(2.*s*s));}
+/* a studio of soft boxes: metal shows what it reflects, so this is what makes it read as metal */
+float studio(vec3 n,vec2 p){
+  float t=n.y*1.5+n.x*.75+uTilt.y*.62-uTilt.x*.5+(p.y/H-.5)*.62+(p.x-.5)*.26;
+  return .05+1.35*g(t-.34,.1)+.62*g(t+.42,.17)+.42*g(t-1.02,.2)+.22*g(t+1.1,.3);
+}
+void main(){
+  vec2 p=vec2(vUv.x,(1.-vUv.y)*H);
+  float cd=cardSD(p);
+  float A=smoothstep(fwidth(cd),-fwidth(cd),cd);
+  if(A<=0.){o=vec4(0.);return;}
+  float wd=winSD(p),pd=pillSD(p);
+  vec3 n=N3(p);
+  /* brushed grain runs across the card: each line tips the reflection a little */
+  float aa=clamp(.0025/max(fwidth(p.y),1e-4),0.,1.);
+  float br=(vn(vec2(p.x*9.,p.y*520.))-.5)*.75+(vn(vec2(p.x*22.,p.y*1250.))-.5)*.25*aa;
+  vec3 nb=normalize(n+vec3(0.,br*.046,0.));
+  float env=studio(nb,p);
+  /* anodized dye over bright aluminium */
+  vec3 col=uTint*(.3+env*1.25)+vec3(1.,.72,.62)*pow(env,2.4)*.3;
+  /* diamond-cut edges: where a bevel exposes bare metal */
+  float slope=1.-n.z;
+  float cut=smoothstep(.015,.11,slope);
+  float eb=studio(n,p);
+  vec3 bare=uBare*(.2+eb*1.15)+vec3(1.)*pow(eb,3.)*.3;
+  col=mix(col,bare,cut);
+  /* plates: bead-blasted recess, darker and matte against the brushed face */
+  if(pd<0.){
+    float bl=(h21(floor(p*1600.)/1600.)-.5)*.5;
+    vec3 ndull=normalize(n+vec3(bl*.05,bl*.05,0.));
+    float ed=.5+.5*studio(ndull*vec3(.4,.4,1.),p);
+    vec3 plate=uTint*.34*(.42+ed*.8);
+    plate*=1.-.5*smoothstep(-.012,-.003,pd);
+    col=mix(plate,col,cut*.9);
+  }
+  if(wd<0.){
+    vec2 uv=(p-W0)/(W1-W0);
+    if(uBack<.5){
+      /* the window: full colour, untouched, under a thin sheet of glass */
+      vec2 puv=(uv-.5)*.986+.5+uTilt*vec2(-.005,.005);
+      vec3 ph=texture(uPhoto,puv).rgb;
+      ph*=1.-.34*smoothstep(-.014,0.,wd);
+      float gl1=g((p.x+p.y*.55)-(.72+uTilt.x*.9-uTilt.y*.5),.075);
+      ph+=vec3(1.,.98,.95)*gl1*.075;
+      col=ph;
+    }else{
+      /* back: spun metal in the same cut-out, so the two sides are one part */
+      vec2 q=p-vec2(.5,.66);float r=length(q),an=atan(q.y,q.x);
+      float la=1.15+uTilt.x*1.6-uTilt.y*.8;
+      float cone=pow(abs(cos(an-la)),9.)+.45*pow(abs(cos(an-la+1.25)),18.);
+      float rings=(vn(vec2(r*760.,an*1.4))-.5)*.16+(vn(vec2(r*260.,an*.8))-.5)*.14;
+      vec3 sp=uRecess*(.7+rings*2.)+vec3(.86,.88,.93)*cone*(.62+rings);
+      sp*=1.-.6*smoothstep(-.03,0.,wd);
+      col=sp;
+    }
+  }
+  /* laser marking: cuts through the dye to bright metal */
+  vec2 ou=vec2(p.x,p.y/H);
+  vec4 ov=texture(uOver,ou);float m=ov.a;
+  vec3 dyed=uTint*(.78+studio(nb,p)*1.5)+vec3(1.,.72,.62)*pow(env,2.4)*.3;
+  {
+    float shd=textureLod(uOver,ou+vec2(-.0016,-.001),1.).a;
+    if(!(wd<0.&&uBack<.5))col*=1.-shd*(1.-m)*.42;
+    float e=.0011;
+    float hx=textureLod(uOver,ou+vec2(e,0.),1.).a-textureLod(uOver,ou-vec2(e,0.),1.).a;
+    float hy=textureLod(uOver,ou+vec2(0.,e/H),1.).a-textureLod(uOver,ou-vec2(0.,e/H),1.).a;
+    float lit=studio(normalize(vec3(hx*.8,hy*.8,1.)),p);
+    vec3 mark=uBare*(.64+lit*.42);
+    /* red in the marking layer = an inlay of the dyed metal, with a bright cut edge */
+    float inlay=m>.01?1.-ov.g/m:0.;
+    float rim=clamp(length(vec2(hx,hy))*3.2,0.,1.);
+    mark=mix(mark,mix(dyed,uBare*(.55+lit*.6),rim),inlay);
+    col=mix(col,mark,m);
+  }
+  col*=1.-smoothstep(-.004,0.,cd)*.3;
+  o=vec4(col*A,A);
+}`;
+if(!gl){fail();return;}
+function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(x);return x;}
+let prog;
+try{prog=gl.createProgram();gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(prog);
+if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw gl.getProgramInfoLog(prog);}catch(e){console.error(e);fail();return;}
+gl.useProgram(prog);
+const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+const al=gl.getAttribLocation(prog,'a');gl.enableVertexAttribArray(al);gl.vertexAttribPointer(al,2,gl.FLOAT,false,0,0);
+const U=n=>gl.getUniformLocation(prog,n);
+const uT=U('uTilt'),uBack=U('uBack');
+gl.uniform1i(U('uPhoto'),0);gl.uniform1i(U('uOver'),1);
+gl.uniform3fv(U('uTint'),FINISH.tint);gl.uniform3fv(U('uBare'),FINISH.bare);gl.uniform3fv(U('uRecess'),FINISH.recess);
+function tex(unit){const t=gl.createTexture();gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([60,50,30,255]));gl.generateMipmap(gl.TEXTURE_2D);return t;}
+const tPh=tex(0),tOv=tex(1);
+function put(unit,t,src,premul){gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,t);gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,!!premul);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);gl.generateMipmap(gl.TEXTURE_2D);}
+const pim=new Image();pim.onload=()=>put(0,tPh,pim);pim.src=PHOTO;
+
+/* marking layer: everything printed on the metal */
+const OW=1536,OH=Math.round(OW*H);const oc=document.createElement('canvas');oc.width=OW;oc.height=OH;const x=oc.getContext('2d');const X=v=>v*OW;
+const SC='"Saira Condensed","Arial Narrow",sans-serif';
+function fit(txt,weight,size,max,min,fam){let s=size;x.font=`${weight} ${X(s)}px ${fam||SC}`;while(x.measureText(txt).width>X(max)&&s>min){s-=.001;x.font=`${weight} ${X(s)}px ${fam||SC}`;}}
+function spaced(on){try{x.letterSpacing=on?`${X(on).toFixed(1)}px`:'0px';}catch(e){}}
+function rows(list){
+  list.forEach(([l,v],i)=>{const y=1.2715+i*.0635+.0095;
+    x.textAlign='left';spaced(.0032);fit(l,700,.0255,.3,.018);x.fillText(l,X(.09),X(y));
+    x.textAlign='right';spaced(.0014);fit(v,800,.03,.5,.018);x.fillText(v,X(.91),X(y));spaced(0);});
+}
+function tab(line,big){
+  x.textAlign='center';spaced(.0042);x.font=`700 ${X(.0185)}px ${SC}`;x.fillText(line,X(.5),X(.082));
+  spaced(.002);fit(big,800,.068,.36,.03);x.fillText(big,X(.5),X(.141));spaced(0);
+}
+function drawOver(back){
+  x.clearRect(0,0,OW,OH);x.fillStyle='#fff';x.strokeStyle='#fff';x.textBaseline='alphabetic';
+  if(!back){
+    tab(`FANCARD · SET ${D.set}`,D.title.toUpperCase());
+    rows([['NAME',D.name.toUpperCase()],['CREATOR',D.handle],['ISSUED TO',D.to],['EDITION',`${D.no} / ${D.of}`]]);
+  }else{
+    tab(`FANCARD · SET ${D.set}`,'SERIAL');
+    /* the serial is the hero: huge, cut straight through the spun metal */
+    x.textAlign='center';x.fillStyle='#f00';fit(D.no,800,.56,.78,.2);x.fillText(D.no,X(.5),X(.84));x.fillStyle='#fff';
+    x.font=`700 ${X(.03)}px ${SC}`;spaced(.009);x.fillText(`OF ${D.of}`,X(.5),X(.905));spaced(0);
+    /* etched signature */
+    fit(D.name,400,.135,.7,.05,'"Mrs Saint Delafield",cursive');x.save();x.translate(X(.5),X(1.09));x.rotate(-.05);x.lineWidth=X(.0012);x.strokeText(D.name,0,0);x.fillText(D.name,0,0);x.restore();
+    /* machinist's registration ticks along the window sides */
+    x.lineWidth=X(.0022);for(let i=0;i<=24;i++){const y=.28+i*.036,l=i%4?.012:.026;[[.075,.075+l],[.925,.925-l]].forEach(([a,b])=>{x.beginPath();x.moveTo(X(a),X(y));x.lineTo(X(b),X(y));x.stroke();});}
+    rows([['CARD',D.title.toUpperCase()],['ISSUED',D.issued],['BELONGS TO',D.to],['MADE AT','FANCARD.SHOP']]);
+  }
+  put(1,tOv,oc,true);
+}
+let back=0;drawOver(0);
+Promise.all([`800 40px "Saira Condensed"`,`700 40px "Saira Condensed"`,`400 40px "Mrs Saint Delafield"`].map(f=>document.fonts.load(f))).then(()=>drawOver(back)).catch(()=>{});
+function layout(){const vw=document.documentElement.clientWidth-32,vh=window.innerHeight-90;const w=Math.max(220,Math.min(vw,440,vh/H)),h=w*H;stage.style.width=w+'px';stage.style.height=h+'px';return {w,h};}
+function resize(){const s=layout();const d=Math.min(devicePixelRatio||1,3);cv.width=Math.round(s.w*d);cv.height=Math.round(s.h*d);gl.viewport(0,0,cv.width,cv.height);}
+resize();addEventListener('resize',resize);
+let target={x:0,y:0},tilt={x:0,y:0},vel={x:0,y:0},dragging=false,lastMove=-1e9,flip=0,flipT=0,fv=0,down=null;
+function tiltFrom(e){const r=stage.getBoundingClientRect();const nx=((e.clientX-r.left)/r.width)*2-1,ny=((e.clientY-r.top)/r.height)*2-1;target.x=Math.max(-1,Math.min(1,nx*1.1));target.y=Math.max(-1,Math.min(1,-ny*1.1));lastMove=performance.now();}
+stage.addEventListener('pointerdown',e=>{dragging=true;stage.setPointerCapture(e.pointerId);down={x:e.clientX,y:e.clientY,t:performance.now()};tiltFrom(e);});
+stage.addEventListener('pointermove',e=>{if(dragging||e.pointerType==='mouse')tiltFrom(e);});
+stage.addEventListener('pointerup',e=>{if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)<8&&performance.now()-down.t<350)flipT=flipT?0:1;down=null;dragging=false;target.x=0;target.y=0;});
+stage.addEventListener('pointercancel',()=>{dragging=false;target.x=0;target.y=0;});
+stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'){dragging=false;target.x=0;target.y=0;}});
+stage.addEventListener('keydown',e=>{const k={ArrowLeft:[-.6,0],ArrowRight:[.6,0],ArrowUp:[0,.6],ArrowDown:[0,-.6]}[e.key];if(k){target.x=k[0];target.y=k[1];lastMove=performance.now();e.preventDefault();}
+  if(e.key==='f'||e.key==='F'||e.key==='Enter'){flipT=flipT?0:1;e.preventDefault();}});
+const t0=performance.now();let last=t0;
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;const t=(now-t0)/1000;
+  let tx=target.x,ty=target.y;
+  if(!dragging&&!reduce&&now-lastMove>1500){tx=Math.sin(t*.6)*.34;ty=Math.sin(t*.45+1)*.22;}
+  const k=dragging?80:36,dd=dragging?13:8;
+  vel.x+=((tx-tilt.x)*k-vel.x*dd)*dt;vel.y+=((ty-tilt.y)*k-vel.y*dd)*dt;tilt.x+=vel.x*dt;tilt.y+=vel.y*dt;
+  if(reduce)flip=flipT;else{fv+=((flipT-flip)*70-fv*12)*dt;flip+=fv*dt;}
+  const b=flip>.5?1:0;if(b!==back){back=b;drawOver(back);cv.style.transform=b?'scaleX(-1)':'';}
+  card.style.transform=`rotateY(${tilt.x*14+flip*180}deg) rotateX(${tilt.y*10}deg)`;
+  gl.uniform2f(uT,back?-tilt.x:tilt.x,tilt.y);gl.uniform1f(uBack,back);
+  gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>

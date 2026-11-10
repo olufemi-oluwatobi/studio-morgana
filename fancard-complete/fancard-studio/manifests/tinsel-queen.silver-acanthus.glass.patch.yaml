@@ -1,0 +1,10 @@
+# Glass card: clear optical blank. Hatching is fired black enamel, ornaments are silver leaf,
+# the starry field on the back is frosted (acid-etched) so the stars stay clear.
+id: tinsel-queen/silver-acanthus-glass
+blank: { stock: glass-clear }
+tokens:
+  metal:
+    ground: { finish: glass-clear }
+  enamel:
+    niello: { name: black-enamel, hex: "#0c0d10", process: fired-glass-enamel }
+render: { bench: "#2a2f3a" }

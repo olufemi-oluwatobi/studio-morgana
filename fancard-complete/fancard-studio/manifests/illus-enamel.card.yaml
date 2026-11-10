@@ -1,0 +1,62 @@
+# FANCARD MANIFEST v0.2 · Illustration test A · CLOISONNÉ ENAMEL
+# The poster illustration is separated into flat enamel colours (the new `illustrate` op). Its thin dark linework
+# is left as bare metal wires, so the chrome ground shows through as silver cell walls, as in real cloisonné.
+# Build: python3 fancard.py manifests/illus-enamel.card.yaml
+
+fancard: 0.2
+id: illus/enamel-01
+template: cloisonne@0
+seed: 7001
+
+edition: { "no": 1, of: 1, set: 1 }
+creator: { name: Study 01 }
+
+blank:
+  stock: stainless
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]
+  grid: [1240, 1829]
+
+zones:
+  card:   { rect: [80, 80, 1080, 1669], r: 54 }
+  window: { rect: [130, 172, 980, 1418], r: 8 }
+  sig-front: { center: [620, 1417], max_width: 620, size: 190, rotate_deg: -3, overlay: true }
+
+tokens:
+  enamel:
+    niello: { name: niello, hex: "#0b0c0f", process: niello-inlay }
+  metal:
+    wire:  { finish: mirror-chrome, polish: mirror }
+    gold:  { finish: gold-24k, polish: mirror }
+  type:
+    script: { family: Herr Von Muellerhoff }
+
+components:
+  signature:
+    kind: type.signature
+    params: { text: "{creator.name}", font: script }
+
+sides:
+  front:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: plate, mask: card, metal: metal.wire }
+      - op: illustrate
+        mask: window
+        image: { src: ../assets/mansion.jpg, zone: window }
+        params: { colors: 16, wall_px: 0, smooth: 1.7, line_lum: 0.3, line_w: 5, depth_mm: 0.05 }
+      - { op: spray, kind: gloss, mask: window, params: { thickness_um: 30 } }
+      - { op: engrave, mask: "grow(signature,8)", place: { signature: sig-front }, params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: "grow(signature,8)", place: { signature: sig-front }, color: enamel.niello }
+      - { op: emboss,  mask: signature, place: { signature: sig-front }, params: { height_mm: 0.16 } }
+      - { op: plate,   mask: signature, place: { signature: sig-front }, metal: metal.gold }
+  back:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: plate, mask: card, metal: metal.wire }
+
+render:
+  lights: [-1, 0, 1]
+  bench: "#0e0f12"
+produce:
+  separations: per-op

@@ -1,0 +1,136 @@
+# FANCARD MANIFEST v0.2 · Tinsel Queen, Silver Acanthus edition
+# Silver plate with niello (black inlay) engraving: the metal equivalent of pen and ink.
+# Build:  python3 fancard.py manifests/tinsel-queen.silver-acanthus.card.yaml
+
+fancard: 0.2
+id: tinsel-queen/silver-acanthus
+template: silver-acanthus@1
+seed: 20240024
+
+edition: { "no": 24, of: 100, set: 2 }
+creator: { name: Tinsel Queen }
+
+blank:
+  stock: stainless
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]
+  grid: [1080, 1669]
+
+zones:
+  card:         { rect: [11, 11, 1058, 1647], r: 54 }
+  window:       { rect: [182, 200, 716, 1190], r: 4 }
+  window-outer: { rect: [164, 182, 752, 1226], r: 6 }
+  plaque-area:  { rect: [330, 1447, 420, 116], r: 14 }
+  medallion:    { center: [540, 790], rx: 250, ry: 330 }
+  medallion-face: { center: [540, 790], rx: 262, ry: 342 }
+  sig-back:     { center: [540, 1030], max_width: 360, size: 110, rotate_deg: -6, overlay: true }
+
+tokens:
+  enamel:
+    niello: { name: niello, hex: "#0c0d10", process: niello-inlay }
+  metal:
+    ground: { finish: silver, polish: satin }
+    relief: { finish: silver, polish: mirror }
+  type:
+    serif:  { family: Bodoni Moda, weight: 700, style: italic }
+    caps:   { family: Bodoni Moda, weight: 400 }
+    script: { family: Mr Dafoe }
+  filter:
+    wash: silver-noir
+
+components:
+  acanthus:
+    kind: ornament.acanthus-frame
+    place: { at: window }
+    params: { inset: 58, scroll: 44, frond: 1.3, fronds: 5, lobes: 4, step: 270, step_h: 160, rosette: 50, plume: 100, plaque: 225 }
+  outer-rules:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [34, 34, 1012, 1601], r: 44, w: 3.5 }
+      - { type: rect, rect: [50, 50, 980, 1569], r: 30, w: 2 }
+  window-rules:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [174, 192, 732, 1206], r: 6, w: 2.5 }
+      - { type: rect, rect: [164, 182, 752, 1226], r: 8, w: 4.5 }
+  band-hatch:
+    kind: shape.draw
+    items:
+      - { type: hatch, rect: [56, 56, 968, 1557], angle: 90, step: 7, w: 1.7 }
+  plaque:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [330, 1447, 420, 116], r: 14, w: 3.5 }
+      - { type: rect, rect: [344, 1461, 392, 88], r: 8, w: 1.6 }
+  plaque-text-front:
+    kind: shape.draw
+    items:
+      - { type: text, at: [540, 1520], font: caps, size: 38, track: 9, upper: true, max_width: 360, text: "{creator.name}" }
+  plaque-text-back:
+    kind: shape.draw
+    items:
+      - { type: text, at: [540, 1524], font: serif, size: 48, text: fancard }
+  stars:
+    kind: shape.draw
+    items:
+      - { type: scatter, rect: [182, 200, 716, 1190], count: 70, r: [1.6, 3.6], seed: 24 }
+  medallion-ring:
+    kind: frame.oval-medallion
+    params: { ring: 6, dots: 72 }
+    place: { at: medallion }
+  edition-type:
+    kind: type.stack
+    place: { in: medallion }
+    lines:
+      - { text: "fancard",          font: serif, size: 52,  dy: -190 }
+      - { text: "Nº",               font: caps,  size: 26,  dy: -112, track: 8.6 }
+      - { text: "{edition.no:03}",  font: serif, size: 200, dy: 70 }
+      - { text: "ONE OF {edition.of}  ·  SET {edition.set:02}", font: caps, size: 21, dy: 134, track: 6 }
+  signature:
+    kind: type.signature
+    params: { text: "{creator.name}", font: script }
+
+sides:
+  front:
+    ops:
+      - { op: brush,   params: { angle_deg: 90 } }
+      - { op: plate,   mask: card, metal: metal.ground }
+      - { op: engrave, mask: [band-hatch, -window-outer, "-grow(acanthus,6)", -plaque-area], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: [band-hatch, -window-outer, "-grow(acanthus,6)", -plaque-area], color: enamel.niello }
+      - { op: engrave, mask: ["halo(acanthus,3)"], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: ["halo(acanthus,3)"], color: enamel.niello }
+      - { op: emboss,  mask: [acanthus, outer-rules, window-rules, plaque], params: { height_mm: 0.1 } }
+      - { op: plate,   mask: [acanthus, outer-rules, window-rules, plaque], metal: metal.relief }
+      - { op: engrave, mask: [acanthus-veins, "&acanthus", plaque-text-front], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: [acanthus-veins, "&acanthus", plaque-text-front], color: enamel.niello }
+      - op: print
+        mask: window
+        image:
+          src: ../assets/tinsel-queen.jpg
+          focus: [0.5, 0.0]
+          filters:
+            - { kind: grade, preset: filter.wash }
+            - { kind: vignette, amount: 0.45 }
+            - { kind: grain, amount: 0.02 }
+
+  back:
+    ops:
+      - { op: brush,   params: { angle_deg: 90 } }
+      - { op: plate,   mask: card, metal: metal.ground }
+      - { op: engrave, mask: [band-hatch, -window-outer, "-grow(acanthus,6)", -plaque-area], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: [band-hatch, -window-outer, "-grow(acanthus,6)", -plaque-area], color: enamel.niello }
+      - { op: engrave, mask: [window, -stars, medallion-face, "-grow(acanthus,3)"], params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: [window, -stars, medallion-face, "-grow(acanthus,3)"], color: enamel.niello }
+      - { op: engrave, mask: ["halo(acanthus,3)"], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: ["halo(acanthus,3)"], color: enamel.niello }
+      - { op: emboss,  mask: [acanthus, outer-rules, window-rules, plaque, medallion-ring, edition-type], params: { height_mm: 0.1 } }
+      - { op: plate,   mask: [acanthus, outer-rules, window-rules, plaque, medallion-ring, edition-type], metal: metal.relief }
+      - { op: engrave, mask: [acanthus-veins, "&acanthus", plaque-text-back], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: [acanthus-veins, "&acanthus", plaque-text-back], color: enamel.niello }
+      - { op: foil,    mask: signature, place: { signature: sig-back }, metal: metal.relief, params: { emboss: 0.5 } }
+
+render:
+  lights: [-1, 0, 1]
+  bench: "#0e0f12"
+produce:
+  separations: per-op

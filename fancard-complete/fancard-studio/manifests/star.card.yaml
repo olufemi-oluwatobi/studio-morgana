@@ -1,0 +1,76 @@
+# FANCARD MANIFEST v0.2 · XVII The Star · print-on-foil test
+# Full-colour art printed ON holographic foil. CMYK is see-through, so the foil lights the sky,
+# the border tint and the line work; a white underbase (art/star-*-white-card.png) makes the star,
+# moon band, clouds, ground and roses opaque. Bare foil shows wherever there is no ink (the stars).
+# Needs fancard.py with print `on_foil` (+ holo-silk). Art: art/star-tarot.py
+# Build:  python3 fancard.py manifests/star.card.yaml   (rainbow variant: --patch manifests/star.rainbow.patch.yaml)
+
+fancard: 0.2
+id: star/set-01
+template: tarot-on-foil@0
+seed: 20261107
+
+edition: { "no": 1, of: 1000, set: 1 }
+creator: { name: The Star }
+
+blank:
+  stock: stainless
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]
+  grid: [1080, 1669]
+
+zones:
+  card: { rect: [11, 11, 1058, 1647], r: 54 }
+  art:  { rect: [70, 70, 940, 1529], r: 30 }
+  window: { rect: [70, 70, 940, 1529], r: 30 }   # card shell needs one; no photo layer is printed into it
+
+tokens:
+  metal:
+    foil: { finish: holo-silk }
+    rim:  { finish: mirror-chrome, polish: mirror }
+  type:
+    caps: { family: Bodoni Moda, weight: 400 }
+
+components:
+  rim:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [30, 30, 1020, 1609], r: 44, w: 5 }
+  white-front:
+    kind: artwork
+    src: ../art/star-front-white-card.png
+    layers: { fill: ../art/star-front-white-card.png }
+  white-back:
+    kind: artwork
+    src: ../art/star-back-white-card.png
+    layers: { fill: ../art/star-back-white-card.png }
+
+sides:
+  front:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: plate, mask: card, metal: metal.foil }
+      - { op: emboss, mask: rim, params: { height_mm: 0.1 } }
+      - { op: plate,  mask: rim, metal: metal.rim }
+      - op: print
+        on_foil: true
+        mask: art
+        white: white-front
+        image: { src: ../assets/star-front.png, zone: art, filters: [] }
+  back:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: plate, mask: card, metal: metal.foil }
+      - { op: emboss, mask: rim, params: { height_mm: 0.1 } }
+      - { op: plate,  mask: rim, metal: metal.rim }
+      - op: print
+        on_foil: true
+        mask: art
+        white: white-back
+        image: { src: ../assets/star-back.png, zone: art, filters: [] }
+
+render:
+  lights: [-1, 0, 1]
+  bench: "#0e0f12"
+produce:
+  separations: per-op

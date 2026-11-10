@@ -1,0 +1,94 @@
+# FANCARD MANIFEST v0.2 · base-lab experiment (not a release card)
+# BASE LAB C · Rose Frost: rose PVD mirror, sand-frosted everywhere except an ogee lattice
+# left polished, with holo-rose sparkles. Matte vs mirror is what makes it read as real metal.
+# Build:  python3 fancard.py manifests/lab-rosefrost.card.yaml
+
+fancard: 0.2
+id: lab/rosefrost
+template: base-lab-rosefrost@0
+seed: 20261107
+
+edition: { "no": 1, of: 1000, set: 1 }
+creator: { name: Oxana }
+
+blank:
+  stock: stainless
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]
+  grid: [1080, 1669]
+
+zones:
+  card:      { rect: [11, 11, 1058, 1647], r: 54 }
+  field:     { rect: [44, 44, 992, 1581], r: 34 }
+  window:    { rect: [170, 240, 740, 1010], r: 22 }
+  sig-front: { center: [540, 1338], max_width: 560, size: 150, rotate_deg: -5, overlay: true }
+
+tokens:
+  enamel:
+    niello: { name: niello, hex: "#0b0c0f", process: niello-inlay }
+  metal:
+    base:  { finish: mirror-rose, polish: mirror }
+    frame: { finish: mirror-rose, polish: mirror }
+    sparkle: { finish: holo-rose }
+  type:
+    caps:   { family: Bodoni Moda, weight: 400 }
+    script: { family: Mr Dafoe }
+
+components:
+  outer-rules:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [28, 28, 1024, 1613], r: 46, w: 4 }
+  frame:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [152, 222, 776, 1046], r: 32, w: 10 }
+      - { type: rect, rect: [136, 206, 808, 1078], r: 40, w: 2.2 }
+  frame-zone:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [128, 198, 824, 1094], r: 44, fill: true }
+  edition:
+    kind: shape.draw
+    items:
+      - { type: text, at: [540, 1488], font: caps, size: 34, track: 10, text: "Nº {edition.no:04}" }
+      - { type: text, at: [540, 1530], font: caps, size: 15, track: 6, text: "ONE OF {edition.of}  ·  SET {edition.set:02}  ·  FANCARD" }
+  signature:
+    kind: type.signature
+    params: { text: "{creator.name}", font: script }
+  lattice:
+    kind: pattern.ogee
+    params: { period_x: 150, period_y: 190, amplitude: 52, line: 3.2, node: 16 }
+  sparkles:
+    kind: shape.draw
+    items:
+      - { type: scatter, rect: [44, 44, 992, 1581], count: 120, r: [1.8, 4.2], seed: 7 }
+
+sides:
+  front:
+    ops:
+      - { op: brush,   params: { angle_deg: 0 } }
+      - { op: plate,   mask: card, metal: metal.base }
+      - { op: emboss,  mask: [lattice, -frame-zone], params: { height_mm: 0.04 } }
+      - { op: etch,    mask: [card, -lattice, -frame-zone, "-grow(signature,14)", "-grow(edition,4)"], place: { signature: sig-front } }
+      - { op: foil,    mask: [sparkles, -frame-zone, "-grow(lattice,4)"], metal: metal.sparkle, params: { emboss: 0.3 } }
+      - { op: engrave, mask: edition, params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: edition, color: enamel.niello }
+      - { op: emboss,  mask: [outer-rules, frame], params: { height_mm: 0.1 } }
+      - { op: plate,   mask: [outer-rules, frame], metal: metal.frame }
+      - op: print
+        mask: window
+        image:
+          src: ../assets/oxana.jpg
+          focus: [0.5, 0.2]
+          filters: []
+      - { op: engrave, mask: "grow(signature,10)", place: { signature: sig-front }, params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: "grow(signature,10)", place: { signature: sig-front }, color: enamel.niello }
+      - { op: emboss,  mask: signature, place: { signature: sig-front }, params: { height_mm: 0.2 } }
+      - { op: plate,   mask: signature, place: { signature: sig-front }, metal: metal.frame }
+
+render:
+  lights: [-1, 0, 1]
+  bench: "#0e0f12"
+produce:
+  separations: per-op

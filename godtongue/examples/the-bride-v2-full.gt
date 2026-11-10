@@ -1,0 +1,43 @@
+-- The Bride v2 · red, yellow and black only. No text, no cream. Fan concept, not for sale.
+create a card called the-bride-v2-full from stainless, seed 1973.
+
+define a katana with $size 600 as:
+  draw a shape called blade from 0 $size * -0.015 to $size * 0.3 $size * -0.025 to $size * 0.55 $size * -0.036 to $size * 0.8 $size * -0.052 to $size * 0.56 $size * -0.01 to $size * 0.3 $size * 0.003 to 0 $size * 0.015.
+  draw an ellipse called guard, $size * 0.04 by $size * 0.13, at $size * -0.013 0.
+  draw a rectangle called grip, $size * 0.26 by $size * 0.048, corners $size * 0.01, at $size * -0.167 0.
+  draw a circle called pommel, $size * 0.024 big, at $size * -0.31 0.
+end.
+
+make the window 826 by 1415, at 207 207.
+
+-- the bezel: a thick red frame with a black line inside it
+draw a rectangle called inner-line, 826 by 1415, corners 8, hollow, 12 wide, at 620 914.
+
+-- katana pattern running down both sides of the bezel
+place 4 katanas called edge-l from 152 230, 390 apart, down, size 340, turned 90.
+place 4 katanas called edge-r from 1088 400, 390 apart, down, size 340, turned -90.
+
+-- the back checker
+draw a rectangle called squares, 40 by 40, at 100 100.
+copy the squares 14 times, 80 apart.
+copy the squares 21 times, 80 apart, down.
+copy the squares, by 40 40, called squares-2.
+
+define $edge as:
+  enamel its blade in yellow.
+  enamel its guard and its grip and its pommel in black.
+end.
+
+on the front.
+enamel the card in red.
+print @bride-full.jpg in the window, focused at 0.5 0.5.
+enamel the inner-line in black.
+use $edge on the edge-l-1 and the edge-l-2 and the edge-l-3 and the edge-l-4 and the edge-r-1 and the edge-r-2 and the edge-r-3 and the edge-r-4.
+
+on the back.
+enamel the card in red.
+enamel the window in yellow.
+enamel the squares within the window in red.
+enamel the squares-2 within the window in black.
+enamel the inner-line in black.
+use $edge on the edge-l-1 and the edge-l-2 and the edge-l-3 and the edge-l-4 and the edge-r-1 and the edge-r-2 and the edge-r-3 and the edge-r-4.

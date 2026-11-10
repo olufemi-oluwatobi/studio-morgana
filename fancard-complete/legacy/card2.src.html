@@ -1,0 +1,105 @@
+<title>The Pilot Card</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap">
+<style>
+/* Layout: one card. Mint lacquer frame, a top tab biting into a full photo window, one slim plate under the photo. All plain DOM, so the photo can never fail to show. */
+:root{--bg:#131715;--mute:#8fa59b;--focus:#bff0d8;--mint:#74c79f;--deep:#17503b;--cream:#fff4df;--disp:"Lilita One","Arial Rounded MT Bold","Trebuchet MS",sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:var(--disp);overflow-x:hidden}
+.page{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding-block:16px 20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.stage{position:relative;width:min(calc(100vw - 32px),420px,calc((100svh - 100px) / 1.545));aspect-ratio:1/1.545;perspective:1200px;container-type:inline-size;touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab;-webkit-tap-highlight-color:transparent}
+.stage:focus-visible{outline:2px solid var(--focus);outline-offset:6px;border-radius:7cqw}
+.card3d{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform;
+  --p:50;--gx:40;--gy:25;
+  --pearl:linear-gradient(118deg,var(--mint) calc(var(--p)*1% - 34%),#c8f5e1 calc(var(--p)*1% - 12%),#ffeaf4 calc(var(--p)*1%),#bfe6ff calc(var(--p)*1% + 12%),var(--mint) calc(var(--p)*1% + 34%))}
+.shadow{position:absolute;left:10%;right:10%;bottom:-3%;height:5%;background:radial-gradient(closest-side,rgba(0,0,0,.75),transparent);filter:blur(8px);transform:translateZ(-50px)}
+.face{position:absolute;inset:0;border-radius:6cqw;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;
+  background:radial-gradient(circle at calc(var(--gx)*1%) calc(var(--gy)*1%),rgba(255,255,255,.6),rgba(255,255,255,0) 40cqw),var(--pearl),var(--mint);
+  box-shadow:inset 0 .7cqw 1cqw rgba(255,255,255,.75),inset 0 -1cqw 1.6cqw rgba(0,70,48,.4),inset 0 0 0 .35cqw rgba(0,70,48,.35)}
+.back{transform:rotateY(180deg)}
+.tab{position:absolute;left:27cqw;top:0;width:46cqw;height:13.5cqw;border-radius:0 0 5.5cqw 5.5cqw;z-index:3;
+  background:var(--pearl),var(--mint);background-size:100cqw 154.5cqw;background-position:-27cqw 0;
+  box-shadow:inset 0 -.7cqw 1.1cqw rgba(0,70,48,.35),inset 0 .5cqw .6cqw rgba(255,255,255,.55),0 .7cqw 1.4cqw rgba(0,40,28,.4);
+  display:flex;align-items:center;justify-content:center;color:var(--deep);font-size:5.4cqw;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;padding:0 3cqw;line-height:1}
+.win{position:absolute;left:5cqw;top:5cqw;width:90cqw;height:133cqw;border-radius:4.5cqw;overflow:hidden;background:linear-gradient(90deg,#ae9451,#d0b56d) top/100% 50% no-repeat,linear-gradient(90deg,#ccb56e,#cbb46e) bottom/100% 50% no-repeat,#cbb56e;box-shadow:0 0 0 .5cqw rgba(0,64,44,.55),0 .9cqw 0 .5cqw rgba(255,255,255,.35)}
+.win img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.win .fill{display:none}
+.win .main{object-fit:contain;transform:translate(-2.5cqw,1cqw) scale(1.06);transform-origin:50% 50%;-webkit-mask-image:linear-gradient(transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(transparent,#000 9%,#000 91%,transparent)}
+.win::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 0 .5cqw rgba(0,50,35,.4),inset 0 1.2cqw 2.4cqw rgba(0,0,0,.22);
+  background:radial-gradient(circle at calc(var(--gx)*1%) calc(var(--gy)*1%),rgba(255,255,255,.16),rgba(255,255,255,0) 45cqw)}
+.pill{position:absolute;left:5cqw;right:5cqw;top:142cqw;height:8.6cqw;border-radius:4.3cqw;display:flex;align-items:center;justify-content:space-between;padding:0 4.2cqw;
+  background:linear-gradient(#fffaf1,#ffe8c6);color:var(--deep);font-size:4cqw;letter-spacing:.04em;line-height:1;white-space:nowrap;
+  box-shadow:inset 0 0 0 .45cqw var(--deep),0 .5cqw .9cqw rgba(0,60,40,.35)}
+.pill span:last-child{font-variant-numeric:tabular-nums}
+.pill.one{justify-content:center}
+.panel{position:absolute;left:5cqw;top:5cqw;width:90cqw;height:133cqw;border-radius:4.5cqw;overflow:hidden;
+  background:radial-gradient(circle at calc(var(--gx)*1%) calc(var(--gy)*1%),rgba(190,255,225,.32),rgba(190,255,225,0) 55cqw),conic-gradient(from calc(var(--p)*3.6deg) at 50% 45%,#0e4331,#25805f,#0e4331,#379c77,#0e4331);
+  box-shadow:0 0 0 .5cqw rgba(0,64,44,.55),0 .9cqw 0 .5cqw rgba(255,255,255,.35),inset 0 1.2cqw 2.4cqw rgba(0,0,0,.35);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5cqw;color:var(--cream);text-align:center}
+.panel .by{font-size:4.2cqw;letter-spacing:.14em;text-transform:uppercase;color:#bfeed7}
+.panel .num{font-size:50cqw;line-height:.9;letter-spacing:.01em;color:#fff4df;text-shadow:0 .8cqw 0 #0a2f23,0 1.6cqw 2.4cqw rgba(0,0,0,.45);font-variant-numeric:tabular-nums}
+.panel .of{font-size:5cqw;letter-spacing:.2em;text-transform:uppercase;color:#bfeed7}
+.panel .rule{width:34cqw;height:.7cqw;border-radius:1cqw;background:rgba(255,244,223,.5)}
+.glare{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:4;background:linear-gradient(112deg,rgba(255,255,255,0) calc(var(--gx)*1% - 14%),rgba(255,255,255,.2) calc(var(--gx)*1%),rgba(255,255,255,0) calc(var(--gx)*1% + 14%))}
+.hint{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);text-align:center}
+</style>
+<div class="page">
+  <div class="stage" id="stage" tabindex="0" role="button" aria-label="The Pilot, a fan card by @creator, edition 024 of 100. Drag to tilt, tap or press Enter to flip.">
+    <div class="card3d" id="card">
+      <div class="shadow"></div>
+      <div class="face front">
+        <div class="win"><img class="main" id="p2" alt="Full-body portrait"></div>
+        <div class="tab" id="tTitle"></div>
+        <div class="pill"><span id="pHandle"></span><span id="pNo"></span></div>
+        <div class="glare"></div>
+      </div>
+      <div class="face back">
+        <div class="panel"><div class="by" id="bBy"></div><div class="num" id="bNo"></div><div class="rule"></div><div class="of" id="bOf"></div></div>
+        <div class="tab">Fancard</div>
+        <div class="pill one"><span id="bTo"></span></div>
+        <div class="glare"></div>
+      </div>
+    </div>
+  </div>
+  <div class="hint">Drag to tilt · Tap to flip</div>
+</div>
+<script>
+(()=>{
+const PHOTO="__PHOTO__";
+/* The card is data. Change these and the photo; the template stays fixed. */
+const D={title:"The Pilot",handle:"@creator",no:"024",of:"100",to:"@yourfan"};
+const $=id=>document.getElementById(id);
+$('p2').src=PHOTO;
+$('tTitle').textContent=D.title;$('pHandle').textContent=D.handle;$('pNo').textContent=`${D.no} / ${D.of}`;
+$('bBy').textContent=D.handle;$('bNo').textContent=D.no;$('bOf').textContent=`of ${D.of}`;$('bTo').textContent=`To ${D.to}`;
+const stage=$('stage'),card=$('card');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let target={x:0,y:0},tilt={x:0,y:0},vel={x:0,y:0},dragging=false,lastMove=-1e9,flip=0,flipT=0,fv=0,down=null;
+function tiltFrom(e){const r=stage.getBoundingClientRect();const nx=((e.clientX-r.left)/r.width)*2-1,ny=((e.clientY-r.top)/r.height)*2-1;target.x=Math.max(-1,Math.min(1,nx*1.1));target.y=Math.max(-1,Math.min(1,-ny*1.1));lastMove=performance.now();}
+stage.addEventListener('pointerdown',e=>{dragging=true;stage.setPointerCapture(e.pointerId);down={x:e.clientX,y:e.clientY,t:performance.now()};tiltFrom(e);});
+stage.addEventListener('pointermove',e=>{if(dragging||e.pointerType==='mouse')tiltFrom(e);});
+stage.addEventListener('pointerup',e=>{if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)<8&&performance.now()-down.t<350)flipT=flipT?0:1;down=null;dragging=false;target.x=0;target.y=0;});
+stage.addEventListener('pointercancel',()=>{dragging=false;target.x=0;target.y=0;});
+stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'){dragging=false;target.x=0;target.y=0;}});
+stage.addEventListener('keydown',e=>{const k={ArrowLeft:[-.6,0],ArrowRight:[.6,0],ArrowUp:[0,.6],ArrowDown:[0,-.6]}[e.key];if(k){target.x=k[0];target.y=k[1];lastMove=performance.now();e.preventDefault();}
+  if(e.key==='Enter'||e.key===' '){flipT=flipT?0:1;e.preventDefault();}});
+const t0=performance.now();let last=t0;
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;const t=(now-t0)/1000;
+  let tx=target.x,ty=target.y;
+  if(!dragging&&!reduce&&now-lastMove>1500){tx=Math.sin(t*.6)*.34;ty=Math.sin(t*.45+1)*.22;}
+  const k=dragging?80:36,dd=dragging?13:8;
+  vel.x+=((tx-tilt.x)*k-vel.x*dd)*dt;vel.y+=((ty-tilt.y)*k-vel.y*dd)*dt;tilt.x+=vel.x*dt;tilt.y+=vel.y*dt;
+  if(reduce)flip=flipT;else{fv+=((flipT-flip)*70-fv*12)*dt;flip+=fv*dt;}
+  const sx=flip>.5?-tilt.x:tilt.x;
+  card.style.transform=`rotateY(${(tilt.x*14+flip*180).toFixed(2)}deg) rotateX(${(tilt.y*10).toFixed(2)}deg)`;
+  card.style.setProperty('--p',(50+sx*30-tilt.y*10).toFixed(1));
+  card.style.setProperty('--gx',(40+sx*45).toFixed(1));
+  card.style.setProperty('--gy',(28-tilt.y*45).toFixed(1));
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>

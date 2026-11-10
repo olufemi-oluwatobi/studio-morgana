@@ -1,0 +1,475 @@
+# FANCARD MANIFEST v0.2 · XVII The Star · relief back
+# Front: the print-on-foil tarot (same as star.card.yaml).
+# Back: the Tinsel Queen method only (one foil over the whole card, design carried purely by
+# raised and pressed relief, no ink) with its own look: silver holo-silk, a celestial astrolabe,
+# raised stars, pressed constellation lines, a stacked compass star, moon phases, pressed rays.
+# Build:  python3 fancard.py manifests/star-relief.card.yaml
+
+fancard: 0.2
+id: star/set-01-relief
+template: tarot-on-foil@0 + astrolabe-relief@0
+seed: 20261107
+
+edition: { "no": 1, of: 1000, set: 1 }
+creator: { name: The Star }
+
+blank:
+  stock: stainless
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]
+  grid: [1080, 1669]
+
+zones:
+  card:   { rect: [11, 11, 1058, 1647], r: 54 }
+  art:    { rect: [70, 70, 940, 1529], r: 30 }
+  window: { rect: [70, 70, 940, 1529], r: 30 }   # card shell needs one; no photo layer is printed into it
+
+tokens:
+  metal:
+    foil: { finish: holo-silk }
+    rim:  { finish: mirror-chrome, polish: mirror }
+  type:
+    caps:   { family: Bodoni Moda, weight: 400 }
+    serif:  { family: Bodoni Moda, weight: 700, style: italic }
+    sans:   { family: Jost, weight: 500 }
+
+components:
+  # ── front ──
+  rim:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [30, 30, 1020, 1609], r: 44, w: 5 }
+  white-front:
+    kind: artwork
+    src: ../art/star-front-white-card.png
+    layers: { fill: ../art/star-front-white-card.png }
+  # ── back: relief only ──
+  b-frame:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [30, 30, 1020, 1609], r: 44, w: 4 }
+      - { type: rect, rect: [50, 50, 980, 1569], r: 30, w: 2 }
+  b-rays:
+    kind: shape.draw
+    items:
+      - { type: line, from: [932, 834], to: [1640, 834], w: 2.2 }
+      - { type: line, from: [931, 860], to: [1638, 906], w: 1.2 }
+      - { type: line, from: [929, 885], to: [1631, 978], w: 2.2 }
+      - { type: line, from: [924, 910], to: [1619, 1049], w: 1.2 }
+      - { type: line, from: [919, 935], to: [1603, 1119], w: 2.2 }
+      - { type: line, from: [911, 960], to: [1582, 1188], w: 1.2 }
+      - { type: line, from: [902, 984], to: [1556, 1255], w: 2.2 }
+      - { type: line, from: [892, 1007], to: [1527, 1321], w: 1.2 }
+      - { type: line, from: [879, 1030], to: [1493, 1384], w: 2.2 }
+      - { type: line, from: [866, 1052], to: [1455, 1445], w: 1.2 }
+      - { type: line, from: [851, 1073], to: [1413, 1504], w: 2.2 }
+      - { type: line, from: [835, 1092], to: [1367, 1559], w: 1.2 }
+      - { type: line, from: [817, 1111], to: [1318, 1612], w: 2.2 }
+      - { type: line, from: [798, 1129], to: [1265, 1661], w: 1.2 }
+      - { type: line, from: [779, 1145], to: [1210, 1707], w: 2.2 }
+      - { type: line, from: [758, 1160], to: [1151, 1749], w: 1.2 }
+      - { type: line, from: [736, 1173], to: [1090, 1787], w: 2.2 }
+      - { type: line, from: [713, 1186], to: [1027, 1821], w: 1.2 }
+      - { type: line, from: [690, 1196], to: [961, 1850], w: 2.2 }
+      - { type: line, from: [666, 1205], to: [894, 1876], w: 1.2 }
+      - { type: line, from: [641, 1213], to: [825, 1897], w: 2.2 }
+      - { type: line, from: [616, 1218], to: [755, 1913], w: 1.2 }
+      - { type: line, from: [591, 1223], to: [684, 1925], w: 2.2 }
+      - { type: line, from: [566, 1225], to: [612, 1932], w: 1.2 }
+      - { type: line, from: [540, 1226], to: [540, 1934], w: 2.2 }
+      - { type: line, from: [514, 1225], to: [468, 1932], w: 1.2 }
+      - { type: line, from: [489, 1223], to: [396, 1925], w: 2.2 }
+      - { type: line, from: [464, 1218], to: [325, 1913], w: 1.2 }
+      - { type: line, from: [439, 1213], to: [255, 1897], w: 2.2 }
+      - { type: line, from: [414, 1205], to: [186, 1876], w: 1.2 }
+      - { type: line, from: [390, 1196], to: [119, 1850], w: 2.2 }
+      - { type: line, from: [367, 1186], to: [54, 1821], w: 1.2 }
+      - { type: line, from: [344, 1173], to: [-10, 1787], w: 2.2 }
+      - { type: line, from: [322, 1160], to: [-71, 1749], w: 1.2 }
+      - { type: line, from: [301, 1145], to: [-130, 1707], w: 2.2 }
+      - { type: line, from: [282, 1129], to: [-185, 1661], w: 1.2 }
+      - { type: line, from: [263, 1111], to: [-238, 1612], w: 2.2 }
+      - { type: line, from: [245, 1092], to: [-287, 1559], w: 1.2 }
+      - { type: line, from: [229, 1073], to: [-333, 1504], w: 2.2 }
+      - { type: line, from: [214, 1052], to: [-375, 1445], w: 1.2 }
+      - { type: line, from: [201, 1030], to: [-413, 1384], w: 2.2 }
+      - { type: line, from: [188, 1007], to: [-447, 1321], w: 1.2 }
+      - { type: line, from: [178, 984], to: [-476, 1255], w: 2.2 }
+      - { type: line, from: [169, 960], to: [-502, 1188], w: 1.2 }
+      - { type: line, from: [161, 935], to: [-522, 1119], w: 2.2 }
+      - { type: line, from: [156, 911], to: [-539, 1049], w: 1.2 }
+      - { type: line, from: [151, 885], to: [-551, 978], w: 2.2 }
+      - { type: line, from: [149, 860], to: [-558, 906], w: 1.2 }
+      - { type: line, from: [148, 834], to: [-560, 834], w: 2.2 }
+      - { type: line, from: [149, 808], to: [-558, 762], w: 1.2 }
+      - { type: line, from: [151, 783], to: [-551, 691], w: 2.2 }
+      - { type: line, from: [156, 758], to: [-539, 620], w: 1.2 }
+      - { type: line, from: [161, 733], to: [-523, 549], w: 2.2 }
+      - { type: line, from: [169, 708], to: [-502, 481], w: 1.2 }
+      - { type: line, from: [178, 684], to: [-476, 413], w: 2.2 }
+      - { type: line, from: [188, 661], to: [-447, 348], w: 1.2 }
+      - { type: line, from: [200, 638], to: [-413, 284], w: 2.2 }
+      - { type: line, from: [214, 616], to: [-375, 223], w: 1.2 }
+      - { type: line, from: [229, 595], to: [-333, 164], w: 2.2 }
+      - { type: line, from: [245, 576], to: [-287, 109], w: 1.2 }
+      - { type: line, from: [263, 557], to: [-238, 56], w: 2.2 }
+      - { type: line, from: [282, 539], to: [-185, 7], w: 1.2 }
+      - { type: line, from: [301, 523], to: [-130, -39], w: 2.2 }
+      - { type: line, from: [322, 508], to: [-71, -81], w: 1.2 }
+      - { type: line, from: [344, 495], to: [-10, -119], w: 2.2 }
+      - { type: line, from: [367, 482], to: [53, -152], w: 1.2 }
+      - { type: line, from: [390, 472], to: [119, -182], w: 2.2 }
+      - { type: line, from: [414, 463], to: [186, -208], w: 1.2 }
+      - { type: line, from: [438, 455], to: [255, -228], w: 2.2 }
+      - { type: line, from: [463, 450], to: [325, -245], w: 1.2 }
+      - { type: line, from: [489, 445], to: [396, -257], w: 2.2 }
+      - { type: line, from: [514, 443], to: [468, -264], w: 1.2 }
+      - { type: line, from: [540, 442], to: [540, -266], w: 2.2 }
+      - { type: line, from: [566, 443], to: [612, -264], w: 1.2 }
+      - { type: line, from: [591, 445], to: [683, -257], w: 2.2 }
+      - { type: line, from: [616, 450], to: [754, -245], w: 1.2 }
+      - { type: line, from: [641, 455], to: [825, -229], w: 2.2 }
+      - { type: line, from: [666, 463], to: [893, -208], w: 1.2 }
+      - { type: line, from: [690, 472], to: [961, -182], w: 2.2 }
+      - { type: line, from: [713, 482], to: [1026, -153], w: 1.2 }
+      - { type: line, from: [736, 494], to: [1090, -119], w: 2.2 }
+      - { type: line, from: [758, 508], to: [1151, -81], w: 1.2 }
+      - { type: line, from: [779, 523], to: [1209, -39], w: 2.2 }
+      - { type: line, from: [798, 539], to: [1265, 7], w: 1.2 }
+      - { type: line, from: [817, 557], to: [1318, 56], w: 2.2 }
+      - { type: line, from: [835, 575], to: [1367, 109], w: 1.2 }
+      - { type: line, from: [851, 595], to: [1413, 164], w: 2.2 }
+      - { type: line, from: [866, 616], to: [1455, 223], w: 1.2 }
+      - { type: line, from: [879, 638], to: [1493, 284], w: 2.2 }
+      - { type: line, from: [892, 661], to: [1526, 347], w: 1.2 }
+      - { type: line, from: [902, 684], to: [1556, 413], w: 2.2 }
+      - { type: line, from: [911, 708], to: [1582, 480], w: 1.2 }
+      - { type: line, from: [919, 732], to: [1602, 549], w: 2.2 }
+      - { type: line, from: [924, 757], to: [1619, 619], w: 1.2 }
+      - { type: line, from: [929, 783], to: [1631, 690], w: 2.2 }
+      - { type: line, from: [931, 808], to: [1638, 762], w: 1.2 }
+  b-clear:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [60, 60, 960, 1549], r: 26, w: 22 }
+      - { type: circle, c: [540, 834], r: 392, fill: true }
+      - { type: rect, rect: [250, 150, 580, 230], r: 20, fill: true }
+      - { type: rect, rect: [250, 1289, 580, 230], r: 20, fill: true }
+  b-platform:
+    kind: shape.draw
+    items:
+      - { type: circle, c: [540, 834], r: 372, fill: true }
+  b-astrolabe:
+    kind: shape.draw
+    items:
+      - { type: circle, c: [540, 834], r: 372, w: 4 }
+      - { type: circle, c: [540, 834], r: 336, w: 2 }
+      - { type: circle, c: [540, 834], r: 296, w: 2 }
+      - { type: circle, c: [540, 834], r: 262, w: 3 }
+      - { type: line, from: [840, 834], to: [870, 834], w: 2.6 }
+      - { type: line, from: [860, 848], to: [870, 848], w: 1.4 }
+      - { type: line, from: [859, 862], to: [869, 863], w: 1.4 }
+      - { type: line, from: [857, 876], to: [867, 877], w: 1.4 }
+      - { type: line, from: [847, 888], to: [865, 891], w: 1.4 }
+      - { type: line, from: [852, 903], to: [862, 905], w: 1.4 }
+      - { type: line, from: [849, 917], to: [859, 919], w: 1.4 }
+      - { type: line, from: [845, 930], to: [855, 933], w: 1.4 }
+      - { type: line, from: [833, 941], to: [850, 947], w: 1.4 }
+      - { type: line, from: [836, 956], to: [845, 960], w: 1.4 }
+      - { type: line, from: [830, 969], to: [839, 973], w: 1.4 }
+      - { type: line, from: [824, 982], to: [833, 986], w: 1.4 }
+      - { type: line, from: [800, 984], to: [826, 999], w: 2.6 }
+      - { type: line, from: [810, 1006], to: [818, 1011], w: 1.4 }
+      - { type: line, from: [802, 1018], to: [810, 1023], w: 1.4 }
+      - { type: line, from: [794, 1029], to: [802, 1035], w: 1.4 }
+      - { type: line, from: [779, 1035], to: [793, 1046], w: 1.4 }
+      - { type: line, from: [776, 1050], to: [783, 1057], w: 1.4 }
+      - { type: line, from: [766, 1060], to: [773, 1067], w: 1.4 }
+      - { type: line, from: [756, 1070], to: [763, 1077], w: 1.4 }
+      - { type: line, from: [741, 1073], to: [752, 1087], w: 1.4 }
+      - { type: line, from: [735, 1088], to: [741, 1096], w: 1.4 }
+      - { type: line, from: [724, 1096], to: [729, 1104], w: 1.4 }
+      - { type: line, from: [712, 1104], to: [717, 1112], w: 1.4 }
+      - { type: line, from: [690, 1094], to: [705, 1120], w: 2.6 }
+      - { type: line, from: [688, 1118], to: [692, 1127], w: 1.4 }
+      - { type: line, from: [675, 1124], to: [679, 1133], w: 1.4 }
+      - { type: line, from: [662, 1130], to: [666, 1139], w: 1.4 }
+      - { type: line, from: [647, 1127], to: [653, 1144], w: 1.4 }
+      - { type: line, from: [636, 1139], to: [639, 1149], w: 1.4 }
+      - { type: line, from: [623, 1143], to: [625, 1153], w: 1.4 }
+      - { type: line, from: [609, 1146], to: [611, 1156], w: 1.4 }
+      - { type: line, from: [594, 1141], to: [597, 1159], w: 1.4 }
+      - { type: line, from: [582, 1151], to: [583, 1161], w: 1.4 }
+      - { type: line, from: [568, 1153], to: [569, 1163], w: 1.4 }
+      - { type: line, from: [554, 1154], to: [554, 1164], w: 1.4 }
+      - { type: line, from: [540, 1134], to: [540, 1164], w: 2.6 }
+      - { type: line, from: [526, 1154], to: [526, 1164], w: 1.4 }
+      - { type: line, from: [512, 1153], to: [511, 1163], w: 1.4 }
+      - { type: line, from: [498, 1151], to: [497, 1161], w: 1.4 }
+      - { type: line, from: [486, 1141], to: [483, 1159], w: 1.4 }
+      - { type: line, from: [471, 1146], to: [469, 1156], w: 1.4 }
+      - { type: line, from: [457, 1143], to: [455, 1153], w: 1.4 }
+      - { type: line, from: [444, 1139], to: [441, 1149], w: 1.4 }
+      - { type: line, from: [433, 1127], to: [427, 1144], w: 1.4 }
+      - { type: line, from: [418, 1130], to: [414, 1139], w: 1.4 }
+      - { type: line, from: [405, 1124], to: [401, 1133], w: 1.4 }
+      - { type: line, from: [392, 1118], to: [388, 1127], w: 1.4 }
+      - { type: line, from: [390, 1094], to: [375, 1120], w: 2.6 }
+      - { type: line, from: [368, 1104], to: [363, 1112], w: 1.4 }
+      - { type: line, from: [356, 1096], to: [351, 1104], w: 1.4 }
+      - { type: line, from: [345, 1088], to: [339, 1096], w: 1.4 }
+      - { type: line, from: [339, 1073], to: [328, 1087], w: 1.4 }
+      - { type: line, from: [324, 1070], to: [317, 1077], w: 1.4 }
+      - { type: line, from: [314, 1060], to: [307, 1067], w: 1.4 }
+      - { type: line, from: [304, 1050], to: [297, 1057], w: 1.4 }
+      - { type: line, from: [301, 1035], to: [287, 1046], w: 1.4 }
+      - { type: line, from: [286, 1029], to: [278, 1035], w: 1.4 }
+      - { type: line, from: [278, 1018], to: [270, 1023], w: 1.4 }
+      - { type: line, from: [270, 1006], to: [262, 1011], w: 1.4 }
+      - { type: line, from: [280, 984], to: [254, 999], w: 2.6 }
+      - { type: line, from: [256, 982], to: [247, 986], w: 1.4 }
+      - { type: line, from: [250, 969], to: [241, 973], w: 1.4 }
+      - { type: line, from: [244, 956], to: [235, 960], w: 1.4 }
+      - { type: line, from: [247, 941], to: [230, 947], w: 1.4 }
+      - { type: line, from: [235, 930], to: [225, 933], w: 1.4 }
+      - { type: line, from: [231, 917], to: [221, 919], w: 1.4 }
+      - { type: line, from: [228, 903], to: [218, 905], w: 1.4 }
+      - { type: line, from: [233, 888], to: [215, 891], w: 1.4 }
+      - { type: line, from: [223, 876], to: [213, 877], w: 1.4 }
+      - { type: line, from: [221, 862], to: [211, 863], w: 1.4 }
+      - { type: line, from: [220, 848], to: [210, 848], w: 1.4 }
+      - { type: line, from: [240, 834], to: [210, 834], w: 2.6 }
+      - { type: line, from: [220, 820], to: [210, 820], w: 1.4 }
+      - { type: line, from: [221, 806], to: [211, 805], w: 1.4 }
+      - { type: line, from: [223, 792], to: [213, 791], w: 1.4 }
+      - { type: line, from: [233, 780], to: [215, 777], w: 1.4 }
+      - { type: line, from: [228, 765], to: [218, 763], w: 1.4 }
+      - { type: line, from: [231, 751], to: [221, 749], w: 1.4 }
+      - { type: line, from: [235, 738], to: [225, 735], w: 1.4 }
+      - { type: line, from: [247, 727], to: [230, 721], w: 1.4 }
+      - { type: line, from: [244, 712], to: [235, 708], w: 1.4 }
+      - { type: line, from: [250, 699], to: [241, 695], w: 1.4 }
+      - { type: line, from: [256, 686], to: [247, 682], w: 1.4 }
+      - { type: line, from: [280, 684], to: [254, 669], w: 2.6 }
+      - { type: line, from: [270, 662], to: [262, 657], w: 1.4 }
+      - { type: line, from: [278, 650], to: [270, 645], w: 1.4 }
+      - { type: line, from: [286, 639], to: [278, 633], w: 1.4 }
+      - { type: line, from: [301, 633], to: [287, 622], w: 1.4 }
+      - { type: line, from: [304, 618], to: [297, 611], w: 1.4 }
+      - { type: line, from: [314, 608], to: [307, 601], w: 1.4 }
+      - { type: line, from: [324, 598], to: [317, 591], w: 1.4 }
+      - { type: line, from: [339, 595], to: [328, 581], w: 1.4 }
+      - { type: line, from: [345, 580], to: [339, 572], w: 1.4 }
+      - { type: line, from: [356, 572], to: [351, 564], w: 1.4 }
+      - { type: line, from: [368, 564], to: [363, 556], w: 1.4 }
+      - { type: line, from: [390, 574], to: [375, 548], w: 2.6 }
+      - { type: line, from: [392, 550], to: [388, 541], w: 1.4 }
+      - { type: line, from: [405, 544], to: [400, 535], w: 1.4 }
+      - { type: line, from: [418, 538], to: [414, 529], w: 1.4 }
+      - { type: line, from: [433, 541], to: [427, 524], w: 1.4 }
+      - { type: line, from: [444, 529], to: [441, 519], w: 1.4 }
+      - { type: line, from: [457, 525], to: [455, 515], w: 1.4 }
+      - { type: line, from: [471, 522], to: [469, 512], w: 1.4 }
+      - { type: line, from: [486, 527], to: [483, 509], w: 1.4 }
+      - { type: line, from: [498, 517], to: [497, 507], w: 1.4 }
+      - { type: line, from: [512, 515], to: [511, 505], w: 1.4 }
+      - { type: line, from: [526, 514], to: [526, 504], w: 1.4 }
+      - { type: line, from: [540, 534], to: [540, 504], w: 2.6 }
+      - { type: line, from: [554, 514], to: [554, 504], w: 1.4 }
+      - { type: line, from: [568, 515], to: [569, 505], w: 1.4 }
+      - { type: line, from: [582, 517], to: [583, 507], w: 1.4 }
+      - { type: line, from: [594, 527], to: [597, 509], w: 1.4 }
+      - { type: line, from: [609, 522], to: [611, 512], w: 1.4 }
+      - { type: line, from: [623, 525], to: [625, 515], w: 1.4 }
+      - { type: line, from: [636, 529], to: [639, 519], w: 1.4 }
+      - { type: line, from: [647, 541], to: [653, 524], w: 1.4 }
+      - { type: line, from: [662, 538], to: [666, 529], w: 1.4 }
+      - { type: line, from: [675, 544], to: [679, 535], w: 1.4 }
+      - { type: line, from: [688, 550], to: [692, 541], w: 1.4 }
+      - { type: line, from: [690, 574], to: [705, 548], w: 2.6 }
+      - { type: line, from: [712, 564], to: [717, 556], w: 1.4 }
+      - { type: line, from: [724, 572], to: [729, 564], w: 1.4 }
+      - { type: line, from: [735, 580], to: [741, 572], w: 1.4 }
+      - { type: line, from: [741, 595], to: [752, 581], w: 1.4 }
+      - { type: line, from: [756, 598], to: [763, 591], w: 1.4 }
+      - { type: line, from: [766, 608], to: [773, 601], w: 1.4 }
+      - { type: line, from: [776, 618], to: [783, 611], w: 1.4 }
+      - { type: line, from: [779, 633], to: [793, 622], w: 1.4 }
+      - { type: line, from: [794, 639], to: [802, 633], w: 1.4 }
+      - { type: line, from: [802, 650], to: [810, 645], w: 1.4 }
+      - { type: line, from: [810, 662], to: [818, 657], w: 1.4 }
+      - { type: line, from: [800, 684], to: [826, 669], w: 2.6 }
+      - { type: line, from: [824, 686], to: [833, 682], w: 1.4 }
+      - { type: line, from: [830, 699], to: [839, 694], w: 1.4 }
+      - { type: line, from: [836, 711], to: [845, 708], w: 1.4 }
+      - { type: line, from: [833, 727], to: [850, 721], w: 1.4 }
+      - { type: line, from: [845, 738], to: [855, 735], w: 1.4 }
+      - { type: line, from: [849, 751], to: [859, 749], w: 1.4 }
+      - { type: line, from: [852, 765], to: [862, 763], w: 1.4 }
+      - { type: line, from: [847, 780], to: [865, 777], w: 1.4 }
+      - { type: line, from: [857, 792], to: [867, 791], w: 1.4 }
+      - { type: line, from: [859, 806], to: [869, 805], w: 1.4 }
+      - { type: line, from: [860, 820], to: [870, 820], w: 1.4 }
+      - { type: circle, c: [619, 908], r: 2.2, fill: true }
+      - { type: circle, c: [344, 811], r: 2.6, fill: true }
+      - { type: circle, c: [608, 905], r: 2.6, fill: true }
+      - { type: circle, c: [466, 1069], r: 2.6, fill: true }
+      - { type: circle, c: [545, 1007], r: 2.2, fill: true }
+      - { type: circle, c: [741, 935], r: 2.2, fill: true }
+      - { type: circle, c: [628, 974], r: 2.2, fill: true }
+      - { type: circle, c: [714, 758], r: 2.6, fill: true }
+      - { type: circle, c: [396, 632], r: 5.5, fill: true }
+      - { type: circle, c: [593, 1070], r: 4.2, fill: true }
+      - { type: circle, c: [529, 977], r: 2.6, fill: true }
+      - { type: circle, c: [608, 996], r: 2.6, fill: true }
+      - { type: circle, c: [741, 787], r: 2.6, fill: true }
+      - { type: circle, c: [680, 848], r: 3.2, fill: true }
+      - { type: circle, c: [544, 1030], r: 3.2, fill: true }
+      - { type: circle, c: [452, 1067], r: 2.6, fill: true }
+      - { type: circle, c: [463, 604], r: 2.6, fill: true }
+      - { type: circle, c: [715, 693], r: 2.2, fill: true }
+      - { type: circle, c: [353, 901], r: 5.5, fill: true }
+      - { type: circle, c: [787, 809], r: 5.5, fill: true }
+      - { type: circle, c: [366, 732], r: 3.2, fill: true }
+      - { type: circle, c: [423, 988], r: 5.5, fill: true }
+      - { type: circle, c: [472, 688], r: 4.2, fill: true }
+      - { type: circle, c: [300, 832], r: 5.5, fill: true }
+      - { type: circle, c: [651, 897], r: 2.6, fill: true }
+      - { type: circle, c: [594, 1021], r: 5.5, fill: true }
+      - { type: circle, c: [664, 612], r: 3.2, fill: true }
+      - { type: circle, c: [697, 865], r: 2.6, fill: true }
+      - { type: circle, c: [689, 727], r: 2.6, fill: true }
+      - { type: circle, c: [776, 872], r: 3.2, fill: true }
+      - { type: circle, c: [568, 587], r: 2.2, fill: true }
+      - { type: circle, c: [749, 878], r: 3.2, fill: true }
+      - { type: circle, c: [597, 1081], r: 4.2, fill: true }
+      - { type: circle, c: [433, 898], r: 4.2, fill: true }
+      - { type: circle, c: [500, 1074], r: 3.2, fill: true }
+      - { type: circle, c: [383, 975], r: 2.6, fill: true }
+      - { type: circle, c: [399, 815], r: 5.5, fill: true }
+      - { type: circle, c: [658, 670], r: 4.2, fill: true }
+      - { type: circle, c: [330, 882], r: 2.6, fill: true }
+      - { type: circle, c: [474, 703], r: 4.2, fill: true }
+      - { type: circle, c: [672, 717], r: 2.2, fill: true }
+      - { type: circle, c: [409, 697], r: 4.2, fill: true }
+      - { type: circle, c: [554, 705], r: 2.6, fill: true }
+      - { type: circle, c: [660, 874], r: 3.2, fill: true }
+      - { type: circle, c: [499, 619], r: 2.2, fill: true }
+      - { type: circle, c: [441, 1065], r: 5.5, fill: true }
+      - { type: circle, c: [767, 931], r: 4.2, fill: true }
+      - { type: circle, c: [464, 665], r: 5.5, fill: true }
+      - { type: circle, c: [406, 891], r: 4.2, fill: true }
+      - { type: circle, c: [709, 983], r: 2.2, fill: true }
+      - { type: circle, c: [536, 1066], r: 2.6, fill: true }
+      - { type: circle, c: [664, 759], r: 2.6, fill: true }
+      - { type: circle, c: [308, 738], r: 3.2, fill: true }
+      - { type: circle, c: [775, 778], r: 2.6, fill: true }
+      - { type: circle, c: [731, 936], r: 5.5, fill: true }
+      - { type: circle, c: [364, 928], r: 4.2, fill: true }
+      - { type: circle, c: [536, 950], r: 2.6, fill: true }
+      - { type: circle, c: [664, 887], r: 5.5, fill: true }
+      - { type: circle, c: [610, 694], r: 2.2, fill: true }
+      - { type: circle, c: [734, 803], r: 4.2, fill: true }
+      - { type: circle, c: [657, 662], r: 4.2, fill: true }
+      - { type: circle, c: [647, 911], r: 2.2, fill: true }
+      - { type: circle, c: [761, 791], r: 2.6, fill: true }
+      - { type: circle, c: [630, 1067], r: 3.2, fill: true }
+      - { type: circle, c: [665, 711], r: 2.6, fill: true }
+      - { type: circle, c: [595, 651], r: 2.2, fill: true }
+      - { type: circle, c: [749, 791], r: 2.6, fill: true }
+      - { type: circle, c: [755, 922], r: 3.2, fill: true }
+      - { type: circle, c: [640, 791], r: 2.2, fill: true }
+      - { type: circle, c: [455, 660], r: 2.2, fill: true }
+  b-compass-lo:
+    kind: shape.draw
+    items:
+      - { type: path, fill: true, d: "M540.0,738.0 L550.6,823.4 L636.0,834.0 L550.6,844.6 L540.0,930.0 L529.4,844.6 L444.0,834.0 L529.4,823.4 Z" }
+  b-compass-hi:
+    kind: shape.draw
+    items:
+      - { type: path, fill: true, d: "M579.6,794.4 L551.0,834.0 L579.6,873.6 L540.0,845.0 L500.4,873.6 L529.0,834.0 L500.4,794.4 L540.0,823.0 Z" }
+      - { type: circle, c: [540, 834], r: 12, fill: true }
+  b-pressed:
+    kind: shape.draw
+    items:
+      - { type: line, from: [396, 632], to: [409, 697], w: 1.8 }
+      - { type: line, from: [409, 697], to: [464, 665], w: 1.8 }
+      - { type: line, from: [353, 901], to: [406, 891], w: 1.8 }
+      - { type: line, from: [406, 891], to: [364, 928], w: 1.8 }
+      - { type: line, from: [364, 928], to: [433, 898], w: 1.8 }
+      - { type: line, from: [787, 809], to: [734, 803], w: 1.8 }
+      - { type: line, from: [734, 803], to: [680, 848], w: 1.8 }
+      - { type: line, from: [680, 848], to: [664, 887], w: 1.8 }
+      - { type: line, from: [423, 988], to: [441, 1065], w: 1.8 }
+      - { type: line, from: [300, 832], to: [399, 815], w: 1.8 }
+      - { type: line, from: [594, 1021], to: [593, 1070], w: 1.8 }
+      - { type: ring-text, c: [540, 834], r: 346, font: sans, size: 17, upper: true,
+          text: "fancard  ✦  xvii  ✦  the star  ✦  nº {edition.no:04}  ✦  one of {edition.of}  ✦  set {edition.set:02}  ✦  " }
+      - { type: text, at: [540, 1488], font: caps, size: 22, track: 9, text: "Nº {edition.no:04}  ·  ONE OF {edition.of}" }
+  b-moon-shadow:
+    kind: shape.draw
+    items:
+      - { type: circle, c: [276, 300], r: 17, fill: true }
+      - { type: circle, c: [364, 300], r: 17, fill: true }
+      - { type: circle, c: [452, 300], r: 17, fill: true }
+      - { type: circle, c: [628, 300], r: 17, fill: true }
+      - { type: circle, c: [716, 300], r: 17, fill: true }
+      - { type: circle, c: [804, 300], r: 17, fill: true }
+      - { type: circle, c: [276, 1369], r: 17, fill: true }
+      - { type: circle, c: [364, 1369], r: 17, fill: true }
+      - { type: circle, c: [452, 1369], r: 17, fill: true }
+      - { type: circle, c: [628, 1369], r: 17, fill: true }
+      - { type: circle, c: [716, 1369], r: 17, fill: true }
+      - { type: circle, c: [804, 1369], r: 17, fill: true }
+  b-moons:
+    kind: shape.draw
+    items:
+      - { type: circle, c: [300, 300], r: 19, fill: true }
+      - { type: circle, c: [380, 300], r: 19, fill: true }
+      - { type: circle, c: [460, 300], r: 19, fill: true }
+      - { type: circle, c: [540, 300], r: 19, fill: true }
+      - { type: circle, c: [620, 300], r: 19, fill: true }
+      - { type: circle, c: [700, 300], r: 19, fill: true }
+      - { type: circle, c: [780, 300], r: 19, fill: true }
+      - { type: circle, c: [300, 1369], r: 19, fill: true }
+      - { type: circle, c: [380, 1369], r: 19, fill: true }
+      - { type: circle, c: [460, 1369], r: 19, fill: true }
+      - { type: circle, c: [540, 1369], r: 19, fill: true }
+      - { type: circle, c: [620, 1369], r: 19, fill: true }
+      - { type: circle, c: [700, 1369], r: 19, fill: true }
+      - { type: circle, c: [780, 1369], r: 19, fill: true }
+      - { type: text, at: [540, 222], font: serif, size: 52, text: fancard }
+      - { type: sparkle, at: [100, 100], size: 22 }
+      - { type: sparkle, at: [980, 100], size: 22 }
+      - { type: sparkle, at: [100, 1569], size: 22 }
+      - { type: sparkle, at: [980, 1569], size: 22 }
+
+sides:
+  front:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: plate, mask: card, metal: metal.foil }
+      - { op: emboss, mask: rim, params: { height_mm: 0.1 } }
+      - { op: plate,  mask: rim, metal: metal.rim }
+      - op: print
+        on_foil: true
+        mask: art
+        white: white-front
+        image: { src: ../assets/star-front.png, zone: art, filters: [] }
+  back:
+    ops:
+      - { op: brush,  params: { angle_deg: 0 } }
+      - { op: foil,   mask: card, metal: metal.foil, params: { emboss: 0 } }
+      - { op: deboss, mask: [b-rays, -b-clear], params: { height_mm: 0.02 } }
+      - { op: emboss, mask: b-platform, params: { height_mm: 0.03 } }
+      - { op: emboss, mask: [b-frame, b-astrolabe, b-moons, b-compass-lo], params: { height_mm: 0.06 } }
+      - { op: emboss, mask: b-compass-hi, params: { height_mm: 0.05 } }
+      - { op: deboss, mask: [b-pressed, "&b-platform"], params: { height_mm: 0.04 } }
+      - { op: deboss, mask: [b-pressed, -b-platform], params: { height_mm: 0.04 } }
+      - { op: deboss, mask: [b-moon-shadow, "&b-moons"], params: { height_mm: 0.07 } }
+
+render:
+  lights: [-1, 0, 1]
+  bench: "#0e0f12"
+produce:
+  separations: per-op

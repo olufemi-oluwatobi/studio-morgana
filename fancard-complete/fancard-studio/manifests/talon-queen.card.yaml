@@ -1,0 +1,185 @@
+# FANCARD MANIFEST v0.2 · "Talon Queen", Set 01
+# Template: talon-tiara@1 — rose-holo sequin ground; gold tiara filigree with amethyst stones;
+# her gold lace stiletto claws gripping the photo window; raised gold signature both sides.
+# Build:  python3 fancard.py manifests/talon-queen.card.yaml
+
+fancard: 0.2
+id: talon-queen/set-01
+template: talon-tiara@1
+seed: 20261107
+
+edition: { "no": 7, of: 100, set: 1 }
+creator: { name: Talon Queen }        # placeholder signature — replace with the creator's own
+
+blank:
+  stock: stainless
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]
+  grid: [1080, 1669]
+
+zones:
+  card:     { rect: [11, 11, 1058, 1647], r: 54 }
+  window:   { rect: [176, 344, 728, 974], arch: 176, r: 22 }
+  sig-front: { center: [540, 1572], max_width: 720, size: 150, rotate_deg: -4, overlay: true }
+  sig-back:  { center: [540, 1572], max_width: 720, size: 150, rotate_deg: -4, overlay: true }
+
+tokens:
+  enamel:
+    sequin: { name: magenta, hex: "#b0105e", process: soft-enamel }
+    lace:   { name: black-lace, hex: "#140608", process: soft-enamel }
+  metal:
+    ground:  { finish: mirror-rose }
+    relief:  { finish: gold-24k, polish: satin }
+    claws:   { finish: gold-24k, polish: mirror }
+    stones:  { finish: crystal, tint: "#9446d8" }
+    glint:   { finish: gold-24k, polish: mirror }
+  type:
+    serif:   { family: Bodoni Moda, weight: 700, style: italic }
+    serif-r: { family: Bodoni Moda, weight: 400, style: italic }
+    caps-r:  { family: Bodoni Moda, weight: 400 }
+    script:  { family: Mr Dafoe }
+  filter:
+    wash: night-flash
+
+components:
+  filigree:                 # her tiara, in gold: crest, band, window rules, swag; claws replace the side chains
+    kind: ornament.tiara-filigree
+    place: { at: window }
+    params: { weight: 7, spread: 70, fan: 0.27, border: 26, sag: 34, pendant: 64, chains: false, corners: top,
+              crest: [[0, 176, 104], [1, 148, 88], [2, 120, 76], [3, 94, 64], [4, 70, 50]] }
+
+  talons:                   # two hands of gold lace stilettos gripping the bottom of the window
+    kind: ornament.talon-fan
+    params:
+      talons:               # [base x, base y, angle°, length, width, bend]
+        - [112, 1440, -90.5, 740, 48, -0.015]
+        - [ 68, 1470, -91.5, 520, 40, -0.02]
+        - [968, 1440, -89.5, 740, 48, 0.015]
+        - [1012, 1470, -88.5, 520, 40, 0.02]
+
+  wordmark:
+    kind: shape.draw
+    items:
+      - { type: text, at: [540, 98], font: serif-r, size: 40, text: fancard }
+
+  signature:
+    kind: type.signature
+    params: { text: "{creator.name}", font: script }
+
+  sparkles:
+    kind: shape.draw
+    items:
+      - { type: sparkle, at: [262, 520], size: 26 }
+      - { type: sparkle, at: [830, 470], size: 32 }
+      - { type: sparkle, at: [846, 1010], size: 18 }
+      - { type: sparkle, at: [236, 1150], size: 20 }
+
+  # ── back: all metal ──
+  talon-crown:              # five claws fanning up out of the medallion like her raised hand
+    kind: ornament.talon-fan
+    params:
+      talons:
+        - [540, 1000, -90,  540, 58, 0]
+        - [540, 1000, -112, 480, 54, -0.04]
+        - [540, 1000, -68,  480, 54, 0.04]
+        - [540, 1000, -134, 400, 50, -0.06]
+        - [540, 1000, -46,  400, 50, 0.06]
+  guilloche:
+    kind: shape.draw
+    items:
+      - { type: hatch, rect: [176, 344, 728, 974], angle: 60, step: 20, w: 1.3 }
+      - { type: hatch, rect: [176, 344, 728, 974], angle: -60, step: 20, w: 1.3 }
+  medallion-clear:
+    kind: shape.draw
+    items:
+      - { type: circle, c: [540, 1000], r: 250, fill: true }
+  rosette:
+    kind: shape.draw
+    items:
+      - { type: rosette, c: [540, 1000], r0: 132, r1: 204, count: 84, w: 1.2 }
+  medallion-ring:
+    kind: shape.draw
+    items:
+      - { type: circle, c: [540, 1000], r: 130, w: 3 }
+      - { type: circle, c: [540, 1000], r: 210, w: 5 }
+      - { type: circle, c: [540, 1000], r: 242, w: 2.5 }
+  medallion-stones:
+    kind: shape.draw
+    items:
+      - { type: stone-ring, c: [540, 1000], rx: 226, ry: 226, n: 60, r: 7 }
+  back-number:
+    kind: shape.draw
+    items:
+      - { type: text, at: [540, 1052], font: serif, size: 160, text: "{edition.no:03}" }
+  back-small:
+    kind: shape.draw
+    items:
+      - { type: text, at: [540, 916], font: caps-r, size: 20, track: 8, text: "Nº" }
+      - { type: text, at: [540, 1094], font: caps-r, size: 12, track: 3.5, text: "ONE OF {edition.of} · SET {edition.set:02}" }
+
+sides:
+  front:
+    ops:
+      - { op: brush,   params: { angle_deg: 0 } }
+      - { op: plate,   mask: card, metal: metal.ground }
+      - { op: emboss,  mask: filigree, params: { height_mm: 0.08 } }
+      - { op: plate,   mask: filigree, metal: metal.relief }
+      - { op: engrave, mask: filigree-holes, params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: filigree-holes, color: enamel.sequin }
+      - { op: emboss,  mask: filigree-stones, params: { height_mm: 0.22, soft: 2.6 } }
+      - { op: plate,   mask: filigree-stones, metal: metal.stones }
+      - { op: engrave, mask: wordmark, params: { depth_mm: 0.04 } }
+      - { op: etch,    mask: wordmark }
+      - op: print
+        mask: window
+        image:
+          src: ../assets/talon-queen.jpg
+          focus: [0.42, 0.36]
+          filters:
+            - { kind: grade,      preset: filter.wash }
+            - { kind: split-tone, shadows: "#3a0a2e", highlights: "#ffe2b8", amount: 0.35 }
+            - { kind: fade,       amount: 0.04, color: "#2a0a1e" }
+            - { kind: halation,   threshold: 0.8, radius: 14, color: "#ff7ac8", amount: 0.4 }
+            - { kind: vignette,   amount: 0.45 }
+            - { kind: grain,      amount: 0.05, size: 0.85, chroma: 0.02 }
+      # claws sit over the photo edge, like her hands on the frame
+      - { op: emboss,  mask: talons, params: { height_mm: 0.10 } }
+      - { op: plate,   mask: talons, metal: metal.claws }
+      - { op: engrave, mask: talons-lace, params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: talons-lace, color: enamel.lace }
+      - { op: emboss,  mask: talons-stones, params: { height_mm: 0.2, soft: 2.4 } }
+      - { op: plate,   mask: talons-stones, metal: metal.stones }
+      - { op: emboss,  mask: signature, place: { signature: sig-front }, params: { height_mm: 0.12 } }
+      - { op: plate,   mask: signature, place: { signature: sig-front }, metal: metal.relief }
+      - { op: foil, mask: sparkles, metal: metal.glint, params: { emboss: 0.3 } }
+
+  back:
+    ops:
+      - { op: brush,   params: { angle_deg: 0 } }
+      - { op: plate,   mask: card, metal: metal.ground }
+      - { op: engrave, mask: [guilloche, -medallion-clear, -talon-crown, rosette], params: { depth_mm: 0.03 } }
+      - { op: etch,    mask: [guilloche, -medallion-clear, -talon-crown, rosette] }
+      - { op: emboss,  mask: [filigree], params: { height_mm: 0.08 } }
+      - { op: plate,   mask: [filigree], metal: metal.relief }
+      - { op: engrave, mask: filigree-holes, params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: filigree-holes, color: enamel.sequin }
+      - { op: emboss,  mask: [talon-crown, -medallion-clear], params: { height_mm: 0.10 } }
+      - { op: plate,   mask: [talon-crown, -medallion-clear], metal: metal.claws }
+      - { op: engrave, mask: [talon-crown-lace, -medallion-clear], params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: [talon-crown-lace, -medallion-clear], color: enamel.lace }
+      - { op: emboss,  mask: medallion-ring, params: { height_mm: 0.08 } }
+      - { op: plate,   mask: medallion-ring, metal: metal.relief }
+      - { op: emboss,  mask: [filigree-stones, medallion-stones], params: { height_mm: 0.22, soft: 2.6 } }
+      - { op: plate,   mask: [filigree-stones, medallion-stones], metal: metal.stones }
+      - { op: emboss,  mask: back-number, params: { height_mm: 0.12 } }
+      - { op: plate,   mask: back-number, metal: metal.relief }
+      - { op: engrave, mask: [wordmark, back-small], params: { depth_mm: 0.04 } }
+      - { op: etch,    mask: [wordmark, back-small] }
+      - { op: emboss,  mask: signature, place: { signature: sig-back }, params: { height_mm: 0.12 } }
+      - { op: plate,   mask: signature, place: { signature: sig-back }, metal: metal.relief }
+
+render:
+  lights: [-1, 0, 1]
+  bench: "#1a0a14"
+produce:
+  separations: per-op

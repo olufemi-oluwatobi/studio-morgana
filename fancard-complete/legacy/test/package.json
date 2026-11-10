@@ -1,0 +1,28 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource/big-shoulders-display": "^5.3.0",
+    "@fontsource/bodoni-moda": "^5.3.0",
+    "@fontsource/herr-von-muellerhoff": "^5.3.0",
+    "@fontsource/homemade-apple": "^5.3.0",
+    "@fontsource/jost": "^5.3.0",
+    "@fontsource/lilita-one": "^5.3.0",
+    "@fontsource/martian-mono": "^5.3.0",
+    "@fontsource/michroma": "^5.3.0",
+    "@fontsource/mr-dafoe": "^5.3.0",
+    "@fontsource/mrs-saint-delafield": "^5.3.0",
+    "@fontsource/rock-salt": "^5.3.0",
+    "@fontsource/saira-condensed": "^5.3.0",
+    "@fontsource/shrikhand": "^5.3.0"
+  }
+}

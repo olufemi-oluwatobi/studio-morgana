@@ -1,0 +1,92 @@
+-- A rose and a paper plane, made from nothing but words.
+-- Every shape on this card is defined in this file: no styles, no stock ornaments, no images.
+
+create a card called rose-and-plane from stainless, seed 7.
+
+-- ── the rose ──────────────────────────────────────────────────────────────
+-- Built round 0 0. $size is its radius-ish; $petals is how many petals in each ring.
+define a rose with $size 100 and $petals 5 as:
+  -- two leaves under the flower
+  draw a curve called leaf from 0 $size * -0.4 through $size * 0.3 $size * -0.8 to 0 $size * -1.5 through $size * -0.3 $size * -0.8, closed.
+  draw a line called vein from 0 $size * -0.45 to 0 $size * -1.4, 3 wide.
+  turn the leaf and the vein 135 degrees around 0 0.
+  mirror the leaf and the vein.
+
+  -- one petal: broad, rounded, with a soft notch at the top; its base sits on 0 0
+  draw a curve called petal from 0 $size * 0.06 through $size * 0.42 $size * -0.28 through $size * 0.34 $size * -0.68 through $size * 0.13 $size * -0.78 to 0 $size * -0.68 through $size * -0.13 $size * -0.78 through $size * -0.34 $size * -0.68 through $size * -0.42 $size * -0.28, closed.
+
+  -- four rings, each smaller and turned to sit between the petals of the last
+  copy the petal $petals times around 0 0.
+  copy the petal, scale 0.72, turn 36, called middle.
+  copy the petal, scale 0.5, turn 18, called inner.
+  copy the petal, scale 0.3, turn 54, called heart.
+
+  -- every petal edge, for engraving
+  copy the petal, hollow, 3 wide, called petal-edges.
+  copy the middle, hollow, 3 wide, called middle-edges.
+  copy the inner, hollow, 2 wide, called inner-edges.
+
+  -- the bud: a tight spiral
+  draw a spiral called bud, $size * 0.14 big, 1.8 turns, 3 wide.
+end.
+
+-- ── the paper plane ──────────────────────────────────────────────────────
+-- Nose at 0 0, pointing up. Two wings meet on a fold; the keel shows below it.
+define a paper plane with $size 300 as:
+  draw a shape called left-wing from 0 0 to $size * -0.44 $size to $size * -0.05 $size * 0.8.
+  copy the left-wing, called right-wing.
+  flip the right-wing.
+  draw a shape called keel from 0 0 to $size * -0.05 $size * 0.8 to 0 $size * 0.98 to $size * 0.05 $size * 0.8.
+  draw a line called fold from 0 $size * 0.08 to 0 $size * 0.92, 3 wide.
+end.
+
+-- ── the layout ───────────────────────────────────────────────────────────
+draw a rectangle called border, 960 by 1549, corners 36, hollow, 8 wide.
+draw a rectangle called keyline, 920 by 1509, corners 28, hollow, 3 wide.
+
+place a rose called big-rose at 620 1240, size 230, turned 8.
+place 2 roses called small-rose from 290 1530, 660 apart, size 95, petals 6.
+
+place a paper plane called plane at 830 560, size 330, turned 40.
+draw a curve called trail from 170 1150 through 300 900 through 470 1010 through 520 840 to 640 760, 7 wide.
+dash the trail, 24 on 18 off.
+
+write "fancard" called wordmark in Bodoni Moda italic, at 620 210, size 52.
+
+-- ── making it ────────────────────────────────────────────────────────────
+define $finish-rose as:
+  inlay its leaf with jade, 0.03 mm deep.
+  engrave its vein, 0.03 mm deep.
+  emboss its petal, 0.12 mm high, soft 0.8.
+  plate its petal with rose gold.
+  inlay its petal-edges with niello, 0.02 mm deep.
+  emboss its middle, 0.1 mm high, soft 0.8.
+  outline its middle in niello, 4 wide.
+  plate its middle with rose gold.
+  inlay its middle-edges with niello, 0.02 mm deep.
+  emboss its inner, 0.1 mm high, soft 0.8.
+  outline its inner in niello, 4 wide.
+  plate its inner with rose gold.
+  inlay its inner-edges with niello, 0.02 mm deep.
+  emboss its heart, 0.08 mm high, soft 0.8.
+  outline its heart in niello, 3 wide.
+  plate its heart with gold.
+  inlay its bud with niello, 0.02 mm deep.
+end.
+
+on the front.
+plate the card with black mirror.
+plate the border and the keyline with gold.
+inlay the trail with ivory, 0.03 mm deep.
+
+outline the plane in niello, 5 wide.
+emboss the plane, 0.14 mm high, soft 0.6.
+plate the plane-left-wing with chrome.
+plate the plane-right-wing with silver, satin.
+plate the plane-keel with gunmetal.
+inlay the plane-fold with niello, 0.03 mm deep.
+
+use $finish-rose on the big-rose and the small-rose-1 and the small-rose-2.
+
+outline the wordmark in niello, 6 wide.
+plate the wordmark with gold.

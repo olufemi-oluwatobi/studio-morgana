@@ -1,0 +1,13 @@
+# spray lab · chameleon: mirror black base, purple-teal-gold-plum colour shift
+id: spray-lab/chameleon
+sides:
+  front:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: plate, mask: card, metal: metal.black }
+      - { op: spray, kind: chameleon, mask: card, params: { opacity: 0.92 } }
+  back:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: plate, mask: card, metal: metal.black }
+      - { op: spray, kind: chameleon, mask: card, params: { opacity: 0.92 } }

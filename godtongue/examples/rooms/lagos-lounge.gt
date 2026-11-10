@@ -1,0 +1,36 @@
+-- A furnished lounge: the furniture library on show. Metres; east is on your right when you face north.
+create a room called lagos-lounge, 5.2 by 4.2, 2.8 high.
+make the floor oak.
+paint the walls #d9cfbf.
+
+cut a window in the north wall, 1.8 wide, 1.6 high, sill 0.7, at 2.9.
+cut a door in the south wall, 0.9 wide, 2.1 high, at 4.4, in walnut.
+hang curtains on the north window, in linen.
+
+place a sofa against the west wall, at 2.3, 2.2 long, 0.9 deep, in green velvet.
+place a coffee table in front of the sofa, 0.42 away, 1.0 by 0.6, in walnut.
+lay a rug under the coffee table, 3.0 by 2.2, in terracotta.
+place an armchair facing the sofa, at 3.75 2.3, in #e69d27.
+place a side table at 4.5 2.95, in oak.
+place a floor lamp at 0.35 3.65, in linen.
+place a bookshelf against the east wall, at 1.0, 1.2 long, in oak.
+place a plant at 4.75 3.8, 1.5 high.
+hang art on the west wall, 1.0 by 0.7, at 2.3, 1.55 high, in navy.
+hang a pendant over the coffee table, 2.0 high.
+
+photograph the room called overview, from 4.7 0.45 1.3, looking at 1.4 3.0 1.0, 24 mm.
+photograph the sofa corner, from 3.3 1.0 1.15, looking at 0.6 2.6 0.7, 28 mm.
+photograph the reading nook called window-wall, from 2.6 0.6 1.3, looking at 2.6 4.2 1.2, 28 mm.
+photograph the bookshelf, from 2.6 1.6 1.25, looking at 5.0 0.9 1.0, 35 mm.
+
+-- presentation presets: no coordinates needed
+photograph the north wall.
+photograph the north-west corner.
+photograph the armchair, close.
+photograph the plant, close, portrait.
+
+-- a 360 view from the middle of the room
+take a panorama at 2.6 1.6 called centre.
+
+-- walk-through: in at the door, round the coffee table, to the window
+walk from the door through 2.8 1.5 to the window, called arrival, 8 seconds.

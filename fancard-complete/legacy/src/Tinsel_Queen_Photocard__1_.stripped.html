@@ -1,0 +1,317 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Tinsel Queen Photocard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Fraunces:ital,opsz,wght@1,9..144,700..900&family=Homemade+Apple&family=Martian+Mono:wdth,wght@75..112,400..700&display=swap">
+<style>
+/* Layout: a tall idol-style photocard. Her full photo fills the window; holo foil, a black inner frame and a title bar carry all the design. */
+:root{
+  --desk:#101014;
+  --desk-2:#1d1a24;
+  --bone:#efe9df;
+  --muted:#a9a3b4;
+  --bar:#a48cff;
+  --cond:"Big Shoulders Display","Oswald","Arial Narrow",sans-serif;
+  --serif:"Fraunces",Georgia,serif;
+  --mono:"Martian Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--desk);color:var(--bone);font-family:var(--mono);overflow-x:hidden}
+.page{min-height:100%;display:flex;flex-direction:column;align-items:center;gap:14px;padding-block:14px 22px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background:radial-gradient(ellipse at 50% 40%,var(--desk-2),transparent 65%),var(--desk)}
+.top{width:100%;max-width:440px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.brand{font-family:var(--serif);font-style:italic;font-weight:900;font-size:26px;line-height:1;color:var(--bar)}
+.serial{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums}
+.stage{position:relative;perspective:1100px;touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab;max-width:100%}
+.stage:focus-visible{outline:2px solid var(--bar);outline-offset:4px}
+.card3d{position:relative;width:100%;height:100%;transform-style:preserve-3d;will-change:transform}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block}
+.shadow{position:absolute;left:8%;right:8%;bottom:-2.5%;height:5%;background:radial-gradient(closest-side,rgba(0,0,0,.8),transparent);filter:blur(8px);transform:translateZ(-60px)}
+.hint{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:center}
+.controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center}
+.sw{appearance:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--desk-2);cursor:pointer;box-shadow:0 0 0 1.5px rgba(239,233,223,.35)}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bone)}
+.sw:focus-visible{outline:2px solid var(--bone);outline-offset:3px}
+.price{font-weight:700;font-size:12px;letter-spacing:.06em;background:var(--bar);color:#140f22;padding:9px 14px;border-radius:999px;font-variant-numeric:tabular-nums;margin-left:6px}
+.fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:12px;color:var(--muted)}
+</style>
+
+<div class="page">
+  <header class="top"><div class="brand">fancard</div><div class="serial">Photocard · 024 / 100</div></header>
+  <div class="stage" id="stage" tabindex="0" aria-label="Photocard of @creator. Drag to tilt, tap to flip.">
+    <div class="card3d" id="card"><div class="shadow"></div><canvas id="gl"></canvas>
+      <div class="fallback" id="fallback" hidden>This card needs WebGL 2. Open it in a current Safari or Chrome.</div></div>
+  </div>
+  <div class="hint">Drag to tilt · tap to flip</div>
+  <div class="controls" role="group" aria-label="Colourway" id="sws"></div>
+</div>
+
+<script>
+(()=>{
+const PHOTO="DATAURI",MASK="DATAURI";
+const FACE=[0.5396,0.1625];
+const D={name:"Tinsel Queen",title:"Showstopper",handle:"@creator",no:"024",of:"100",to:"@yourfan"};
+/* bar, bar text, accent (screenprint second colour), foil tint, back ink, back paper */
+const WAYS={ultraviolet:['#a48cff','#1a1035','#e9e2ff','#5b3df0','#5b2fd0','#f1ecfb','Ultraviolet'],
+  cobalt:['#2b3fd3','#f3efe4','#70e3a6','#2b3fd3','#2b3fd3','#eef0e6','Cobalt and mint'],
+  vermilion:['#d6402c','#f6ecd8','#ffd9a8','#d6402c','#d6402c','#f2e8d4','Vermilion'],
+  noir:['#1a181d','#efe9df','#c9c2ff','#3a3646','#18161a','#efe9df','Noir'],
+  blush:['#f3a9b8','#2a1020','#fff1f4','#d77a94','#b3365e','#fbefee','Blush']};
+let way="blush";
+const H=1.545;
+const stage=document.getElementById('stage'),card=document.getElementById('card'),cv=document.getElementById('gl'),root=document.documentElement;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const gl=cv.getContext('webgl2',{premultipliedAlpha:true,antialias:false,alpha:true});
+if(!gl){document.getElementById('fallback').hidden=false;return;}
+const VS=`#version 300 es
+in vec2 a;out vec2 vUv;void main(){vUv=a*.5+.5;gl_Position=vec4(a,0.,1.);}`;
+const FS=`#version 300 es
+precision highp float;
+in vec2 vUv;out vec4 o;
+uniform sampler2D uPhoto,uMask,uOver;
+uniform vec2 uTilt,uLight,uFace;uniform vec3 uBar,uAcc,uTint,uInk,uPaper;uniform float uBack;
+const float H=1.545;
+const vec2 W0=vec2(.06,.06),W1=vec2(.94,1.31);
+const vec2 B0=vec2(.06,1.335),B1=vec2(.94,1.485);
+float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+1.),f.x),f.y);}
+float fbm(vec2 p){float s=0.,a=.5;for(int i=0;i<4;i++){s+=a*vn(p);p*=2.07;a*=.5;}return s;}
+float sdRR(vec2 p,vec2 b,float r){vec2 q=abs(p)-b+r;return length(max(q,0.))+min(max(q.x,q.y),0.)-r;}
+vec3 rainbow(float t){return .5+.5*cos(6.2832*(t+vec3(0.,.33,.67)));}
+float lineInk(float v,float d){float f=abs(fract(d)-.5)*2.;float aa=fwidth(d)*2.2;return smoothstep(v+aa,v-aa,f);}
+float star(vec2 q,float r){q=abs(q)/r;return pow(q.x,.42)+pow(q.y,.42)-1.;}
+float winSD(vec2 p){
+  float d=sdRR(p-(W0+W1)*.5,(W1-W0)*.5,.022);
+  float tr=((p.x-p.y)-(W1.x-.075-W0.y))*.7071;
+  float bl=((p.y-p.x)-(W1.y-.075-W0.x))*.7071;
+  return max(d,max(tr,bl));
+}
+void main(){
+  vec2 p=vec2(vUv.x,(1.-vUv.y)*H);
+  float cd=sdRR(p-vec2(.5,H*.5),vec2(.5,H*.5)-.002,.05);
+  float A=smoothstep(fwidth(cd),-fwidth(cd),cd);
+  if(A<=0.){o=vec4(0.);return;}
+  vec2 dir=normalize(vec2(1.,-.7));
+  float sw=exp(-pow(dot(p-uLight,dir)*3.2,2.));
+  vec3 V=vec3(0.,0.,1.),L=normalize(vec3(uLight-p,.55));
+  /* ---------- crinkled holo foil bezel ---------- */
+  float n=fbm(p*vec2(38.,54.)),nx=fbm(p*vec2(38.,54.)+vec2(.02,0.)),ny=fbm(p*vec2(38.,54.)+vec2(0.,.02));
+  vec3 fn=normalize(vec3((n-nx)*9.,(n-ny)*9.,1.));
+  float hue=p.y*.75+p.x*.35+uTilt.x*1.15-uTilt.y*.75+n*.45;
+  vec3 holo=rainbow(hue);
+  vec3 col=mix(uTint*.8,holo,.36+.3*sw);
+  col*=.72+.38*max(dot(fn,L),0.);
+  col+=vec3(1.)*pow(max(dot(reflect(-L,fn),V),0.),24.)*.6;
+  /* ---------- back: the whole card is bezel foil with the postcard engraved into it ---------- */
+  if(uBack>.5){
+    vec3 fb=normalize(mix(vec3(0.,0.,1.),fn,.35));
+    vec3 c=mix(uTint*.92,holo,.12+.16*sw);
+    c*=.8+.3*max(dot(fb,L),0.);
+    c+=vec3(1.)*pow(max(dot(reflect(-L,fb),V),0.),40.)*.35;
+    c*=.97+.03*sin((p.x*.3+p.y)*900.);
+    vec2 ou=vec2(p.x,p.y/H);
+    float m=texture(uOver,ou).a;
+    float e=.0018;
+    float hx=textureLod(uOver,ou+vec2(e,0.),1.).a-textureLod(uOver,ou-vec2(e,0.),1.).a;
+    float hy=textureLod(uOver,ou+vec2(0.,e),1.).a-textureLod(uOver,ou-vec2(0.,e),1.).a;
+    vec3 en=normalize(vec3(-hx*2.6,hy*2.6,1.));
+    float lit=max(dot(en,L),0.),sp=pow(max(dot(reflect(-L,en),V),0.),30.);
+    float shd=textureLod(uOver,ou+vec2(-.003,.0024),1.5).a;
+    c*=1.-shd*(1.-m)*.38;
+    vec3 raised=mix(uTint,vec3(1.,.97,.95),.42)*(.62+.6*lit)+vec3(1.)*sp*.8+holo*.1*sw;
+    c=mix(c,raised,m);
+    c*=1.-smoothstep(-.006,0.,cd)*.35;
+    o=vec4(c*A,A);return;
+  }
+  /* ---------- black inner frame ---------- */
+  float wd=winSD(p);
+  float bd=sdRR(p-(B0+B1)*.5,(B1-B0)*.5,.02);
+  float frameW=min(wd,bd);
+  if(frameW<.016){
+    vec3 fr=vec3(.05,.045,.06);
+    float t=clamp(frameW/.016,0.,1.);
+    vec3 nn=normalize(vec3(0.,0.,1.)+vec3((t-.5)*.6));
+    fr+=vec3(.5)*pow(max(dot(reflect(-L,nn),V),0.),40.)*(1.-abs(t-.5)*2.);
+    col=fr;
+  }
+  /* ---------- the window: her photo, full colour ---------- */
+  if(wd<0.){
+    vec2 uv=(p-W0)/(W1-W0);
+    vec2 puv=uv+uTilt*vec2(-.008,.008);
+    vec3 ph;
+    float m=texture(uMask,puv).r;
+    if(uBack<.5){
+      ph=texture(uPhoto,puv).rgb;
+      /* sparkles only on the background, never on her */
+      vec2 st[5]=vec2[5](vec2(.14,.12),vec2(.84,.2),vec2(.1,.46),vec2(.88,.62),vec2(.2,.82));
+      for(int i=0;i<5;i++){float r=i==1?.034:.022;float s=star(uv*vec2(1.,1.42)-st[i]*vec2(1.,1.42),r);
+        float on=smoothstep(.05,-.05,s)*(1.-smoothstep(.15,.4,textureLod(uMask,st[i],2.).r));ph=mix(ph,vec3(1.,.98,.95),on*.95);}
+    }else{
+      vec2 fq=uFace+vec2(-.25,-.3);vec2 rq=(uv-fq)*vec2(1.,1.42);float r=length(rq),an=atan(rq.y,rq.x);
+      float d=r*150.+.5*sin(an*3.+r*7.)+.2*sin(an*6.-r*11.);
+      float Lm=dot(texture(uPhoto,uv).rgb,vec3(.3,.59,.11));float Lb=dot(textureLod(uPhoto,uv,4.5).rgb,vec3(.3,.59,.11));
+      Lm=clamp(Lm+(Lm-Lb)*1.6,0.,1.);
+      float v=mix(.78,smoothstep(.02,.9,pow(1.-Lm,.95))*.92,m);
+      float mb=textureLod(uMask,uv,3.).r;v*=1.-smoothstep(.04,.2,mb)*(1.-smoothstep(.25,.55,m))*.95;
+      vec3 paper=uPaper*(.955+.045*vn(p*700.));
+      ph=mix(paper,uInk,lineInk(v,d));
+    }
+    ph*=1.-.45*smoothstep(-.03,0.,wd);
+    vec3 gn=normalize(vec3(-(uv-.5)*.1,1.));
+    ph+=vec3(1.)*pow(max(dot(reflect(-L,gn),V),0.),400.)*.18+vec3(1.)*sw*.03;
+    col=ph;
+  }
+  /* ---------- title bar: flat ink with a screenprint second colour ---------- */
+  if(bd<0.){
+    vec3 bc=uBar*(.96+.05*vn(p*500.));
+    float hatchZone=step(B1.y-.03,p.y);
+    float hz=smoothstep(.3,.0,abs(fract((p.x+p.y)*120.)-.5)-.18)*hatchZone;
+    bc=mix(bc,uAcc,hz*.85);
+    bc=mix(bc,uAcc,smoothstep(.0018,.0,abs(p.y-(B0.y+.008))));
+    col=bc;
+  }
+  vec4 ov=texture(uOver,vec2(p.x,p.y/H));col=mix(col,ov.rgb,ov.a);
+  col+=vec3(1.)*sw*.04;
+  col*=1.-smoothstep(-.006,0.,cd)*.35;
+  o=vec4(col*A,A);
+}`;
+function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(x);return x;}
+let prog;
+try{prog=gl.createProgram();gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(prog);
+if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw gl.getProgramInfoLog(prog);}catch(e){console.error(e);document.getElementById('fallback').hidden=false;return;}
+gl.useProgram(prog);
+const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+const al=gl.getAttribLocation(prog,'a');gl.enableVertexAttribArray(al);gl.vertexAttribPointer(al,2,gl.FLOAT,false,0,0);
+const U=n=>gl.getUniformLocation(prog,n);
+const uT=U('uTilt'),uL=U('uLight'),uBack=U('uBack');
+gl.uniform1i(U('uPhoto'),0);gl.uniform1i(U('uMask'),1);gl.uniform1i(U('uOver'),2);gl.uniform2f(U('uFace'),FACE[0],FACE[1]);
+function tex(unit){const t=gl.createTexture();gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([40,40,44,255]));gl.generateMipmap(gl.TEXTURE_2D);return t;}
+const tPh=tex(0),tMk=tex(1),tOv=tex(2);
+function put(unit,t,src,premul){gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,t);gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,!!premul);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);gl.generateMipmap(gl.TEXTURE_2D);}
+function load(src,unit,t){const im=new Image();im.onload=()=>put(unit,t,im);im.src=src;}
+load(PHOTO,0,tPh);load(MASK,1,tMk);
+
+/* printed matter */
+const OW=1024,OH=Math.round(OW*H);const oc=document.createElement('canvas');oc.width=OW;oc.height=OH;const x=oc.getContext('2d');const X=v=>v*OW;
+function drawBack(){
+  x.clearRect(0,0,OW,OH);x.fillStyle='#fff';x.strokeStyle='#fff';x.textBaseline='alphabetic';
+  const R=(x0,y0,w,h,r)=>{x.beginPath();x.roundRect(X(x0),X(y0),X(w),X(h),X(r));};
+  x.lineWidth=X(.006);R(.035,.035,.93,H-.07,.035);x.stroke();x.lineWidth=X(.0022);R(.05,.05,.9,H-.1,.028);x.stroke();
+  x.textAlign='left';x.font=`italic 900 ${X(.052)}px Fraunces, Georgia, serif`;x.fillText('fancard',X(.09),X(.135));
+  x.font=`700 ${X(.0155)}px "Martian Mono", Menlo, monospace`;x.fillText('POST CARD  ·  SET 01',X(.092),X(.168));
+  /* perforated stamp */
+  const sx=.66,sy=.085,sw=.26,sh=.3;x.fillRect(X(sx),X(sy),X(sw),X(sh));
+  x.globalCompositeOperation='destination-out';const pr=X(.011);
+  for(let i=0;i<=12;i++){const u=sx+i*sw/12;[sy,sy+sh].forEach(v=>{x.beginPath();x.arc(X(u),X(v),pr,0,7);x.fill();});}
+  for(let i=0;i<=14;i++){const v=sy+i*sh/14;[sx,sx+sw].forEach(u=>{x.beginPath();x.arc(X(u),X(v),pr,0,7);x.fill();});}
+  x.fillRect(X(sx+.025),X(sy+.025),X(sw-.05),X(sh-.05));x.globalCompositeOperation='source-over';
+  x.lineWidth=X(.003);x.strokeRect(X(sx+.04),X(sy+.04),X(sw-.08),X(sh-.08));
+  x.textAlign='center';x.font=`italic 900 ${X(.03)}px Fraunces, Georgia, serif`;x.fillText('fancard',X(sx+sw/2),X(sy+.11));
+  x.font=`900 ${X(.07)}px "Big Shoulders Display", sans-serif`;x.fillText(D.no,X(sx+sw/2),X(sy+.2));
+  x.font=`700 ${X(.0135)}px "Martian Mono", Menlo, monospace`;x.fillText('ONE OF '+(+D.of),X(sx+sw/2),X(sy+.24));
+  /* postmark + cancel waves */
+  const pc=[.6,.37],prd=.1;x.lineWidth=X(.004);x.beginPath();x.arc(X(pc[0]),X(pc[1]),X(prd),0,7);x.stroke();
+  x.lineWidth=X(.002);x.beginPath();x.arc(X(pc[0]),X(pc[1]),X(prd*.72),0,7);x.stroke();
+  x.font=`700 ${X(.0135)}px "Martian Mono", Menlo, monospace`;const ring='FANCARD ✦ NOV 2 2026 ✦ SET 01 ✦ ';
+  for(let i=0;i<ring.length;i++){const a=-Math.PI/2+i/ring.length*Math.PI*2;x.save();x.translate(X(pc[0]+Math.cos(a)*prd*.86),X(pc[1]+Math.sin(a)*prd*.86));x.rotate(a+Math.PI/2);x.fillText(ring[i],0,X(.005));x.restore();}
+  x.font=`900 ${X(.032)}px "Big Shoulders Display", sans-serif`;x.fillText('NOV 2',X(pc[0]),X(pc[1]+.005));
+  x.font=`700 ${X(.014)}px "Martian Mono", Menlo, monospace`;x.fillText('2026',X(pc[0]),X(pc[1]+.03));
+  x.lineWidth=X(.0035);for(let j=0;j<5;j++){x.beginPath();const yy=pc[1]-.05+j*.025;for(let s=0;s<=50;s++){const xx=.09+s/50*(pc[0]-prd-.1);const v=yy+Math.sin(s/50*Math.PI*6+j*.6)*.008;s?x.lineTo(X(xx),X(v)):x.moveTo(X(xx),X(v));}x.stroke();}
+  /* central medallion: guilloché rosette, ring text, signature */
+  const mc=[.5,.82],mr=.27;
+  x.lineWidth=X(.0018);
+  for(let i=0;i<48;i++){const a=i/48*Math.PI*2;x.beginPath();x.arc(X(mc[0]+Math.cos(a)*mr*.25),X(mc[1]+Math.sin(a)*mr*.25),X(mr*.72),0,7);x.stroke();}
+  x.lineWidth=X(.005);x.beginPath();x.arc(X(mc[0]),X(mc[1]),X(mr*.99),0,7);x.stroke();
+  x.globalCompositeOperation='destination-out';x.beginPath();x.arc(X(mc[0]),X(mc[1]),X(mr*.6),0,7);x.fill();x.globalCompositeOperation='source-over';
+  x.lineWidth=X(.004);x.beginPath();x.arc(X(mc[0]),X(mc[1]),X(mr*.6),0,7);x.stroke();
+  x.lineWidth=X(.0018);x.beginPath();x.arc(X(mc[0]),X(mc[1]),X(mr*.56),0,7);x.stroke();
+  x.font=`700 ${X(.0135)}px "Martian Mono", Menlo, monospace`;const rt=`FROM THE DESK OF ${D.name.toUpperCase()} ✦ ONE OF ${+D.of} ✦ `;
+  for(let i=0;i<rt.length;i++){const a=-Math.PI/2+i/rt.length*Math.PI*2;x.save();x.translate(X(mc[0]+Math.cos(a)*mr*.49),X(mc[1]+Math.sin(a)*mr*.49));x.rotate(a+Math.PI/2);x.fillText(rt[i],0,X(.005));x.restore();}
+  x.font=`400 ${X(.024)}px "Homemade Apple", cursive`;x.fillText('xo,',X(mc[0]-.06),X(mc[1]-.045));
+  let fs=.05;x.font=`400 ${X(fs)}px "Homemade Apple", cursive`;while(x.measureText(D.name).width>X(mr*1.05)&&fs>.02){fs-=.002;x.font=`400 ${X(fs)}px "Homemade Apple", cursive`;}
+  x.save();x.translate(X(mc[0]),X(mc[1]+.02));x.rotate(-.06);x.lineWidth=X(.0025);x.strokeText(D.name,0,0);x.fillText(D.name,0,0);x.restore();
+  x.lineWidth=X(.0025);x.beginPath();x.moveTo(X(mc[0]-.12),X(mc[1]+.05));x.quadraticCurveTo(X(mc[0]),X(mc[1]+.07),X(mc[0]+.13),X(mc[1]+.04));x.stroke();
+  x.font=`700 ${X(.0145)}px "Martian Mono", Menlo, monospace`;x.fillText(D.handle,X(mc[0]),X(mc[1]+.095));
+  /* address */
+  x.textAlign='left';x.font=`700 ${X(.016)}px "Martian Mono", Menlo, monospace`;x.fillText('TO',X(.1),X(1.235));
+  x.lineWidth=X(.002);[1.24,1.31,1.38].forEach(v=>{x.beginPath();x.moveTo(X(.16),X(v));x.lineTo(X(.9),X(v));x.stroke();});
+  x.font=`400 ${X(.042)}px "Homemade Apple", cursive`;x.lineWidth=X(.002);x.strokeText(D.to,X(.18),X(1.228));x.fillText(D.to,X(.18),X(1.228));
+  x.font=`700 ${X(.0145)}px "Martian Mono", Menlo, monospace`;x.fillText('THIS CARD BELONGS TO WHOEVER HOLDS IT',X(.16),X(1.3));
+  x.fillText('FANCARD.SHOP',X(.16),X(1.37));x.textAlign='right';x.fillText(`Nº ${D.no} / ${D.of}`,X(.9),X(1.37));
+  put(2,tOv,oc,true);
+}
+function drawOver(back){
+  if(back)return drawBack();
+  const w=WAYS[way];x.clearRect(0,0,OW,OH);x.textBaseline='alphabetic';
+  /* bar: persona logotype + big title */
+  x.fillStyle=w[1];x.textAlign='left';
+  x.font=`italic 900 ${X(.034)}px Fraunces, Georgia, serif`;x.fillText(D.name.toUpperCase(),X(.09),X(1.381));
+  x.font=`900 ${X(.072)}px "Big Shoulders Display", "Arial Narrow", sans-serif`;
+  const t=back?'FANCARD':D.title.toUpperCase();let fs=X(.072);while(x.measureText(t).width>X(.62)&&fs>20){fs-=2;x.font=`900 ${fs}px "Big Shoulders Display", sans-serif`;}
+  x.fillText(t,X(.09),X(1.448));
+  x.textAlign='right';x.font=`700 ${X(.0165)}px "Martian Mono", Menlo, monospace`;x.fillText(`${D.no}/${D.of}`,X(.91),X(1.377));
+  x.font=`500 ${X(.0145)}px "Martian Mono", Menlo, monospace`;x.fillText(D.handle,X(.91),X(1.402));
+  x.fillText(back?'THIS CARD BELONGS TO WHOEVER HOLDS IT':'SET 01',X(.91),X(1.43));
+  /* microtext on the foil */
+  x.fillStyle='rgba(20,16,30,.55)';x.font=`700 ${X(.0125)}px "Martian Mono", Menlo, monospace`;x.textAlign='center';
+  x.save();x.translate(X(.03),X(H/2));x.rotate(-Math.PI/2);x.fillText(`FANCARD PHOTOCARD  ✦  SET 01  ✦  ${D.no}/${D.of}  ✦  ${D.name.toUpperCase()}`,0,X(.004));x.restore();
+  x.save();x.translate(X(.97),X(H/2));x.rotate(Math.PI/2);x.fillText(`${D.handle.toUpperCase()}  ✦  FANCARD.SHOP  ✦  ONE OF ${+D.of}`,0,X(.004));x.restore();
+  /* fancard badge in the window corner */
+  if(!back){
+    x.fillStyle='rgba(255,255,255,.92)';x.strokeStyle='rgba(255,255,255,.92)';x.lineWidth=X(.003);
+    x.beginPath();x.roundRect(X(.085),X(.085),X(.15),X(.042),X(.021));x.stroke();
+    x.textAlign='center';x.font=`italic 900 ${X(.026)}px Fraunces, Georgia, serif`;x.fillText('fancard',X(.16),X(.115));
+  }
+  put(2,tOv,oc,true);
+}
+let back=0;
+function setWay(k){way=k;const w=WAYS[k];const h=s=>[1,3,5].map(i=>parseInt(s.slice(i,i+2),16)/255);
+  gl.uniform3fv(U('uBar'),h(w[0]));gl.uniform3fv(U('uAcc'),h(w[2]));gl.uniform3fv(U('uTint'),h(w[3]));gl.uniform3fv(U('uInk'),h(w[4]));gl.uniform3fv(U('uPaper'),h(w[5]));
+  root.style.setProperty('--bar',w[0]==='#1a181d'?'#c9c2ff':w[0]);drawOver(back);
+  document.querySelectorAll('.sw').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===k));}
+const box=document.getElementById('sws');
+for(const k in WAYS){const b=document.createElement('button');b.type='button';b.className='sw';b.dataset.k=k;b.style.background=`linear-gradient(135deg,${WAYS[k][0]} 50%,${WAYS[k][2]} 50%)`;b.setAttribute('aria-label',WAYS[k][6]);b.onclick=()=>setWay(k);box.appendChild(b);}
+const pr=document.createElement('div');pr.className='price';pr.textContent=`$100 · 1 of ${+D.of}`;box.appendChild(pr);
+setWay(way);
+Promise.all(['900 40px "Big Shoulders Display"','italic 900 40px Fraunces','700 20px "Martian Mono"','400 30px "Homemade Apple"'].map(f=>document.fonts.load(f))).then(()=>drawOver(back)).catch(()=>{});
+
+function layout(){const vw=document.documentElement.clientWidth-32,vh=window.innerHeight-170;const w=Math.max(220,Math.min(vw,400,vh/H)),h=w*H;stage.style.width=w+'px';stage.style.height=h+'px';return {w,h};}
+function resize(){const s=layout();const d=Math.min(devicePixelRatio||1,3);cv.width=Math.round(s.w*d);cv.height=Math.round(s.h*d);gl.viewport(0,0,cv.width,cv.height);}
+resize();addEventListener('resize',resize);
+
+let target={x:0,y:0},tilt={x:0,y:0},vel={x:0,y:0},dragging=false,lastMove=-1e9,flip=0,flipT=0,fv=0,down=null;
+function tiltFrom(e){const r=stage.getBoundingClientRect();const nx=((e.clientX-r.left)/r.width)*2-1,ny=((e.clientY-r.top)/r.height)*2-1;target.x=Math.max(-1,Math.min(1,nx*1.1));target.y=Math.max(-1,Math.min(1,-ny*1.1));lastMove=performance.now();}
+stage.addEventListener('pointerdown',e=>{dragging=true;stage.setPointerCapture(e.pointerId);down={x:e.clientX,y:e.clientY,t:performance.now()};tiltFrom(e);});
+stage.addEventListener('pointermove',e=>{if(dragging||e.pointerType==='mouse')tiltFrom(e);});
+stage.addEventListener('pointerup',e=>{if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)<8&&performance.now()-down.t<350)flipT=flipT?0:1;down=null;dragging=false;target.x=0;target.y=0;});
+stage.addEventListener('pointercancel',()=>{dragging=false;target.x=0;target.y=0;});
+stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'){dragging=false;target.x=0;target.y=0;}});
+stage.addEventListener('keydown',e=>{const k={ArrowLeft:[-.6,0],ArrowRight:[.6,0],ArrowUp:[0,.6],ArrowDown:[0,-.6]}[e.key];if(k){target.x=k[0];target.y=k[1];lastMove=performance.now();e.preventDefault();}
+  if(e.key==='f'||e.key==='F'||e.key==='Enter'){flipT=flipT?0:1;e.preventDefault();}});
+const t0=performance.now();let last=t0;
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;const t=(now-t0)/1000;
+  let tx=target.x,ty=target.y;
+  if(!dragging&&!reduce&&now-lastMove>1500){tx=Math.sin(t*.6)*.34;ty=Math.sin(t*.45+1)*.22;}
+  const k=dragging?80:36,dd=dragging?13:8;
+  vel.x+=((tx-tilt.x)*k-vel.x*dd)*dt;vel.y+=((ty-tilt.y)*k-vel.y*dd)*dt;tilt.x+=vel.x*dt;tilt.y+=vel.y*dt;
+  if(reduce)flip=flipT;else{fv+=((flipT-flip)*70-fv*12)*dt;flip+=fv*dt;}
+  const b=flip>.5?1:0;if(b!==back){back=b;drawOver(back);cv.style.transform=b?'scaleX(-1)':'';}
+  card.style.transform=`rotateY(${tilt.x*14+flip*180}deg) rotateX(${tilt.y*10}deg)`;
+  const sx=back?-tilt.x:tilt.x;
+  gl.uniform2f(uT,sx,tilt.y);gl.uniform2f(uL,.5+sx*.9,.6-tilt.y*1.2);gl.uniform1f(uBack,back);
+  gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>

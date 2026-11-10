@@ -1,0 +1,6 @@
+# Mirror card: polished chrome ground reflects the room; the raised acanthus is satin silver for contrast.
+id: tinsel-queen/silver-acanthus-mirror
+tokens:
+  metal:
+    ground: { finish: mirror-chrome }
+    relief: { finish: silver, polish: satin }

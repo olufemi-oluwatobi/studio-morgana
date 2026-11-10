@@ -1,0 +1,56 @@
+-- The Bride v2 · red, yellow and black only. No cream. Fan concept, not for sale.
+create a card called the-bride-v10 from stainless, seed 1973.
+
+sign "The Bride" called signature-front, at 620 1678, 520 wide, size 140, tilted 0.
+sign "The Bride" called signature-back, at 620 1678, 520 wide, size 140, tilted 0.
+
+
+define a katana with $size 600 as:
+  draw a shape called blade from $size * 0 $size * -0.02 to $size * 0.35 $size * -0.03 to $size * 0.65 $size * -0.042 to $size * 0.86 $size * -0.06 to $size * 0.67 $size * -0.012 to $size * 0.35 $size * 0.004 to $size * 0 $size * 0.02.
+  draw a line called shinogi from $size * 0.03 $size * -0.013 to $size * 0.35 $size * -0.021 to $size * 0.65 $size * -0.031 to $size * 0.83 $size * -0.052, $size * 0.004 wide.
+  draw a line called edge from $size * 0.02 $size * 0.017 to $size * 0.35 $size * 0.002 to $size * 0.66 $size * -0.011 to $size * 0.85 $size * -0.057, $size * 0.005 wide.
+  draw a curve called hamon from $size * 0.05 $size * 0.0046 through $size * 0.108 $size * 0.0089 through $size * 0.166 $size * 0.0013 through $size * 0.224 $size * 0.0056 through $size * 0.282 $size * -0.002 through $size * 0.34 $size * 0.0023 through $size * 0.398 $size * -0.0053 through $size * 0.456 $size * -0.001 through $size * 0.514 $size * -0.0086 through $size * 0.572 $size * -0.0043 through $size * 0.63 $size * -0.012 through $size * 0.688 $size * -0.0076 through $size * 0.746 $size * -0.0153, $size * 0.003 wide.
+  draw a rectangle called habaki, $size * 0.03 by $size * 0.05, at $size * 0.018 0.
+  draw an ellipse called guard, $size * 0.042 by $size * 0.15, at $size * -0.014 0.
+  draw an ellipse called guard-ring, $size * 0.026 by $size * 0.11, at $size * -0.014 0, hollow, $size * 0.004 wide.
+  draw a rectangle called grip, $size * 0.26 by $size * 0.05, corners $size * 0.01, at $size * -0.167 0.
+  draw a rectangle called wrap, $size * 0.026 by $size * 0.026, at $size * -0.277 0.
+  turn the wrap 45 degrees in place.
+  copy the wrap 6 times, $size * 0.043 apart.
+  draw a circle called pommel, $size * 0.026 big, at $size * -0.312 0.
+  draw a curve called blood from $size * 0.8 $size * -0.05 through $size * 0.68 $size * -0.03 through $size * 0.56 $size * -0.02 through $size * 0.46 $size * -0.008 to $size * 0.4 $size * 0.0, $size * 0.012 wide.
+  draw a circle called drip, $size * 0.011 big, at $size * 0.34 $size * 0.006.
+  copy the drip, by $size * 0.14 $size * -0.01, called drip-2.
+  copy the drip, by $size * 0.27 $size * -0.022, called drip-3.
+  draw a star called splat, 9 points, $size * 0.03 big, $size * 0.013 inner, at $size * 0.6 $size * -0.01.
+end.
+
+
+make the window 826 by 1415, at 207 207.
+
+-- the bezel: a thick red frame with a black line inside it
+draw a rectangle called inner-line, 826 by 1415, corners 8, hollow, 12 wide, at 620 914.
+
+
+-- the back checker
+draw a rectangle called squares, 40 by 40, at 100 100.
+copy the squares 14 times, 80 apart.
+copy the squares 21 times, 80 apart, down.
+copy the squares, by 40 40, called squares-2.
+
+on the front.
+enamel the card in red.
+print @bride-full-suit.jpg in the window, focused at 0.5 0.5.
+enamel the inner-line in black.
+outline the signature-front in black, 4 wide.
+enamel the signature-front in #e69d27.
+
+on the back.
+enamel the card in red.
+enamel the window in #e69d27.
+enamel the squares within the window in red.
+enamel the squares-2 within the window in black.
+print @back-art.jpg in the window.
+enamel the inner-line in black.
+outline the signature-back in black, 4 wide.
+enamel the signature-back in #e69d27.

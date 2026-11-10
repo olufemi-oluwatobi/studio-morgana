@@ -1,0 +1,11 @@
+# spray lab · glitter: brushed stainless, fine silver-lilac glitter in clear gloss
+id: spray-lab/glitter
+sides:
+  front:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: spray, kind: glitter, mask: card, params: { color: ["#eae6f0", "#c4a3d4", "#ffffff"], flake_um: 200, density: 0.45, binder: gloss } }
+  back:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: spray, kind: glitter, mask: card, params: { color: ["#eae6f0", "#c4a3d4", "#ffffff"], flake_um: 200, density: 0.45, binder: gloss } }

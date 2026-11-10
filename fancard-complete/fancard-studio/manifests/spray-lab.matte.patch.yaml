@@ -1,0 +1,11 @@
+# spray lab · matte: brushed stainless, soft-touch matte coat
+id: spray-lab/matte
+sides:
+  front:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: spray, kind: matte, mask: card, params: { thickness_um: 30, sheen: 0.15 } }
+  back:
+    ops:
+      - { op: brush, params: { angle_deg: 0 } }
+      - { op: spray, kind: matte, mask: card, params: { thickness_um: 30, sheen: 0.15 } }

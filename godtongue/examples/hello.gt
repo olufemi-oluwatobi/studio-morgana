@@ -1,0 +1,8 @@
+-- The smallest card: a chrome bezel on black mirror, with a name.
+create a card called hello.
+draw a bezel called frame.
+on the front.
+plate the card with black mirror.
+plate the frame with chrome.
+sign "Hello" at 620 900.
+plate the signature with gold.

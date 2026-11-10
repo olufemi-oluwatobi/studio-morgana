@@ -1,0 +1,25 @@
+# Variant = patch on top of the base manifest. Only what changes is listed.
+# Build:  python3 fancard.py manifests/sienna-rae.card.yaml --patch manifests/sienna-rae.jade-cobalt.patch.yaml
+id: sienna-rae/set-03-jade-cobalt
+
+tokens:
+  enamel:
+    field: { name: jade, hex: "#0e4636", process: soft-enamel }
+  metal:
+    plate:  { finish: pvd-blue-titanium, polish: mirror }
+    accent: { finish: pvd-blue-titanium, polish: satin }
+  filter:
+    wash: teal-cold
+
+components:
+  corner:                       # new kind replaces the old component entirely
+    kind: ornament.art-deco-sunburst
+    params: { rays: 11, spread_deg: 80 }
+    place: { at: corners }
+  lattice:
+    kind: pattern.guilloche
+    params: { bands: 14, waves: 6, wavelength: 180, line: 2 }
+    clip: { exclude: medallion, margin: 11 }
+
+render:
+  bench: "#07110e"

@@ -1,0 +1,197 @@
+# FANCARD MANIFEST v0.2 · "Tirzee", Set 01
+# Template: rose-field@1 — sculpted roses packed edge to edge over a dark bed, thorned vine and gold rule round the photo;
+# her photo fills the centre in a crimson wash; gold signature cuts across the frame; @tirzee on the back.
+# Build:  python3 fancard.py manifests/tirzee.card.yaml
+
+fancard: 0.2
+id: tirzee/set-01-no2
+template: rose-field@1
+seed: 20261107
+
+edition: { "no": 2, of: 100, set: 1 }
+creator: { name: tirzee, handle: "@tirzee" }
+
+blank:
+  stock: stainless
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]
+  grid: [1080, 1669]
+
+zones:
+  card:     { rect: [11, 11, 1058, 1647], r: 54 }
+  window:   { rect: [120, 210, 840, 1190], r: 28 }
+  sig-front: { center: [540, 1470], max_width: 860, size: 250, rotate_deg: -8, overlay: true }
+  sig-back:  { center: [540, 1330], max_width: 760, size: 190, rotate_deg: -6, overlay: true }
+
+tokens:
+  enamel:
+    ink: { name: black-cherry, hex: "#1c0307", process: soft-enamel }
+  metal:
+    ground: { finish: oxblood, polish: satin }
+    ruby:   { finish: ruby, polish: mirror }
+    garnet: { finish: garnet, polish: satin }
+    gold:   { finish: gold-24k, polish: satin }
+    glint:  { finish: gold-24k, polish: mirror }
+  type:
+    serif:   { family: Bodoni Moda, weight: 700, style: italic }
+    serif-r: { family: Bodoni Moda, weight: 400, style: italic }
+    caps-r:  { family: Bodoni Moda, weight: 400 }
+    script:  { family: Mr Dafoe }
+  filter:
+    wash: crimson
+
+components:
+  field:                    # roses edge to edge: no plate shows anywhere outside the photo
+    kind: ornament.rose-field
+    place: { at: window }
+    params: { seed: 44, rmin: 30, rmax: 74, count: 160, pad: 12, leaves: 3000 }
+
+  vine:                     # thorned vine crowning the photo edge, gold thorns
+    kind: ornament.thorn-rose
+    place: { at: window }
+    params: { weight: 10, off: 22, amp: 11, wave: 150, thorn: 40, thorn_len: 30, thorn_w: 7.5, leaf: 99999 }
+
+  rule:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [120, 210, 840, 1190], r: 28, w: 7 }
+
+  sigf:
+    kind: type.signature
+    params: { text: "{creator.name}", font: script }
+  sigb:
+    kind: type.signature
+    params: { text: "{creator.handle}", font: script }
+
+  stars:
+    kind: shape.draw
+    items:
+      - { type: sparkle, at: [214, 640], size: 22 }
+      - { type: sparkle, at: [850, 760], size: 28 }
+      - { type: sparkle, at: [230, 1150], size: 18 }
+
+  # ── back ──
+  fieldb:                   # back: roses edge to edge across the whole card
+    kind: ornament.rose-field
+    params: { seed: 63, rmin: 30, rmax: 74, count: 220, leaves: 3600 }
+  guilloche:
+    kind: shape.draw
+    items:
+      - { type: hatch, rect: [200, 450, 680, 680], angle: 60, step: 12, w: 1.1 }
+      - { type: hatch, rect: [200, 450, 680, 680], angle: -60, step: 12, w: 1.1 }
+  medallion-clear:
+    kind: shape.draw
+    items:
+      - { type: circle, c: [540, 790], r: 330, fill: true }
+  rosette:
+    kind: shape.draw
+    items:
+      - { type: rosette, c: [540, 790], r0: 262, r1: 318, count: 140, w: 1.1 }
+      - { type: rosette, c: [540, 790], r0: 236, r1: 258, count: 96, w: 0.9 }
+  medallion-ring:
+    kind: shape.draw
+    items:
+      - { type: circle, c: [540, 790], r: 232, w: 3 }
+      - { type: circle, c: [540, 790], r: 260, w: 2 }
+      - { type: circle, c: [540, 790], r: 322, w: 5 }
+  bigrose:
+    kind: ornament.rose-field
+    params: { base: false, roses: [[540, 668, 118, 0.4], [432, 760, 46, 1.2], [648, 760, 46, 2.6]] }
+  back-number:
+    kind: shape.draw
+    items:
+      - { type: text, at: [540, 912], font: serif, size: 112, text: "{edition.no:03}" }
+  back-small:
+    kind: shape.draw
+    items:
+      - { type: text, at: [540, 972], font: caps-r, size: 13, track: 3.5, text: "ONE OF {edition.of} · SET {edition.set:02}" }
+  wordmark:
+    kind: shape.draw
+    items:
+      - { type: text, at: [540, 1452], font: serif-r, size: 34, text: fancard }
+
+sides:
+  front:
+    ops:
+      - { op: brush,   params: { angle_deg: 0 } }
+      - { op: plate,   mask: card, metal: metal.ground }
+      - { op: engrave, mask: field-bed, params: { depth_mm: 0.06 } }
+      - { op: enamel,  mask: field-bed, color: enamel.ink }
+      - { op: emboss,  mask: field-leaf, params: { height_mm: 0.05, soft: 0.6 } }
+      - { op: plate,   mask: field-leaf, metal: metal.garnet }
+      - { op: emboss,  mask: field, params: { height_mm: 0.06, soft: 0.7 } }
+      - { op: emboss,  mask: field-p1, params: { height_mm: 0.04, soft: 0.6 } }
+      - { op: emboss,  mask: field-p2, params: { height_mm: 0.04, soft: 0.6 } }
+      - { op: emboss,  mask: field-p3, params: { height_mm: 0.04, soft: 0.6 } }
+      - { op: plate,   mask: field, metal: metal.ruby }
+      - { op: engrave, mask: field-detail, params: { depth_mm: 0.035 } }
+      - { op: enamel,  mask: field-detail, color: enamel.ink }
+      - { op: emboss,  mask: vine, params: { height_mm: 0.1 } }
+      - { op: plate,   mask: vine, metal: metal.garnet }
+      - { op: emboss,  mask: vine-thorns, params: { height_mm: 0.14 } }
+      - { op: plate,   mask: vine-thorns, metal: metal.gold }
+      - { op: emboss,  mask: rule, params: { height_mm: 0.1 } }
+      - { op: plate,   mask: rule, metal: metal.gold }
+      - op: print
+        mask: window
+        image:
+          src: ../assets/tirzee-2.jpg
+          focus: [0.5, 0.36]
+          filters:
+            - { kind: grade,      preset: filter.wash }
+            - { kind: split-tone, shadows: "#3a0006", highlights: "#ffcfc0", amount: 0.55 }
+            - { kind: fade,       amount: 0.04, color: "#2a0408" }
+            - { kind: halation,   threshold: 0.78, radius: 16, color: "#ff3b3b", amount: 0.5 }
+            - { kind: vignette,   amount: 0.5 }
+            - { kind: grain,      amount: 0.05, size: 0.85, chroma: 0.02 }
+      - { op: engrave, mask: "grow(sigf,9)", place: { sigf: sig-front }, params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: "grow(sigf,9)", place: { sigf: sig-front }, color: enamel.ink }
+      - { op: emboss,  mask: sigf, place: { sigf: sig-front }, params: { height_mm: 0.2 } }
+      - { op: plate,   mask: sigf, place: { sigf: sig-front }, metal: metal.glint }
+      - { op: foil,    mask: stars, metal: metal.glint, params: { emboss: 0.3 } }
+
+  back:
+    ops:
+      - { op: brush,   params: { angle_deg: 0 } }
+      - { op: plate,   mask: card, metal: metal.ground }
+      - { op: engrave, mask: fieldb-bed, params: { depth_mm: 0.06 } }
+      - { op: enamel,  mask: fieldb-bed, color: enamel.ink }
+      - { op: emboss,  mask: [fieldb-leaf, -medallion-clear], params: { height_mm: 0.05, soft: 0.6 } }
+      - { op: plate,   mask: [fieldb-leaf, -medallion-clear], metal: metal.garnet }
+      - { op: emboss,  mask: [fieldb, -medallion-clear], params: { height_mm: 0.06, soft: 0.7 } }
+      - { op: emboss,  mask: [fieldb-p1, -medallion-clear], params: { height_mm: 0.04, soft: 0.6 } }
+      - { op: emboss,  mask: [fieldb-p2, -medallion-clear], params: { height_mm: 0.04, soft: 0.6 } }
+      - { op: emboss,  mask: [fieldb-p3, -medallion-clear], params: { height_mm: 0.04, soft: 0.6 } }
+      - { op: plate,   mask: [fieldb, -medallion-clear], metal: metal.ruby }
+      - { op: engrave, mask: [fieldb-detail, -medallion-clear], params: { depth_mm: 0.035 } }
+      - { op: enamel,  mask: [fieldb-detail, -medallion-clear], color: enamel.ink }
+      # medallion: dark garnet disc, guilloche cut and inlaid with gold
+      - { op: emboss,  mask: medallion-clear, params: { height_mm: 0.05 } }
+      - { op: plate,   mask: medallion-clear, metal: metal.garnet }
+      - { op: engrave, mask: [guilloche, rosette, "&medallion-clear"], params: { depth_mm: 0.03 } }
+      - { op: plate,   mask: [guilloche, rosette, "&medallion-clear"], metal: metal.gold }
+      - { op: emboss,  mask: medallion-ring, params: { height_mm: 0.1 } }
+      - { op: plate,   mask: medallion-ring, metal: metal.gold }
+      - { op: engrave, mask: "grow(bigrose,10)", params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: "grow(bigrose,10)", color: enamel.ink }
+      - { op: emboss,  mask: bigrose, params: { height_mm: 0.06, soft: 0.7 } }
+      - { op: emboss,  mask: bigrose-p1, params: { height_mm: 0.04, soft: 0.6 } }
+      - { op: emboss,  mask: bigrose-p2, params: { height_mm: 0.04, soft: 0.6 } }
+      - { op: emboss,  mask: bigrose-p3, params: { height_mm: 0.04, soft: 0.6 } }
+      - { op: plate,   mask: bigrose, metal: metal.ruby }
+      - { op: engrave, mask: bigrose-detail, params: { depth_mm: 0.035 } }
+      - { op: enamel,  mask: bigrose-detail, color: enamel.ink }
+      - { op: engrave, mask: ["grow(back-number,8)", "grow(back-small,6)"], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: ["grow(back-number,8)", "grow(back-small,6)"], color: enamel.ink }
+      - { op: emboss,  mask: [back-number, back-small], params: { height_mm: 0.12 } }
+      - { op: plate,   mask: [back-number, back-small], metal: metal.gold }
+      - { op: engrave, mask: ["grow(sigb,10)", "grow(wordmark,8)"], place: { sigb: sig-back }, params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: ["grow(sigb,10)", "grow(wordmark,8)"], place: { sigb: sig-back }, color: enamel.ink }
+      - { op: emboss,  mask: [sigb, wordmark], place: { sigb: sig-back }, params: { height_mm: 0.2 } }
+      - { op: plate,   mask: [sigb, wordmark], place: { sigb: sig-back }, metal: metal.glint }
+
+render:
+  lights: [-1, 0, 1]
+  bench: "#14060a"
+produce:
+  separations: per-op

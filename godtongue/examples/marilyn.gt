@@ -1,0 +1,20 @@
+-- Marilyn concept card, written in godtongue.
+-- The studded bezel style draws the frame; this file adds the photo, the lettering and the back.
+
+create a card called marilyn, seed 19260601.
+use the studded bezel style.
+
+on the front.
+use $studded-finish.
+print @marilyn.jpg in the window, focused at 0.5 0.2.
+spray the window with gloss, 30 µm thick.
+write "fancard" called wordmark in Bodoni Moda italic, at 620 230, size 58.
+sign "Marilyn" at 620 1478.
+use $gild on the wordmark and the signature.
+
+on the back.
+use $studded-finish.
+fill the window with damask.
+sign "Marilyn" called back-signature, at 620 900, 680 wide, size 320.
+inlay the damask except the back-signature grown by 18 with ivory, 0.015 mm deep.
+use $gild on the wordmark and the back-signature.

@@ -1,0 +1,8 @@
+# Same card, but the acanthus frame comes from an artist's layered SVG instead of the generator.
+# Layer "relief" → raised silver ; layer "ink" → engraved + niello.
+id: tinsel-queen/silver-acanthus-artwork
+components:
+  acanthus:
+    kind: artwork
+    src: ../art/acanthus-frame.svg
+    layers: { fill: "#relief", veins: "#ink" }

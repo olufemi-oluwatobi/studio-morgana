@@ -1,0 +1,284 @@
+# FANCARD MANIFEST v0.2 · Oxana, Set 01 · "Silver Cartouche"
+# Silver plate + niello, after the Dear Boys collector card: black field, oval cartouche
+# window, ribbon banners top and bottom, star-ray crest. Skulls are artist SVG (art/oxana-skulls-*.svg).
+# Build:  python3 fancard.py manifests/oxana.card.yaml
+
+fancard: 0.2
+id: oxana/set-01
+template: silver-cartouche@1
+seed: 20261107
+
+edition: { "no": 1, of: 100, set: 1 }
+creator: { name: Oxana }
+
+blank:
+  stock: stainless
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]
+  grid: [1080, 1669]
+
+zones:
+  card:       { rect: [11, 11, 1058, 1647], r: 54 }
+  panel:      { rect: [60, 60, 960, 1549], r: 36 }
+  field:      { rect: [90, 90, 900, 1489], r: 16 }     # lattice clip (pattern.ogee)
+  window:     { rect: [210, 338, 660, 964], r: 0 }          # oval's bounding box (photo canvas)
+  oval:       { center: [540, 820], rx: 330, ry: 482 }
+  oval-outer: { center: [540, 820], rx: 362, ry: 514 }
+  vine-path:  { rect: [190, 318, 700, 1004], r: 340 }     # stadium that encloses the oval
+  medallion:  { center: [540, 830], rx: 330, ry: 440 }
+  medallion-face: { center: [540, 830], rx: 342, ry: 452 }
+  sig-front:  { center: [540, 1356], max_width: 470, size: 150, rotate_deg: -5, overlay: true }
+  sig-back:   { center: [540, 1150], max_width: 400, size: 120, rotate_deg: -5, overlay: true }
+
+tokens:
+  enamel:
+    niello: { name: niello, hex: "#0b0c0f", process: niello-inlay }
+  metal:
+    ground: { finish: silver, polish: satin }
+    relief: { finish: silver, polish: mirror }
+    glint:  { finish: mirror-chrome, polish: mirror }
+  type:
+    serif:  { family: Bodoni Moda, weight: 700, style: italic }
+    caps:   { family: Bodoni Moda, weight: 400 }
+    script: { family: Mr Dafoe }
+  filter:
+    wash: silver-noir
+
+components:
+  # ── shared frame ────────────────────────────────────────────────────────────
+  outer-rules:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [26, 26, 1028, 1617], r: 48, w: 3 }
+      - { type: dotline, from: [90, 43], to: [990, 43], step: 12, r: 2.4 }
+      - { type: dotline, from: [90, 1626], to: [990, 1626], step: 12, r: 2.4 }
+      - { type: dotline, from: [43, 90], to: [43, 1579], step: 12, r: 2.4 }
+      - { type: dotline, from: [1037, 90], to: [1037, 1579], step: 12, r: 2.4 }
+  panel-rules:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [60, 60, 960, 1549], r: 36, w: 5 }
+      - { type: rect, rect: [78, 78, 924, 1513], r: 24, w: 2.4 }
+      - { type: rect, rect: [90, 90, 900, 1489], r: 16, w: 1.4 }
+  corner:
+    kind: ornament.palmette-fan
+    params: { petals: 5, spread_deg: 69, length: 100, curl: 1, rivet: true }
+  crest-rays:
+    kind: shape.draw
+    items:
+      - { type: line, from: [474, 145], to: [418, 112], w: 3 }
+      - { type: line, from: [486, 124], to: [452, 70],  w: 2 }
+      - { type: line, from: [508, 108], to: [494, 52],  w: 3.4 }
+      - { type: line, from: [540, 102], to: [540, 34],  w: 4 }
+      - { type: line, from: [572, 108], to: [586, 52],  w: 3.4 }
+      - { type: line, from: [594, 124], to: [628, 70],  w: 2 }
+      - { type: line, from: [606, 145], to: [662, 112], w: 3 }
+      - { type: sparkle, at: [540, 40], size: 22 }
+      - { type: sparkle, at: [404, 196], size: 15 }
+      - { type: sparkle, at: [676, 196], size: 15 }
+      - { type: circle, c: [440, 150], r: 3, fill: true }
+      - { type: circle, c: [640, 150], r: 3, fill: true }
+  stars:
+    kind: shape.draw
+    items:
+      - { type: scatter, rect: [100, 100, 880, 1470], count: 46, r: [1.4, 3.2], seed: 11 }
+      - { type: sparkle, at: [118, 640], size: 16 }
+      - { type: sparkle, at: [962, 640], size: 16 }
+      - { type: sparkle, at: [118, 1010], size: 16 }
+      - { type: sparkle, at: [962, 1010], size: 16 }
+      - { type: sparkle, at: [124, 1420], size: 10 }
+      - { type: sparkle, at: [956, 1420], size: 10 }
+  margin-hatch:
+    kind: shape.draw
+    items:
+      - { type: hatch, rect: [12, 12, 1056, 1645], angle: 90, step: 6, w: 1.5 }
+  vines:
+    kind: ornament.thorn-rose
+    place: { at: vine-path }
+    params:
+      weight: 7
+      off: 26
+      amp: 11
+      wave: 150
+      thorn: 34
+      thorn_len: 22
+      thorn_w: 5
+      leaf: 120
+      leaf_len: 40
+      roses:
+        - [156, 828, 40, 0.4]
+        - [924, 828, 40, 2.1]
+        - [262, 1226, 30, 1.2]
+        - [818, 1226, 30, 2.8]
+        - [256, 452, 26, 0.9]
+        - [824, 452, 26, 2.2]
+  lattice:
+    kind: pattern.ogee
+    params: { period_x: 150, period_y: 190, amplitude: 50, line: 2.2, node: 18 }
+    clip: { exclude: medallion, margin: 34 }
+  # ── ribbons (band = mirror, tails = satin, ink = folds + edges) ─────────────
+  ribbon-top:
+    kind: shape.draw
+    items: [ { type: path, fill: true, d: "M360,276 Q540,252 720,276 L720,334 Q540,310 360,334 Z" } ]
+  ribbon-top-tails:
+    kind: shape.draw
+    items: [ { type: path, fill: true, d: "M372,290 L290,298 L314,325 L290,352 L372,346 Z M708,290 L790,298 L766,325 L790,352 L708,346 Z" } ]
+  ribbon-bot:
+    kind: shape.draw
+    items: [ { type: path, fill: true, d: "M296,1316 Q540,1286 784,1316 L784,1386 Q540,1356 296,1386 Z" } ]
+  ribbon-bot-tails:
+    kind: shape.draw
+    items: [ { type: path, fill: true, d: "M310,1332 L216,1342 L244,1374 L216,1406 L310,1400 Z M770,1332 L864,1342 L836,1374 L864,1406 L770,1400 Z" } ]
+  ribbon-ink:
+    kind: shape.draw
+    items:
+      - { type: path, fill: true, d: "M360,334 L372,346 L372,328 Z M720,334 L708,346 L708,328 Z M296,1386 L310,1400 L310,1380 Z M784,1386 L770,1400 L770,1380 Z" }
+      - { type: path, w: 1.6, d: "M372,284 Q540,261 708,284 M372,326 Q540,303 708,326" }
+      - { type: path, w: 1.6, d: "M310,1325 Q540,1296 770,1325 M310,1377 Q540,1348 770,1377" }
+      - { type: line, from: [302, 325], to: [340, 325], w: 1.4 }
+      - { type: line, from: [740, 325], to: [778, 325], w: 1.4 }
+  ribbon-top-text-front:
+    kind: shape.draw
+    items: [ { type: text, at: [540, 304], font: caps, size: 28, track: 9, text: "FANCARD" } ]
+  ribbon-top-text-back:
+    kind: shape.draw
+    items: [ { type: text, at: [540, 304], font: caps, size: 28, track: 11, upper: true, text: "{creator.name}" } ]
+  ribbon-bot-text-back:
+    kind: shape.draw
+    items: [ { type: text, at: [540, 1350], font: serif, size: 40, text: "fancard" } ]
+  # ── front ───────────────────────────────────────────────────────────────────
+  cartouche:
+    kind: frame.oval-cartouche
+    params: { border: 7 }
+    place: { at: oval }
+  beads:
+    kind: shape.draw
+    items:
+      - { type: stone-ring, c: [540, 820], rx: 352, ry: 504, n: 120, r: 3.6 }
+      - { type: ellipse, c: [540, 820], rx: 340, ry: 492, w: 2 }
+  edition-front:
+    kind: shape.draw
+    items:
+      - { type: text, at: [540, 1452], font: caps, size: 18, track: 6, text: "Nº {edition.no:03}  ·  ONE OF {edition.of}  ·  SET {edition.set:02}" }
+  skulls-front:
+    kind: artwork
+    src: ../art/oxana-skulls-front.svg
+    layers: { fill: "#relief", ink: "#ink" }
+  # ── back ────────────────────────────────────────────────────────────────────
+  medallion-ring:
+    kind: frame.oval-medallion
+    params: { ring: 7, dots: 84 }
+    place: { at: medallion }
+  guilloche:
+    kind: shape.draw
+    items:
+      - { type: rosette, c: [540, 830], r0: 212, r1: 290, count: 150, w: 1.4 }
+      - { type: rosette, c: [540, 830], r0: 172, r1: 208, count: 100, w: 1.2 }
+      - { type: circle, c: [540, 830], r: 168, w: 3.5 }
+      - { type: circle, c: [540, 830], r: 210, w: 2 }
+      - { type: circle, c: [540, 830], r: 294, w: 3.5 }
+  edition-type:
+    kind: type.stack
+    place: { in: medallion }
+    lines:
+      - { text: "Nº",              font: caps,  size: 24,  dy: -90, track: 8 }
+      - { text: "{edition.no:03}", font: serif, size: 170, dy: 52 }
+      - { text: "ONE OF {edition.of}  ·  SET {edition.set:02}", font: caps, size: 14, dy: 104, track: 4 }
+  skulls-back:
+    kind: artwork
+    src: ../art/oxana-skulls-back.svg
+    layers: { fill: "#relief", ink: "#ink" }
+  signature:
+    kind: type.signature
+    params: { text: "{creator.name}", font: script }
+
+sides:
+  front:
+    ops:
+      - { op: brush,   params: { angle_deg: 90 } }
+      - { op: plate,   mask: card, metal: metal.ground }
+      - { op: engrave, mask: [margin-hatch, -panel, "-grow(outer-rules,4)"], params: { depth_mm: 0.03 } }
+      - { op: enamel,  mask: [margin-hatch, -panel, "-grow(outer-rules,4)"], color: enamel.niello }
+      # black niello field
+      - { op: engrave, mask: [panel, -oval-outer], params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: [panel, -oval-outer], color: enamel.niello }
+      - { op: engrave, mask: [oval-outer, -oval], params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: [oval-outer, -oval], color: enamel.niello }
+      # raised silver: frame, corners, cartouche, beads, crest, skulls, tails
+      - { op: emboss,  mask: [outer-rules, panel-rules, corner, cartouche, beads, crest-rays, skulls-front, ribbon-top-tails, ribbon-bot-tails], params: { height_mm: 0.1 } }
+      - { op: plate,   mask: [outer-rules, panel-rules, corner, cartouche, beads, crest-rays, skulls-front], metal: metal.relief }
+      - { op: plate,   mask: [ribbon-top-tails, ribbon-bot-tails], metal: metal.ground }
+      - { op: engrave, mask: [skulls-front-ink, "&skulls-front"], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: [skulls-front-ink, "&skulls-front"], color: enamel.niello }
+      - { op: emboss,  mask: [vines-leaf, "-grow(ribbon-top,10)", "-grow(ribbon-top-tails,10)", "-grow(ribbon-bot,10)", "-grow(ribbon-bot-tails,10)"], params: { height_mm: 0.06, soft: 0.6 } }
+      - { op: plate,   mask: [vines-leaf, "-grow(ribbon-top,10)", "-grow(ribbon-top-tails,10)", "-grow(ribbon-bot,10)", "-grow(ribbon-bot-tails,10)"], metal: metal.ground }
+      - { op: emboss,  mask: [vines, "-grow(ribbon-top,10)", "-grow(ribbon-top-tails,10)", "-grow(ribbon-bot,10)", "-grow(ribbon-bot-tails,10)"], params: { height_mm: 0.12, soft: 0.7 } }
+      - { op: plate,   mask: [vines, "-grow(ribbon-top,10)", "-grow(ribbon-top-tails,10)", "-grow(ribbon-bot,10)", "-grow(ribbon-bot-tails,10)"], metal: metal.relief }
+      - { op: engrave, mask: [vines-detail, "-grow(ribbon-top,10)", "-grow(ribbon-top-tails,10)", "-grow(ribbon-bot,10)", "-grow(ribbon-bot-tails,10)"], params: { depth_mm: 0.035 } }
+      - { op: enamel,  mask: [vines-detail, "-grow(ribbon-top,10)", "-grow(ribbon-top-tails,10)", "-grow(ribbon-bot,10)", "-grow(ribbon-bot-tails,10)"], color: enamel.niello }
+      - { op: emboss,  mask: [vines-thorns, "-grow(ribbon-top,10)", "-grow(ribbon-top-tails,10)", "-grow(ribbon-bot,10)", "-grow(ribbon-bot-tails,10)"], params: { height_mm: 0.14 } }
+      - { op: plate,   mask: [vines-thorns, "-grow(ribbon-top,10)", "-grow(ribbon-top-tails,10)", "-grow(ribbon-bot,10)", "-grow(ribbon-bot-tails,10)"], metal: metal.glint }
+      - { op: foil,    mask: [stars, "-grow(vines,6)", "-grow(vines-leaf,6)"], metal: metal.glint, params: { emboss: 0.3 } }
+      # the print, inside the cartouche
+      - op: print
+        mask: cartouche-fill
+        image:
+          src: ../assets/oxana.jpg
+          focus: [0.5, 0.18]
+          filters:
+            - { kind: grade, preset: filter.wash }
+            - { kind: split-tone, shadows: "#0d1118", highlights: "#f3f1ec", amount: 0.35 }
+            - { kind: halation, threshold: 0.82, radius: 14, color: "#e6eef8", amount: 0.3 }
+            - { kind: vignette, amount: 0.5 }
+            - { kind: grain, amount: 0.035, size: 0.8 }
+      # ribbons sit over the oval: halo cut, band raised + mirror, folds/text in niello
+      - { op: engrave, mask: ["halo(ribbon-top,4)", "halo(ribbon-bot,4)"], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: ["halo(ribbon-top,4)", "halo(ribbon-bot,4)"], color: enamel.niello }
+      - { op: emboss,  mask: [ribbon-top, ribbon-bot], params: { height_mm: 0.14, soft: 0.8 } }
+      - { op: plate,   mask: [ribbon-top, ribbon-bot], metal: metal.relief }
+      - { op: engrave, mask: [ribbon-ink, ribbon-top-text-front, edition-front], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: [ribbon-ink, ribbon-top-text-front, edition-front], color: enamel.niello }
+      # signature: niello halo then raised chrome script across the bottom ribbon
+      - { op: engrave, mask: "grow(signature,10)", place: { signature: sig-front }, params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: "grow(signature,10)", place: { signature: sig-front }, color: enamel.niello }
+      - { op: emboss,  mask: signature, place: { signature: sig-front }, params: { height_mm: 0.2 } }
+      - { op: plate,   mask: signature, place: { signature: sig-front }, metal: metal.glint }
+
+  back:
+    ops:
+      - { op: brush,   params: { angle_deg: 90 } }
+      - { op: plate,   mask: card, metal: metal.ground }
+      - { op: engrave, mask: [margin-hatch, -panel, "-grow(outer-rules,4)"], params: { depth_mm: 0.03 } }
+      - { op: enamel,  mask: [margin-hatch, -panel, "-grow(outer-rules,4)"], color: enamel.niello }
+      - { op: engrave, mask: panel, params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: panel, color: enamel.niello }
+      - { op: emboss,  mask: [lattice, "-grow(crest-rays,14)", "-grow(skulls-back,14)", "-grow(corner,10)", "-grow(ribbon-top,16)", "-grow(ribbon-top-tails,16)", "-grow(ribbon-bot,16)", "-grow(ribbon-bot-tails,16)", "-grow(panel-rules,6)"], params: { height_mm: 0.05 } }
+      - { op: plate,   mask: [lattice, "-grow(crest-rays,14)", "-grow(skulls-back,14)", "-grow(corner,10)", "-grow(ribbon-top,16)", "-grow(ribbon-top-tails,16)", "-grow(ribbon-bot,16)", "-grow(ribbon-bot-tails,16)", "-grow(panel-rules,6)"], metal: metal.ground }
+      - { op: emboss,  mask: [outer-rules, panel-rules, corner, crest-rays, medallion-ring, skulls-back, ribbon-top-tails, ribbon-bot-tails], params: { height_mm: 0.1 } }
+      - { op: plate,   mask: [outer-rules, panel-rules, corner, crest-rays, medallion-ring, skulls-back], metal: metal.relief }
+      - { op: plate,   mask: [ribbon-top-tails, ribbon-bot-tails], metal: metal.ground }
+      - { op: emboss,  mask: [guilloche, "-grow(edition-type,12)", "-grow(skulls-back,8)", "-grow(signature,10)"], place: { signature: sig-back }, params: { height_mm: 0.04 } }
+      - { op: plate,   mask: [guilloche, "-grow(edition-type,12)", "-grow(skulls-back,8)", "-grow(signature,10)"], place: { signature: sig-back }, metal: metal.relief }
+      - { op: engrave, mask: [skulls-back-ink, "&skulls-back"], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: [skulls-back-ink, "&skulls-back"], color: enamel.niello }
+      - { op: engrave, mask: "grow(edition-type,6)", params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: "grow(edition-type,6)", color: enamel.niello }
+      - { op: emboss,  mask: edition-type, params: { height_mm: 0.12 } }
+      - { op: plate,   mask: edition-type, metal: metal.relief }
+      - { op: foil,    mask: [stars, -medallion-face, "-grow(lattice,5)"], metal: metal.glint, params: { emboss: 0.3 } }
+      - { op: engrave, mask: ["halo(ribbon-top,4)", "halo(ribbon-bot,4)"], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: ["halo(ribbon-top,4)", "halo(ribbon-bot,4)"], color: enamel.niello }
+      - { op: emboss,  mask: [ribbon-top, ribbon-bot], params: { height_mm: 0.14, soft: 0.8 } }
+      - { op: plate,   mask: [ribbon-top, ribbon-bot], metal: metal.relief }
+      - { op: engrave, mask: [ribbon-ink, ribbon-top-text-back, ribbon-bot-text-back], params: { depth_mm: 0.04 } }
+      - { op: enamel,  mask: [ribbon-ink, ribbon-top-text-back, ribbon-bot-text-back], color: enamel.niello }
+      - { op: engrave, mask: "grow(signature,9)", place: { signature: sig-back }, params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: "grow(signature,9)", place: { signature: sig-back }, color: enamel.niello }
+      - { op: emboss,  mask: signature, place: { signature: sig-back }, params: { height_mm: 0.2 } }
+      - { op: plate,   mask: signature, place: { signature: sig-back }, metal: metal.glint }
+
+render:
+  lights: [-1, 0, 1]
+  bench: "#0e0f12"
+produce:
+  separations: per-op

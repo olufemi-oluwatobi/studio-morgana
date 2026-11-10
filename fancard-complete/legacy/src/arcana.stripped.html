@@ -1,0 +1,382 @@
+<title>Devil Arcana Fancard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pirata+One&family=IM+Fell+English+SC&family=Homemade+Apple&family=Martian+Mono:wdth,wght@75..112,400..700&display=swap">
+<style>
+/* Layout: one tarot card (Major Arcana XV) on oxblood velvet; lapis stock, gold foil, a holographic guilloche behind her real photo. Tap to flip for the back. */
+:root{
+  --lapis:#1b2f8f;
+  --lapis-deep:#0f1a5a;
+  --gold:#d9a93f;
+  --gold-hi:#fff0b5;
+  --gold-lo:#8a5a12;
+  --rhodamine:#ff3d9a;
+  --velvet:#2a0814;
+  --velvet-2:#460d22;
+  --bone:#f3eadb;
+  --muted:#c9a9b4;
+  --title:"Pirata One","UnifrakturCook","Old English Text MT",Georgia,serif;
+  --caps:"IM Fell English SC","Cormorant SC",Georgia,serif;
+  --hand:"Homemade Apple","Bradley Hand","Segoe Script",cursive;
+  --mono:"Martian Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sx:50%;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--velvet);color:var(--bone);font-family:var(--caps);overflow-x:hidden}
+.page{
+  min-height:100%;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  padding-block:14px 22px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  background:
+    radial-gradient(ellipse at 50% 40%, var(--velvet-2), transparent 62%),
+    repeating-linear-gradient(115deg, rgba(255,255,255,.018) 0 2px, transparent 2px 5px),
+    var(--velvet);
+}
+.top{width:100%;max-width:440px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.brand{font-family:var(--title);font-size:26px;line-height:1;color:var(--rhodamine)}
+.serial{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.stage{position:relative;perspective:1100px;touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab;max-width:100%}
+.stage:active{cursor:grabbing}
+.card3d{position:relative;width:100%;height:100%;transform-style:preserve-3d;will-change:transform}
+.face{position:absolute;inset:0;transform-style:preserve-3d;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.face > *{-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.back{transform:rotateY(180deg)}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;border-radius:4.2%/2.4%}
+.shadow{position:absolute;left:10%;right:10%;bottom:-3%;height:6%;background:radial-gradient(closest-side,rgba(0,0,0,.7),transparent);filter:blur(7px);transform:translateZ(-80px)}
+
+.foiltext{
+  background:linear-gradient(100deg,var(--gold-lo) 0%,var(--gold) 22%,var(--gold-hi) 40%,var(--gold) 52%,var(--gold-lo) 70%,var(--gold) 86%,var(--gold-hi) 100%);
+  background-size:260% 100%;
+  background-position:var(--sx) 50%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.numeral{
+  position:absolute;left:0;right:0;
+  transform:translateZ(22px);
+  text-align:center;
+  font-family:var(--caps);
+  font-size:clamp(18px,7cqw,30px);line-height:1;letter-spacing:.08em;
+  filter:drop-shadow(0 1px 0 rgba(0,0,0,.6));
+}
+.plate{
+  position:absolute;
+  transform:translateZ(34px);
+  box-sizing:border-box;
+  background:var(--lapis-deep);
+  border:2px solid var(--gold);
+  outline:1px solid var(--gold);outline-offset:-6px;
+  padding:9px 12px 10px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  box-shadow:0 14px 22px -10px rgba(0,0,0,.75);
+  text-align:center;
+}
+.plate h1{margin:0;font-family:var(--title);font-weight:400;font-size:clamp(26px,10.5cqw,46px);line-height:.95;letter-spacing:.01em;text-wrap:balance}
+.plate .who{font-family:var(--caps);font-size:clamp(12px,4.1cqw,17px);color:var(--rhodamine);letter-spacing:.04em}
+.plate .meta{font-family:var(--mono);font-variation-settings:"wdth" 80;font-size:clamp(7px,2.1cqw,9px);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.back{
+  border-radius:4.2%/2.4%;overflow:hidden;
+  background:var(--lapis);
+  box-shadow:inset 0 0 0 2px var(--gold);
+}
+#backArt{position:absolute;inset:0;width:100%;height:100%}
+.backSheen{position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,240,181,.28) 46%,transparent 60%);background-size:250% 100%;background-position:var(--sx) 50%;mix-blend-mode:screen}
+.letter{
+  position:absolute;left:14%;right:14%;top:61%;
+  transform:translateZ(18px);
+  display:flex;flex-direction:column;gap:6px;
+  background:var(--bone);color:var(--lapis-deep);
+  padding:12px 14px 12px;
+  box-shadow:4px 4px 0 var(--rhodamine),0 10px 18px -8px rgba(0,0,0,.6);
+  rotate:-2deg;
+}
+.letter p{margin:0;font-family:var(--hand);font-size:clamp(9px,3.2cqw,13px);line-height:1.75}
+.letter .sig{color:var(--rhodamine)}
+.backMark{position:absolute;left:0;right:0;top:9%;text-align:center;font-family:var(--title);font-size:clamp(28px,11cqw,48px);line-height:1;transform:translateZ(12px)}
+.backSerial{position:absolute;left:0;right:0;bottom:5%;text-align:center;font-family:var(--mono);font-size:clamp(7px,2.2cqw,9.5px);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-hi);font-variant-numeric:tabular-nums}
+
+.hint{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:center}
+.controls{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center}
+.btn{
+  appearance:none;border:1.5px solid var(--gold);background:transparent;color:var(--gold-hi);
+  font-family:var(--caps);font-size:15px;letter-spacing:.06em;
+  padding:9px 18px;border-radius:999px;cursor:pointer;
+}
+.btn:focus-visible,.stage:focus-visible{outline:2px solid var(--rhodamine);outline-offset:3px}
+.price{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.06em;background:var(--rhodamine);color:var(--velvet);padding:10px 14px;border-radius:999px;font-variant-numeric:tabular-nums}
+.fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+</style>
+
+<div class="page">
+  <header class="top">
+    <div class="brand">fancard</div>
+    <div class="serial">Arcana XV · Nº 015 / 100</div>
+  </header>
+
+  <div class="stage" id="stage" tabindex="0" aria-label="Tarot fancard XV, The Devil, for angel_of_deathx. Drag to tilt.">
+    <div class="card3d" id="card">
+      <div class="shadow"></div>
+      <div class="face front" id="front">
+        <canvas id="gl"></canvas>
+        <div class="numeral foiltext" id="numeral">XV</div>
+        <div class="plate" id="plate">
+          <h1 class="foiltext">The Devil</h1>
+          <div class="who">@angel_of_deathx</div>
+          <div class="meta">Fancard Arcana · Nº 015/100</div>
+        </div>
+        <div class="fallback" id="fallback" hidden>This card needs WebGL 2. Open it in a current Safari or Chrome.</div>
+      </div>
+      <div class="face back" id="back">
+        <canvas id="backArt"></canvas>
+        <div class="backSheen"></div>
+        <div class="backMark foiltext">fancard</div>
+        <div class="letter">
+          <p>greetings from hell, @angel_of_deathx! your devil look belongs on a card your fans can keep forever.</p>
+          <p class="sig">with love, fancard</p>
+        </div>
+        <div class="backSerial">Major Arcana XV · Nº 015 of 100</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hint" id="hint">Drag the card · tap Flip for the back</div>
+  <div class="controls">
+    <button class="btn" id="flip" type="button">Flip card</button>
+    <div class="price">$100 · 1 of 100</div>
+  </div>
+</div>
+
+<script>
+(()=>{
+const CUT="DATAURI";
+const AR=1.727; /* tarot card 2.75 x 4.75 */
+const stage=document.getElementById('stage'),card=document.getElementById('card'),cv=document.getElementById('gl');
+const plate=document.getElementById('plate'),numeral=document.getElementById('numeral'),root=document.documentElement;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function layout(){
+  const vw=document.documentElement.clientWidth-32,vh=window.innerHeight-190;
+  let w=Math.max(220,Math.min(vw,400,vh/AR));const h=w*AR;
+  stage.style.width=w+'px';stage.style.height=h+'px';stage.style.containerType='inline-size';
+  Object.assign(plate.style,{left:(w*.1)+'px',right:(w*.1)+'px',bottom:(h*.035)+'px',height:(w*.27)+'px',justifyContent:'center',containerType:'inline-size'});
+  numeral.style.top=(h*(1-1.635/AR))-w*.04+'px';
+  return {w,h};
+}
+
+/* ---------- card back: static gold guilloche ---------- */
+function drawBack(w,h){
+  const c=document.getElementById('backArt'),d=Math.min(devicePixelRatio||1,2);c.width=w*d;c.height=h*d;const x=c.getContext('2d');x.scale(d,d);
+  x.fillStyle='#1b2f8f';x.fillRect(0,0,w,h);
+  const cx=w/2,cy=h*.4;
+  x.lineWidth=.6;
+  for(let k=0;k<3;k++){
+    x.strokeStyle=k===1?'rgba(255,61,154,.55)':'rgba(217,169,63,.85)';
+    const R=w*(.36-k*.07),r=R*(.18+k*.05),dd=R*(.42-k*.06);
+    x.beginPath();
+    for(let t=0;t<=Math.PI*2*15;t+=.02){const px=(R-r)*Math.cos(t)+dd*Math.cos((R-r)/r*t),py=(R-r)*Math.sin(t)-dd*Math.sin((R-r)/r*t);t?x.lineTo(cx+px*.95,cy+py*.95):x.moveTo(cx+px*.95,cy+py*.95);}
+    x.stroke();
+  }
+  x.strokeStyle='rgba(217,169,63,.9)';x.lineWidth=1.2;
+  [.035,.055].forEach(m=>{x.strokeRect(w*m,w*m,w-w*m*2,h-w*m*2)});
+  x.strokeStyle='rgba(255,61,154,.35)';x.lineWidth=.5;
+  for(let i=0;i<70;i++){x.beginPath();const y=h*.06+i*(h*.88/70);for(let s=0;s<=40;s++){const xx=w*.06+s/40*w*.88,yy=y+Math.sin(s/40*Math.PI*6+i*.5)*2.2;s?x.lineTo(xx,yy):x.moveTo(xx,yy);}if(Math.abs(y-cy)>w*.38||true){x.globalAlpha=.5;x.stroke();x.globalAlpha=1}}
+}
+
+/* ---------- WebGL front ---------- */
+const gl=cv.getContext('webgl2',{premultipliedAlpha:true,antialias:false,alpha:true});
+if(!gl){document.getElementById('fallback').hidden=false;}
+const VS=`#version 300 es
+in vec2 a;out vec2 vUv;void main(){vUv=a*.5+.5;gl_Position=vec4(a,0.,1.);}`;
+const FS=`#version 300 es
+precision highp float;
+in vec2 vUv;out vec4 o;
+uniform sampler2D uCut,uArt;uniform vec2 uTilt,uLight;uniform float uTime,uPress;
+const float AR=1.727;
+const vec3 LAPIS=vec3(.106,.184,.561),LAPD=vec3(.059,.102,.353),RHO=vec3(1.,.239,.604);
+const float S=.0017;const vec2 FACEPX=vec2(590.,540.);const vec2 FACE=vec2(.5,1.0);const vec2 IMG=vec2(1080.,1035.);
+const vec2 AC=vec2(.5,1.06);const float AR_=.37;const float ABOT=.36;
+float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+1.),f.x),f.y);}
+mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}
+float dots(vec2 p,float v,float ang,float cell){vec2 q=rot(ang)*p/cell;vec2 f=fract(q)-.5;float d=length(f);float r=sqrt(clamp(v,0.,1.))*.72;float aa=fwidth(d)*1.1;return smoothstep(r+aa,r-aa,d);}
+vec2 toPx(vec2 p){return FACEPX+vec2(p.x-FACE.x,FACE.y-p.y)/S;}
+vec4 cut(vec2 p){vec2 uv=toPx(p)/IMG;if(uv.x<0.||uv.y<0.||uv.x>1.||uv.y>1.)return vec4(0);return texture(uCut,uv);}
+float poleMask(vec2 p){vec2 px=toPx(p);float t=px.y/1035.;return step(mix(400.,406.,t),px.x)*step(px.x,mix(459.,464.,t));}
+float sdBox(vec2 p,vec2 b){vec2 d=abs(p)-b;return length(max(d,0.))+min(max(d.x,d.y),0.);}
+float sdRound(vec2 p,vec2 b,float r){return sdBox(p,b-r)-r;}
+/* arch window: rectangle below the spring line, semicircle above */
+float sdArch(vec2 p){
+  vec2 q=p-AC;
+  float dc=length(q)-AR_;
+  float db=sdBox(p-vec2(.5,(AC.y+ABOT)*.5),vec2(AR_,(AC.y-ABOT)*.5));
+  return q.y>0.?(min(dc,max(db,-q.y))):db;
+}
+vec3 gold(vec2 p,float shade){
+  vec2 dir=normalize(vec2(1.,.55));
+  float sweep=exp(-pow(dot(p-uLight,dir)*6.,2.));
+  float brush=.88+.12*vn(vec2(p.x*900.,p.y*40.));
+  vec3 g=mix(vec3(.45,.28,.07),vec3(.98,.80,.38),.35+.55*sweep+.1*shade)*brush;
+  g+=vec3(1.,.96,.82)*pow(sweep,10.)*.7;
+  return g;
+}
+float line(float d,float w){float aa=fwidth(d);return smoothstep(w+aa,w-aa,abs(d));}
+void main(){
+  vec2 p=vec2(vUv.x,vUv.y*AR);
+  vec2 tilt=uTilt;
+  float edge=sdRound(p-vec2(.5,AR*.5),vec2(.5,AR*.5),.04);
+  float cardA=smoothstep(fwidth(edge),-fwidth(edge),edge);
+  /* lapis stock with rhodamine engraving */
+  vec3 c=LAPIS*(.92+.08*vn(p*300.));
+  float wav=abs(fract((p.y+.006*sin(p.x*70.+p.y*8.))*120.)-.5);
+  c=mix(c,RHO*.85,smoothstep(.12,.0,wav)*.42);
+  float wav2=abs(fract((p.x+.005*sin(p.y*55.))*90.)-.5);
+  c=mix(c,LAPD,smoothstep(.1,.0,wav2)*.35);
+  /* sunburst engraving behind the arch */
+  vec2 sq=p-AC;float sa=atan(sq.y,sq.x);
+  float ray=smoothstep(.15,0.,abs(fract(sa/6.2832*72.)-.5))*smoothstep(.44,.6,length(sq))*smoothstep(.95,.6,length(sq));
+  c=mix(c,gold(p,0.)*.9,ray*.55);
+  /* holographic guilloche window */
+  float da=sdArch(p);
+  if(da<0.){
+    vec2 hp=p+tilt*.022;
+    vec2 q=hp-vec2(.5,1.0);float r=length(q),th=atan(q.y,q.x);
+    float g1=abs(fract(r*46.+.9*sin(th*12.+r*9.))-.5);
+    float g2=abs(fract(r*46.-.9*sin(th*12.-r*9.)+.25)-.5);
+    float g3=abs(fract(r*18.+.35*sin(th*24.))-.5);
+    float hue=fract(th/6.2832*2.+r*1.6+tilt.x*.55-tilt.y*.4+uTime*.02);
+    vec3 rb=.5+.5*cos(6.2832*(hue+vec3(0.,.33,.67)));
+    vec3 hb=mix(LAPD,rb*.55+LAPD*.4,.55);
+    float ln=smoothstep(.09,0.,g1)+smoothstep(.09,0.,g2)*.85+smoothstep(.06,0.,g3)*.6;
+    hb=mix(hb,rb*1.1+.1,clamp(ln,0.,1.)*.85);
+    /* diffraction glitter */
+    vec2 cell=floor(hp*260.);float hh=h21(cell);
+    float glit=step(.93,hh)*pow(max(0.,sin(hh*90.+tilt.x*9.+tilt.y*7.+uTime*.6)),24.);
+    hb+=vec3(1.)*glit*(1.2+uPress);
+    /* her shadow on the hologram */
+    vec2 cp0=p-tilt*.025;
+    float shA=cut(cp0+vec2(.018,.026)).a*(1.-poleMask(cp0+vec2(.018,.026)));
+    hb*=1.-shA*.55;
+    c=hb;
+  }
+  /* gold moldings */
+  float m1=line(da-.006,.0045), m2=line(da-.021,.0018);
+  float bead=0.;
+  {float t=da-.014; vec2 q=p-AC; float L=q.y>0.?atan(q.y,q.x)*AR_:0.; float s=(q.y>0.?L:(p.y-AC.y))*1.+(p.x>.5?0.:0.);
+   float per=abs(fract((q.y>0.?L:p.y)*70.)-.5); bead=smoothstep(.0045,.002,length(vec2(t,per/70.)));}
+  float outerA=line(sdRound(p-vec2(.5,AR*.5),vec2(.47,AR*.5-.03),.025),.0035);
+  float outerB=line(sdRound(p-vec2(.5,AR*.5),vec2(.452,AR*.5-.048),.018),.0015);
+  /* top cartouche oval */
+  vec2 oq=(p-vec2(.5,1.635))/vec2(.13,.062);float od=(length(oq)-1.)*.07;
+  float oval=smoothstep(.0,-.003,od);
+  c=mix(c,LAPD,oval);
+  float ovalLine=line(od,.003)+line(od+.008,.0012);
+  float goldA=clamp(m1+m2+bead+outerA+outerB+ovalLine,0.,1.);
+  c=mix(c,gold(p,1.),goldA);
+  /* corner stars */
+  for(int i=0;i<4;i++){vec2 cc=vec2(i%2==0?.075:.925,i<2?.075:AR-.075);vec2 q=abs(p-cc)/.022;float st=pow(q.x,.5)+pow(q.y,.5)-1.;c=mix(c,gold(p,1.),smoothstep(.06,-.06,st));}
+  /* microtext band */
+  vec4 A=texture(uArt,vec2(vUv.x,1.-vUv.y));
+  c=mix(c,gold(p,.5),A.r*.9);
+  c=mix(c,RHO,A.g*.85);
+  /* ---- her photo, untouched ---- */
+  vec2 cp=p-tilt*.025;
+  vec4 k=cut(cp);
+  float a=k.a;
+  if(poleMask(cp)>.5&&cp.y>1.38){float v=smoothstep(1.56,1.38,cp.y);a*=dots(p,v,.6,.0075);}
+  if(p.y<.18)a=0.;
+  vec3 person=k.rgb*1.03+vec3(.01,.0,.015);
+  vec3 col=mix(c,person,a);
+  /* card gloss */
+  float gl=exp(-pow(dot(p-uLight,normalize(vec2(1.,.55)))*2.6,2.))*.09*(1.+uPress);
+  col+=gl;
+  o=vec4(col*cardA,cardA);
+}`;
+let uT,uL,uTime,uPress,tArt;
+if(gl){
+  const sh=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(x);return x;};
+  try{
+    const prog=gl.createProgram();gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(prog);
+    if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw gl.getProgramInfoLog(prog);
+    gl.useProgram(prog);
+    const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+    const al=gl.getAttribLocation(prog,'a');gl.enableVertexAttribArray(al);gl.vertexAttribPointer(al,2,gl.FLOAT,false,0,0);
+    const U=n=>gl.getUniformLocation(prog,n);uT=U('uTilt');uL=U('uLight');uTime=U('uTime');uPress=U('uPress');
+    gl.uniform1i(U('uCut'),0);gl.uniform1i(U('uArt'),1);
+    const tex=u=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE0+u);gl.bindTexture(gl.TEXTURE_2D,t);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,0]));return t;};
+    const tCut=tex(0);tArt=tex(1);
+    const img=new Image();img.onload=()=>{gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tCut);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);};img.src=CUT;
+  }catch(e){console.error(e);document.getElementById('fallback').hidden=false;}
+}
+/* microtext texture: R = gold microtext along the border, G = rhodamine microtext ring under the arch */
+function drawArt(){
+  if(!gl||!tArt)return;
+  const W=1024,H=Math.round(W*AR);const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  x.fillStyle='#000';x.fillRect(0,0,W,H);x.globalCompositeOperation='lighter';
+  const PX=v=>v*W,PY=v=>(AR-v)*W;
+  x.fillStyle='#f00';x.font=`400 ${0.0175*W}px "Martian Mono", Menlo, monospace`;x.textBaseline='middle';
+  const line='ANGEL_OF_DEATHX ✶ FANCARD ARCANA ✶ XV THE DEVIL ✶ Nº 015 OF 100 ✶ ';
+  const rep=line.repeat(4);
+  x.textAlign='center';
+  x.save();x.translate(PX(.5),PY(AR-.039));x.fillText(rep.slice(0,64),0,0);x.restore();
+  x.save();x.translate(PX(.5),PY(.039));x.fillText(rep.slice(10,74),0,0);x.restore();
+  x.save();x.translate(PX(.039),PY(AR/2));x.rotate(-Math.PI/2);x.fillText(rep.slice(20,128),0,0);x.restore();
+  x.save();x.translate(PX(.961),PY(AR/2));x.rotate(Math.PI/2);x.fillText(rep.slice(30,138),0,0);x.restore();
+  // ring of microtext hugging the arch
+  x.fillStyle='#0f0';x.font=`700 ${0.016*W}px "Martian Mono", Menlo, monospace`;
+  const cx=PX(.5),cy=PY(1.06),R=(.37+.033)*W;const ring='GREETINGS FROM HELL ✶ WITH LOVE, FANCARD ✶ ';
+  const n=Math.floor(Math.PI*R/(0.0118*W));
+  for(let i=0;i<=n;i++){const a=Math.PI+i/n*Math.PI;const ch=ring[i%ring.length];x.save();x.translate(cx+Math.cos(a)*R,cy+Math.sin(a)*R);x.rotate(a+Math.PI/2);x.fillText(ch,0,0);x.restore();}
+  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,tArt);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c);
+}
+drawArt();
+document.fonts.load('400 20px "Martian Mono"').then(drawArt).catch(()=>{});
+
+let size;
+function resize(){size=layout();drawBack(size.w,size.h);if(gl){const d=Math.min(devicePixelRatio||1,2);cv.width=Math.round(size.w*d);cv.height=Math.round(size.h*d);gl.viewport(0,0,cv.width,cv.height);}}
+resize();addEventListener('resize',resize);
+document.fonts.ready.then(()=>layout());
+
+/* ---------- interaction ---------- */
+let target={x:0,y:0},tilt={x:0,y:0},vel={x:0,y:0},dragging=false,press=0,pressT=0,lastMove=-1e9;
+let flip=0,flipT=0,flipV=0;
+const hint=document.getElementById('hint');
+function setFromEvent(e){const r=stage.getBoundingClientRect();const nx=((e.clientX-r.left)/r.width)*2-1,ny=((e.clientY-r.top)/r.height)*2-1;
+  target.x=Math.max(-1,Math.min(1,nx*1.2))*(flipT?-1:1);target.y=Math.max(-1,Math.min(1,-ny*1.2));lastMove=performance.now();}
+stage.addEventListener('pointerdown',e=>{dragging=true;pressT=1;stage.setPointerCapture(e.pointerId);setFromEvent(e);});
+stage.addEventListener('pointermove',e=>{if(dragging||e.pointerType==='mouse')setFromEvent(e);});
+const end=()=>{dragging=false;pressT=0;target.x=0;target.y=0;};
+stage.addEventListener('pointerup',end);stage.addEventListener('pointercancel',end);stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')end();});
+stage.addEventListener('keydown',e=>{const k={ArrowLeft:[-.6,0],ArrowRight:[.6,0],ArrowUp:[0,.6],ArrowDown:[0,-.6]}[e.key];if(k){target.x=k[0];target.y=k[1];lastMove=performance.now();e.preventDefault();}if(e.key==='Enter'||e.key===' '){doFlip();e.preventDefault();}});
+const fb=document.getElementById('flip');
+function doFlip(){flipT=flipT?0:1;fb.textContent=flipT?'Show front':'Flip card';hint.textContent=flipT?'The back carries a handwritten note':'Drag the card · tap Flip for the back';}
+fb.onclick=doFlip;
+
+const t0=performance.now();let last=t0;
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;const t=(now-t0)/1000;
+  let tx=target.x,ty=target.y;
+  if(!dragging&&!reduce&&now-lastMove>1200){tx=Math.sin(t*.7)*.4;ty=Math.sin(t*.53+1)*.24;}
+  const k=dragging?90:38,d=dragging?14:8;
+  vel.x+=((tx-tilt.x)*k-vel.x*d)*dt;vel.y+=((ty-tilt.y)*k-vel.y*d)*dt;tilt.x+=vel.x*dt;tilt.y+=vel.y*dt;
+  press+=(pressT-press)*Math.min(1,dt*10);
+  if(reduce){flip=flipT;}else{flipV+=((flipT-flip)*60-flipV*11)*dt;flip+=flipV*dt;}
+  card.style.transform=`rotateY(${tilt.x*16+flip*180}deg) rotateX(${tilt.y*12}deg) translateZ(${press*18}px)`;
+  root.style.setProperty('--sx',(50+tilt.x*45-tilt.y*20)+'%');
+  if(gl&&uT){
+    gl.uniform2f(uT,tilt.x,tilt.y);gl.uniform2f(uL,.5+tilt.x*.8,1.0+tilt.y*1.1);
+    gl.uniform1f(uTime,reduce?0:t);gl.uniform1f(uPress,press);
+    gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>

@@ -1,0 +1,14 @@
+const {chromium}=require('playwright');const fs=require('fs');const path=require('path');
+const f=p=>fs.readFileSync(path.join(__dirname,'node_modules',p)).toString('base64');
+const face=(fam,w,p)=>`@font-face{font-family:"${fam}";font-weight:${w};src:url(data:font/woff2;base64,${f(p)}) format("woff2");}`;
+const css=[500,700,800].map(w=>face('Saira Condensed',w,`@fontsource/saira-condensed/files/saira-condensed-latin-${w}-normal.woff2`)).join('')+face('Mrs Saint Delafield',400,'@fontsource/mrs-saint-delafield/files/mrs-saint-delafield-latin-400-normal.woff2');
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader']});
+const ctx=await b.newContext({viewport:{width:520,height:800},deviceScaleFactor:2,reducedMotion:'reduce'});const p=await ctx.newPage();
+p.on('pageerror',e=>console.log('ERR',e.message));p.on('console',m=>{if(m.type()=='error')console.log('C',m.text().slice(0,400))});
+await p.route(/fonts\.googleapis/,r=>r.fulfill({contentType:'text/css',body:css}));await p.route(/gstatic/,r=>r.abort());
+await p.goto('file://'+path.resolve(__dirname,'../pilot-card.html'));await p.waitForTimeout(2500);
+const st=p.locator('#stage');const out=path.resolve(__dirname,'../out');
+await p.evaluate(()=>__tilt(0,0));await p.waitForTimeout(300);await st.screenshot({path:out+'/p-front.png'});
+await p.evaluate(()=>__tilt(.7,-.5));await p.waitForTimeout(300);await st.screenshot({path:out+'/p-tilt.png'});
+await p.evaluate(()=>__tilt(0,0));await st.focus();await p.keyboard.press('f');await p.waitForTimeout(800);await st.screenshot({path:out+'/p-back.png'});
+await b.close();})();

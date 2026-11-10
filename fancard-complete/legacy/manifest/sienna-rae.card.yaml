@@ -1,0 +1,186 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FANCARD MANIFEST  ·  format v0.1 (proposal)
+# One file = one card design. Same manifest + same seed = same card, forever.
+# The renderer compiles it two ways:
+#   1. render  → lit preview images (3 light angles per side) for the web card
+#   2. produce → one production plate per operation (engrave, enamel, plate, print…)
+# Every visual element is a real manufacturing operation on a metal blank.
+# ─────────────────────────────────────────────────────────────────────────────
+
+fancard: 0.1
+id: sienna-rae/set-03
+template: filigree-oxblood@1        # the theme this card was built from
+seed: 30190019                      # drives grain, brush noise, sparkle — deterministic
+
+edition: { no: 19, of: 100, set: 3 }
+creator: { name: Sienna Rae, signature: assets/sienna-rae.sig.svg }
+
+# ── 1. THE BLANK ─────────────────────────────────────────────────────────────
+# Fixed. Never edited by users. Everything else positions against this.
+blank:
+  stock: brass                      # brass | stainless | aluminium | titanium
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]              # Law 1: ratio 1 : 1.545
+  corner_radius_mm: 3.2
+  edge: chamfer-0.2                 # chamfer | round | raw
+  bleed_mm: 1.5
+  grid: 1080x1669                   # design units; 20 units = 1 mm
+
+# Named anchors and zones on the grid. Components snap to these.
+zones:
+  rim:          { inset: [0, 40] }                 # outer frame band
+  window:       { rect: [70, 70, 940, 1529], r: 18 } # photo window (front)
+  cartouche:    { anchor: [540, 52] }
+  sig-front:    { rect: [90, 1310, 900, 230], overlay: true }  # may cross photo
+  medallion:    { ellipse: [540, 900, 290, 360] }
+  sig-back:     { rect: [300, 1080, 480, 180], overlay: true } # may cross ring
+  corners:      [[70, 70], [1010, 70], [70, 1599], [1010, 1599]]
+
+# ── 2. TOKENS ────────────────────────────────────────────────────────────────
+# What the UI exposes as "change the colour / metal / font".
+# Every value maps to a real material, so nothing can look plastic or paper.
+tokens:
+  enamel:                          # colours filled into recessed areas
+    field:   { name: oxblood, hex: "#5a1218", process: soft-enamel }
+    deep:    { name: garnet,  hex: "#3b0b10", process: soft-enamel }
+  metal:                           # raised, plated surfaces
+    plate:   { finish: gold-24k,  polish: mirror }
+    accent:  { finish: gold-24k,  polish: satin }
+  type:
+    script:  "Mr Dafoe"
+    serif:   "Bodoni Moda Italic"
+    caps:    "Bodoni Moda"
+  filter:
+    wash:    amber-sepia
+
+# ── 3. COMPONENTS ────────────────────────────────────────────────────────────
+# Parametric ornaments. Each produces a MASK (shape only, no colour).
+# Users can swap a component or tweak its params ("redesign the ornaments").
+components:
+  frame:
+    kind: frame.double-rule
+    params: { gap: 14, weight: [5, 2], radius: 18 }
+  corner:
+    kind: ornament.palmette-fan
+    params: { petals: 7, spread_deg: 70, curl: 0.6, rivet: true }
+    place: { at: corners, mirror: auto }
+  ribbon:
+    kind: border.wave-scroll
+    params: { period: 46, amplitude: 9, curl_every: 3 }
+    place: { along: rim, sides: [top, bottom, left, right] }
+  cartouche:
+    kind: frame.oval-cartouche
+    params: { w: 290, h: 64, border: 4 }
+    place: { at: cartouche }
+  lattice:
+    kind: pattern.ogee
+    params: { cols: 6, rows: 13, amplitude: 0.42, line: 3 }
+    node:  { kind: motif.quatrefoil-star, size: 34 }
+    clip:  { exclude: medallion, margin: 24 }        # stops cleanly at the ring
+  medallion:
+    kind: frame.oval-medallion
+    params: { ring: 6, dots: 64, finials: [top, bottom] }
+    place: { at: medallion }
+  edition-type:
+    kind: type.stack
+    lines:
+      - { text: "fancard",                 font: serif,  size: 70 }
+      - { text: "Nº",                       font: caps,   size: 26, track: 0.3 }
+      - { text: "{edition.no:03}",          font: serif,  size: 260 }
+      - { text: "ONE OF {edition.of} · SET {edition.set:02}", font: caps, size: 34, track: 0.25 }
+    place: { in: medallion, align: center }
+  signature:
+    kind: type.signature
+    source: creator.signature        # SVG path, or generated from name + script font
+
+# ── 4. SIDES = PRODUCTION RUNS ───────────────────────────────────────────────
+# Operations run top to bottom, in the same order as a real factory floor.
+# Each op = one production plate/file. `mask` refers to components or zones.
+sides:
+
+  front:
+    ops:
+      - op: brush                    # mechanical finish of the bare blank
+        params: { angle_deg: 35, depth: 0.15 }
+
+      - op: engrave                  # laser/CNC: cut recesses for enamel
+        mask: [rim, -window]
+        params: { depth_mm: 0.12 }
+
+      - op: enamel                   # fill recesses with colour
+        mask: [rim, -window]
+        color: enamel.field
+
+      - op: emboss                   # raise ornaments (die-struck relief)
+        mask: [frame, corner, ribbon, cartouche]
+        params: { height_mm: 0.08, bevel: 0.6 }
+
+      - op: plate                    # electroplate the raised metal
+        mask: [frame, corner, ribbon, cartouche]
+        metal: metal.plate
+
+      - op: print                    # UV print of the photo into the window
+        mask: window
+        image:
+          src: assets/sienna-shoreline.jpg
+          fit: cover
+          focus: [0.48, 0.42]
+          underbase: white           # white ink under CMYK, as on real metal
+          filters:                   # chain, applied in order
+            - { kind: grade,    preset: filter.wash, strength: 0.85 }
+            - { kind: vignette, amount: 0.35, feather: 0.6 }
+            - { kind: grain,    amount: 0.06 }
+
+      - op: foil                     # hot-foil over the print — allows overlap
+        mask: [cartouche-text, signature]
+        place: { signature: sig-front }
+        metal: metal.accent
+        params: { emboss: 0.4 }      # foil + light deboss = metallic, never flat ink
+
+  back:
+    ops:
+      - op: brush
+        params: { angle_deg: 35, depth: 0.15 }
+      - op: engrave
+        mask: full
+        params: { depth_mm: 0.12 }
+      - op: enamel
+        mask: full
+        color: enamel.field
+      - op: emboss
+        mask: [frame, corner, ribbon, lattice, medallion, edition-type]
+        params: { height_mm: 0.08, bevel: 0.6 }
+      - op: plate
+        mask: [frame, corner, ribbon, lattice, medallion, edition-type]
+        metal: metal.plate
+      - op: foil
+        mask: signature
+        place: { signature: sig-back }   # crosses the medallion ring on purpose
+        metal: metal.accent
+        params: { emboss: 0.4 }
+
+# ── 5. OUTPUTS ───────────────────────────────────────────────────────────────
+render:
+  lights: [left, center, right]        # 3-angle bake → glitch-free tilt + flip
+  scale: 2
+  format: webp
+produce:
+  separations: per-op                  # engrave.svg, enamel-oxblood.svg, plate.svg,
+                                       # print-cmyk.tif + white.tif, foil.svg …
+  units: mm
+  dpi: 1200
+
+# ── 6. UI CONTRACT ───────────────────────────────────────────────────────────
+# What the template editor exposes. Everything else is locked.
+ui:
+  expose:
+    - { path: tokens.enamel.field,          control: enamel-swatch,  label: Card colour }
+    - { path: tokens.metal.plate.finish,    control: metal-picker,   label: Metal }
+    - { path: tokens.metal.accent.finish,   control: metal-picker,   label: Signature foil }
+    - { path: components.corner.kind,       control: ornament-picker,label: Corners }
+    - { path: components.corner.params,     control: sliders }
+    - { path: components.lattice.kind,      control: pattern-picker, label: Back pattern }
+    - { path: components.lattice.params,    control: sliders }
+    - { path: tokens.filter.wash,           control: filter-picker,  label: Photo filter }
+    - { path: sides.front.ops[print].image, control: photo-upload }
+  lock: [blank, zones, render, produce, "sides.*.ops order"]

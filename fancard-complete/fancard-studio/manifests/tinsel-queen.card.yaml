@@ -1,0 +1,186 @@
+# FANCARD MANIFEST v0.2 · Tinsel Queen "Showstopper", Set 01
+# Template: holo-photocard@1 (front) + holo-postcard@1 (back)
+# Build:  python3 fancard.py manifests/tinsel-queen.card.yaml
+
+fancard: 0.2
+id: tinsel-queen/set-01
+template: holo-photocard@1
+seed: 10240024
+
+edition: { "no": 24, of: 100, set: 1 }
+card:    { title: SHOWSTOPPER, date: NOV 2, year: 2026 }
+creator: { name: Tinsel Queen, handle: "@creator" }
+fan:     { handle: "@yourfan" }          # set to "" to leave the dedication blank
+
+blank:
+  stock: stainless
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]
+  grid: [1080, 1669]
+
+zones:
+  card:         { rect: [11, 11, 1058, 1647], r: 54 }
+  window-outer: { rect: [48, 48, 984, 1383], r: 22, chamfer: { tr: 70, bl: 86 } }
+  window:       { rect: [62, 62, 956, 1355], r: 12, chamfer: { tr: 64, bl: 80 } }
+  plate-outer:  { rect: [48, 1431, 990, 198], r: 26 }
+  plate:        { rect: [60, 1443, 966, 174], r: 18 }
+
+tokens:
+  enamel:
+    plate: { name: tinsel-pink, hex: "#f2a9bf", process: soft-enamel }
+    blush: { name: blush,       hex: "#f8cddb", process: soft-enamel }
+    ink:   { name: ink-black,   hex: "#141018", process: soft-enamel }
+  metal:
+    holo-front: { finish: holo-rainbow }
+    holo-back:  { finish: holo-rose }
+    bezel:      { finish: black-chrome, polish: mirror }
+    glint:      { finish: silver, polish: mirror }
+  type:
+    wordmark: { family: Shrikhand }
+    serif:    { family: Bodoni Moda, weight: 700, style: italic }
+    serif-lt: { family: Bodoni Moda, weight: 400, style: italic }
+    sans:     { family: Jost, weight: 800 }
+    mono:     { family: Martian Mono, weight: 500 }
+    mono-b:   { family: Martian Mono, weight: 700 }
+    numeral:  { family: Big Shoulders Display, weight: 700 }
+    script:   { family: Homemade Apple }
+  filter:
+    wash: pop
+
+components:
+  # ── front ────────────────────────────────────────────────────────────────
+  side-text:
+    kind: shape.draw
+    items:
+      - { type: text, at: [31, 780], rotate: -90, font: mono, size: 12, track: 2, upper: true,
+          text: "Fancard photocard  ·  set {edition.set:02}  ·  {edition.no:03}/{edition.of}  ·  {creator.name}" }
+      - { type: text, at: [1049, 780], rotate: 90, font: mono, size: 12, track: 2, upper: true,
+          text: "{creator.handle}  ·  fancard.shop  ·  one of {edition.of}" }
+  plate-type:
+    kind: shape.draw
+    items:
+      - { type: text, at: [92, 1494], align: left, font: serif, size: 38, upper: true, text: "{creator.name}" }
+      - { type: text, at: [88, 1578], align: left, font: sans, size: 86, max_width: 720, text: "{card.title}" }
+      - { type: text, at: [1000, 1494], align: right, font: mono-b, size: 18, text: "{edition.no:03}/{edition.of}" }
+      - { type: text, at: [1000, 1528], align: right, font: mono, size: 16, text: "{creator.handle}" }
+      - { type: text, at: [1000, 1562], align: right, font: mono, size: 16, text: "SET {edition.set:02}" }
+  plate-hatch:
+    kind: shape.draw
+    items:
+      - { type: hatch, rect: [60, 1593, 966, 22], step: 11, w: 3.5 }
+  logo-pill:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [92, 92, 164, 46], r: 23, w: 2.6 }
+      - { type: text, at: [174, 125], font: serif-lt, size: 30, text: fancard }
+  sparkles:
+    kind: shape.draw
+    items:
+      - { type: sparkle, at: [196, 226], size: 22 }
+      - { type: sparkle, at: [866, 334], size: 30 }
+      - { type: sparkle, at: [899, 902], size: 22 }
+      - { type: sparkle, at: [254, 1176], size: 17 }
+
+  # ── back ─────────────────────────────────────────────────────────────────
+  back-frame:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [34, 34, 1012, 1601], r: 40, w: 3.2 }
+      - { type: rect, rect: [52, 52, 976, 1565], r: 28, w: 2.4 }
+  wordmark:
+    kind: shape.draw
+    items:
+      - { type: text, at: [96, 140], align: left, font: wordmark, size: 50, text: fancard }
+  waves:
+    kind: shape.draw
+    items:
+      - { type: waves, rect: [96, 350, 430, 100], lines: 5, amp: 9, period: 108, w: 3 }
+  postmark:
+    kind: shape.draw
+    items:
+      - { type: circle, c: [649, 388], r: 104, w: 3 }
+      - { type: circle, c: [649, 388], r: 80, w: 2 }
+      - { type: text, at: [649, 400], font: numeral, size: 36, upper: true, text: "{card.date}" }
+      - { type: text, at: [649, 430], font: mono, size: 12, text: "{card.year}" }
+      - { type: ring-text, c: [649, 388], r: 88, font: mono, size: 11, upper: true,
+          text: "fancard · set {edition.set:02} · {card.date} {card.year} · " }
+  stamp-slab:
+    kind: shape.draw
+    items:
+      - { type: perforated, rect: [724, 98, 263, 314], step: 19, hole: 7 }
+  stamp-detail:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [748, 122, 215, 266], w: 3 }
+      - { type: text, at: [855, 212], font: wordmark, size: 32, text: fancard }
+      - { type: text, at: [855, 320], font: numeral, size: 96, text: "{edition.no:03}" }
+      - { type: text, at: [855, 366], font: mono, size: 12, upper: true, text: "one of {edition.of}" }
+  rosette:
+    kind: shape.draw
+    items:
+      - { type: rosette, c: [540, 885], r0: 168, r1: 290, count: 84, w: 1.6 }
+      - { type: circle, c: [540, 885], r: 168, w: 3 }
+      - { type: circle, c: [540, 885], r: 291, w: 3 }
+      - { type: text, at: [540, 905], rotate: -2, font: script, size: 44, max_width: 290, text: "{creator.name}" }
+      - { type: line, from: [436, 946], to: [646, 938], w: 2.6 }
+  rosette-text:
+    kind: shape.draw
+    items:
+      - { type: ring-text, c: [540, 885], r: 148, font: mono, size: 13, upper: true,
+          text: "one of {edition.of}  ·  ✦  ·  the {card.title} drop of {creator.name}  ·  " }
+      - { type: text, at: [470, 838], font: script, size: 17, text: for }
+      - { type: text, at: [540, 990], font: mono, size: 14, text: "{creator.handle}" }
+  address-rules:
+    kind: shape.draw
+    items:
+      - { type: line, from: [174, 1345], to: [975, 1345], w: 2.2 }
+      - { type: line, from: [174, 1420], to: [975, 1420], w: 2.2 }
+      - { type: line, from: [174, 1497], to: [975, 1497], w: 2.2 }
+      - { type: text, at: [196, 1326], align: left, font: script, size: 44, max_width: 740, text: "{fan.handle}" }
+  labels:
+    kind: shape.draw
+    items:
+      - { type: text, at: [98, 178], align: left, font: mono, size: 14, track: 2, upper: true, text: "post card  ·  set {edition.set:02}" }
+      - { type: text, at: [118, 1338], font: mono, size: 13, text: TO }
+      - { type: text, at: [174, 1405], align: left, font: mono, size: 13, track: 1, upper: true, text: "this card belongs to whoever holds it" }
+      - { type: text, at: [174, 1482], align: left, font: mono, size: 13, track: 1, text: FANCARD.SHOP }
+      - { type: text, at: [975, 1482], align: right, font: mono, size: 13, track: 1, text: "Nº {edition.no:03} / {edition.of}" }
+
+sides:
+  front:
+    ops:
+      - { op: brush,   params: { angle_deg: 0 } }
+      - { op: foil,    mask: card, metal: metal.holo-front, params: { emboss: 0 } }
+      - { op: deboss,  mask: side-text, params: { height_mm: 0.03 } }
+      - { op: enamel,  mask: side-text, color: enamel.ink }
+      - { op: emboss,  mask: [window-outer, -window, plate-outer, -plate], params: { height_mm: 0.1 } }
+      - { op: plate,   mask: [window-outer, -window, plate-outer, -plate], metal: metal.bezel }
+      - { op: engrave, mask: plate, params: { depth_mm: 0.06 } }
+      - { op: enamel,  mask: plate, color: enamel.plate }
+      - { op: enamel,  mask: plate-hatch, color: enamel.blush }
+      - { op: engrave, mask: plate-type, params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: plate-type, color: enamel.ink }
+      - op: print
+        mask: window
+        image:
+          src: ../assets/tinsel-queen.jpg
+          focus: [0.5, 0.0]
+          filters:
+            - { kind: grade, preset: filter.wash }
+            - { kind: vignette, amount: 0.25 }
+            - { kind: grain, amount: 0.015 }
+      - { op: foil, mask: [logo-pill, sparkles], metal: metal.glint, params: { emboss: 0.3 } }
+
+  back:
+    ops:
+      - { op: brush,  params: { angle_deg: 0 } }
+      - { op: foil,   mask: card, metal: metal.holo-back, params: { emboss: 0 } }
+      - { op: emboss, mask: stamp-slab, params: { height_mm: 0.04 } }
+      - { op: emboss, mask: [back-frame, wordmark, waves, postmark, stamp-detail, rosette, address-rules], params: { height_mm: 0.06 } }
+      - { op: deboss, mask: [labels, rosette-text], params: { height_mm: 0.04 } }
+
+render:
+  lights: [-1, 0, 1]
+  bench: "#121016"
+produce:
+  separations: per-op

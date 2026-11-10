@@ -1,0 +1,10 @@
+-- A fancard carrying a room still: the armchair close-up from lagos-lounge, printed in the window.
+-- Card words only; the room is just an image here.
+create a card called lagos-lounge-card from stainless, seed 2611.
+draw a bezel called frame.
+on the front.
+plate the card with black mirror.
+plate the frame with chrome.
+print @lounge-armchair.jpg in the window, focused at 0.5 0.5.
+sign "Lagos Lounge" at 620 1530.
+plate the signature with gold.

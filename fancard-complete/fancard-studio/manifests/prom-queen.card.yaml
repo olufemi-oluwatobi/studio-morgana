@@ -1,0 +1,244 @@
+# FANCARD MANIFEST v0.2 · "Prom Queen", Set 05
+# Template: hud-mirror@1 — mirror-chrome blank, streetwear HUD frame engraved in black enamel,
+# raised mirror panels breaking into the photo, silver + yellow foil UI over a blue night print.
+# Build:  python3 fancard.py manifests/prom-queen.card.yaml
+
+fancard: 0.2
+id: prom-queen/set-05
+template: hud-mirror@1
+seed: 19990522
+
+edition: { "no": 24, of: 100, set: 5 }
+card:
+  title: PROM QUEEN
+  code: PQ-0024
+  tag: PQ
+  rail_left: "You have to wear the crown like you were born with it"
+  rail_right: "One night · one slow dance · one crown · forever on repeat"
+  copy_a: "Crowned under the gym lights at a quarter to midnight. The slow song was already playing when they called her name. Some nights you remember forever; this one remembers you."
+  copy_b: "The tiara was borrowed, the headphones were not. Every flash caught the same smile. Keep this card. It belongs to whoever holds it."
+  copy_c: "Every gym needs a queen. Every queen needs a night."
+
+blank:
+  stock: stainless
+  thickness_mm: 0.8
+  size_mm: [54, 83.43]
+  grid: [1080, 1669]
+
+zones:
+  card:    { rect: [11, 11, 1058, 1647], r: 54 }
+  window:  { rect: [140, 170, 800, 1210], r: 20 }
+  thumb-a: { rect: [508, 1200, 149, 134], r: 6 }
+  thumb-b: { rect: [683, 1200, 149, 134], r: 6 }
+
+tokens:
+  enamel:
+    ink:    { name: jet-black, hex: "#0b0b0d", process: soft-enamel }
+    yellow: { name: signal-yellow, hex: "#f5c400", process: soft-enamel }
+  metal:
+    ground: { finish: mirror-chrome }
+    ui:     { finish: silver, polish: mirror }
+    accent: { finish: yellow-foil, polish: satin }
+  type:
+    cond:   { family: Saira Condensed, weight: 800 }
+    cond-m: { family: Saira Condensed, weight: 700 }
+    mono:   { family: Martian Mono, weight: 400 }
+    mono-b: { family: Martian Mono, weight: 700 }
+    huge:   { family: Big Shoulders Display, weight: 900 }
+  filter:
+    wash: night-blue
+
+components:
+  # ── FRAME PATTERN (shared by both sides): engraved + black enamel on mirror ──
+  frame:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [24, 24, 1032, 1621], r: 44, w: 3 }
+      - { type: hatch, rect: [150, 74, 240, 14], angle: 90, step: 8, w: 2 }
+      - { type: hatch, rect: [150, 64, 240, 26], angle: 90, step: 40, w: 2.6 }
+      - { type: rect, rect: [150, 110, 26, 9], fill: true }
+      - { type: rect, rect: [184, 110, 26, 9], fill: true }
+      - { type: rect, rect: [218, 110, 26, 9], fill: true }
+      - { type: text, at: [150, 152], align: left, font: mono, size: 13, track: 1, text: "CRWN-01" }
+      - { type: path, at: [744, 80], scale: 0.9, w: 3, d: "M0 40 L6 10 L22 26 L32 0 L42 26 L58 10 L64 40 Z M0 50 H64" }
+      - { type: text, at: [88, 470], rotate: -90, font: cond-m, size: 19, track: 1.5, upper: true, text: "{card.rail_left}" }
+      - { type: text, at: [992, 640], rotate: 90, font: cond-m, size: 19, track: 1.5, upper: true, text: "{card.rail_right}" }
+      - { type: line, from: [1030, 220], to: [1030, 1000], w: 2 }
+      - { type: circle, c: [1030, 214], r: 6, w: 2 }
+      - { type: circle, c: [1030, 1006], r: 6, w: 2 }
+      - { type: rect, rect: [962, 1030, 46, 120], r: 4, w: 2.2 }
+      - { type: text, at: [990, 1090], rotate: 90, font: mono-b, size: 14, text: "NIGHT 01" }
+      - { type: path, at: [958, 1184], scale: 0.85, w: 3, d: "M0 15 Q30 -10 60 15 Q30 40 0 15 Z M22 15 a8 8 0 1 0 16 0 a8 8 0 1 0 -16 0" }
+      # bottom band
+      - { type: barcode, rect: [80, 1420, 190, 64], unit: 2.6, seed: 24 }
+      - { type: rect, rect: [80, 1500, 190, 22], w: 2 }
+      - { type: rect, rect: [80, 1500, 124, 22], fill: true }
+      - { type: circle, c: [92, 1566], r: 9, fill: true }
+      - { type: rect, rect: [290, 1420, 150, 64], r: 10, w: 2.5 }
+      - { type: path, at: [304, 1436], scale: 0.48, w: 3, d: "M0 40 L6 10 L22 26 L32 0 L42 26 L58 10 L64 40 Z" }
+      - { type: path, at: [350, 1436], scale: 0.48, w: 3, d: "M0 40 L6 10 L22 26 L32 0 L42 26 L58 10 L64 40 Z" }
+      - { type: path, at: [396, 1436], scale: 0.48, w: 3, d: "M0 40 L6 10 L22 26 L32 0 L42 26 L58 10 L64 40 Z" }
+      - { type: rect, rect: [290, 1500, 30, 96], w: 2.2 }
+      - { type: rect, rect: [295, 1540, 20, 50], fill: true }
+      - { type: rect, rect: [330, 1500, 44, 96], w: 2.2 }
+      - { type: text, at: [358, 1548], rotate: -90, font: mono-b, size: 14, text: "PQ·{edition.no:02}" }
+      - { type: para, rect: [668, 1416, 262, 190], font: mono, size: 11.5, leading: 16, upper: true, text: "{card.copy_b}" }
+      - { type: path, at: [985, 1530], scale: 1, w: 2.6, d: "M-34 0 a34 34 0 1 0 68 0 a34 34 0 1 0 -68 0 M-34 0 H34 M-29 -17 H29 M-29 17 H29 M0 -34 a15 34 0 1 0 0 68 a15 34 0 1 0 0 -68 M0 -34 V34" }
+  adv-box:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [390, 1500, 260, 100], r: 3, fill: true }
+  adv-text:            # knocked out of the black box, so the mirror shows through
+    kind: shape.draw
+    items:
+      - { type: text, at: [520, 1544], font: cond, size: 40, track: 1, text: "LAST SONG" }
+      - { type: line, from: [402, 1556], to: [638, 1556], w: 2.5 }
+      - { type: text, at: [520, 1586], font: cond-m, size: 20, track: 2, text: "EXPLICIT GLAMOUR" }
+  tag-yellow:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [830, 66, 120, 58], r: 14, fill: true }
+  tag-text:
+    kind: shape.draw
+    items:
+      - { type: text, at: [890, 111], font: cond, size: 44, text: "{card.tag}" }
+
+  # ── raised mirror panels that break into the picture ──
+  plaque:
+    kind: shape.draw
+    items:
+      - { type: path, fill: true, d: "M360 52 H720 L692 232 H388 Z" }
+  left-tab:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [24, 820, 330, 140], r: 30, fill: true }
+  hazard:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [850, 990, 90, 390], r: 6, fill: true }
+  thumbs:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [500, 1192, 165, 150], r: 10, fill: true }
+      - { type: rect, rect: [675, 1192, 165, 150], r: 10, fill: true }
+  panel-ink:
+    kind: shape.draw
+    items:
+      - { type: path, d: "M360 52 H720 L692 232 H388 Z", w: 3 }
+      - { type: path, d: "M378 66 H702 L678 218 H402 Z", w: 1.5 }
+      - { type: text, at: [540, 168], font: cond, size: 60, track: 1, text: "fancard" }
+      - { type: sparkle, at: [424, 146], size: 16 }
+      - { type: sparkle, at: [656, 146], size: 16 }
+      - { type: rect, rect: [24, 820, 330, 140], r: 30, w: 3 }
+      - { type: path, at: [196, 890], scale: 1.1, w: 2.6, d: "M-34 0 a34 34 0 1 0 68 0 a34 34 0 1 0 -68 0 M-34 0 H34 M-29 -17 H29 M-29 17 H29 M0 -34 a15 34 0 1 0 0 68 a15 34 0 1 0 0 -68 M0 -34 V34" }
+      - { type: path, at: [292, 890], scale: 1.1, w: 2.6, d: "M-34 0 a34 34 0 1 0 68 0 a34 34 0 1 0 -68 0 M-34 0 H34 M-29 -17 H29 M-29 17 H29 M0 -34 a15 34 0 1 0 0 68 a15 34 0 1 0 0 -68 M0 -34 V34" }
+      - { type: rect, rect: [850, 990, 90, 390], r: 6, w: 3 }
+      - { type: hatch, rect: [856, 996, 78, 378], angle: -45, step: 30, w: 13 }
+
+  # ── HUD over the image: silver foil ──
+  hud-left:
+    kind: shape.draw
+    items:
+      - { type: rect, rect: [170, 210, 130, 54], r: 3, w: 2.2 }
+      - { type: text, at: [235, 235], font: cond, size: 21, track: 1, text: "STEREO" }
+      - { type: text, at: [235, 257], font: cond-m, size: 16, track: 3, text: "NIGHT" }
+      - { type: rect, rect: [172, 300, 44, 44], w: 2.5 }
+      - { type: path, d: "M194 310 V334 M182 322 H206", w: 2.5 }
+      - { type: circle, c: [194, 386], r: 22, w: 2.5 }
+      - { type: path, d: "M179 371 L209 401 M209 371 L179 401", w: 2.5 }
+      - { type: para, rect: [238, 294, 200, 140], font: mono, size: 10.5, leading: 14.5, upper: true, text: "{card.copy_a}" }
+      - { type: text, at: [172, 474], align: left, font: cond, size: 22, track: 1, text: "CROWNED" }
+      - { type: text, at: [436, 474], align: right, font: mono-b, size: 15, text: "{card.code}" }
+      - { type: rect, rect: [172, 510, 136, 42], w: 2.4 }
+      - { type: text, at: [184, 539], align: left, font: cond, size: 21, text: VOTES }
+      - { type: text, at: [298, 539], align: right, font: cond, size: 21, text: "99" }
+      - { type: rect, rect: [172, 564, 136, 42], w: 2.4 }
+      - { type: text, at: [184, 593], align: left, font: cond, size: 21, text: CROWN }
+      - { type: text, at: [298, 593], align: right, font: cond, size: 21, text: "01" }
+      - { type: rect, rect: [172, 618, 136, 42], w: 2.4 }
+      - { type: text, at: [184, 647], align: left, font: cond, size: 21, text: SLAY }
+      - { type: text, at: [298, 647], align: right, font: cond, size: 21, text: "100" }
+  hud-title:
+    kind: shape.draw
+    items:
+      - { type: text, at: [540, 1128], font: huge, size: 150, max_width: 690, outline: true, w: 3, text: "{card.title}" }
+      - { type: dotline, from: [470, 1162], to: [800, 1162], step: 9, r: 2 }
+      - { type: circle, c: [822, 1162], r: 11, w: 2.2 }
+      - { type: path, d: "M822 1151 V1173 M811 1162 H833", w: 2 }
+      - { type: line, from: [300, 1162], to: [450, 1162], w: 3 }
+  hud-bottom:
+    kind: shape.draw
+    items:
+      - { type: line, from: [180, 1268], to: [180, 1330], w: 2 }
+      - { type: circle, c: [180, 1260], r: 8, w: 2 }
+      - { type: circle, c: [180, 1338], r: 8, fill: true }
+      - { type: text, at: [250, 1252], align: left, font: mono-b, size: 15, text: "{card.code}" }
+      - { type: para, rect: [204, 1270, 270, 80], font: mono, size: 10.5, leading: 14.5, upper: true, text: "{card.copy_c}" }
+  hud-yellow:
+    kind: shape.draw
+    items:
+      - { type: path, at: [180, 1196], scale: 0.85, fill: true, d: "M0 40 L6 10 L22 26 L32 0 L42 26 L58 10 L64 40 Z" }
+      - { type: rect, rect: [252, 1262, 12, 5], fill: true }
+      - { type: rect, rect: [268, 1262, 12, 5], fill: true }
+      - { type: pixelart, at: [976, 1272], px: 6, rows: ["X.X.X", ".X.X.", "X.X.X", ".X.X.", "X.X.X"] }
+  hud-back:
+    kind: shape.draw
+    items:
+      - { type: text, at: [904, 410], align: right, font: mono-b, size: 18, track: 3, text: "Nº" }
+      - { type: text, at: [912, 640], align: right, font: huge, size: 250, text: "{edition.no:03}" }
+      - { type: text, at: [906, 690], align: right, font: mono-b, size: 17, track: 2, text: "ONE OF {edition.of}  ·  SET {edition.set:02}" }
+      - { type: path, at: [430, 780], scale: 3.4, w: 3, d: "M0 40 L6 10 L22 26 L32 0 L42 26 L58 10 L64 40 Z M0 50 H64" }
+      - { type: barcode, rect: [520, 1200, 300, 120], unit: 3.4, seed: 5 }
+      - { type: text, at: [670, 1350], font: mono-b, size: 14, track: 3, text: "SCAN THE CROWN" }
+
+sides:
+  front:
+    ops:
+      - { op: brush,   params: { angle_deg: 0 } }
+      - { op: plate,   mask: card, metal: metal.ground }
+      - { op: emboss,  mask: [plaque, left-tab, hazard, thumbs], params: { height_mm: 0.08 } }
+      - { op: engrave, mask: tag-yellow, params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: tag-yellow, color: enamel.yellow }
+      - { op: engrave, mask: [frame, panel-ink, adv-box, -adv-text, tag-text], params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: [frame, panel-ink, adv-box, -adv-text, tag-text], color: enamel.ink }
+      - op: print
+        mask: window
+        image:
+          src: ../assets/tiara-night.jpg
+          focus: [0.5, 0.5]
+          filters: &night
+            - { kind: grade,      preset: filter.wash }
+            - { kind: split-tone, shadows: "#061a6e", highlights: "#d4e8ff", amount: 0.62 }
+            - { kind: fade,       amount: 0.05, color: "#0a1430" }
+            - { kind: halation,   threshold: 0.78, radius: 18, color: "#3f9cff", amount: 0.55 }
+            - { kind: halftone,   cell: 9, amount: 0.32 }
+            - { kind: vignette,   amount: 0.6 }
+            - { kind: grain,      amount: 0.065, size: 0.85, chroma: 0.02 }
+      - op: print
+        bake: true
+        mask: thumb-a
+        image: { src: ../assets/tiara-night.jpg, zone: thumb-a, zoom: 3.0, focus: [0.5, 0.27], filters: *night }
+      - op: print
+        bake: true
+        mask: thumb-b
+        image: { src: ../assets/tiara-night.jpg, zone: thumb-b, zoom: 3.2, focus: [0.62, 0.52], filters: *night }
+      - { op: foil, mask: [hud-left, hud-title, hud-bottom], metal: metal.ui, params: { emboss: 0.2 } }
+      - { op: foil, mask: hud-yellow, metal: metal.accent, params: { emboss: 0.2 } }
+
+  back:
+    ops:
+      - { op: brush,   params: { angle_deg: 0 } }
+      - { op: plate,   mask: card, metal: metal.ground }
+      - { op: emboss,  mask: [plaque, left-tab, hazard], params: { height_mm: 0.08 } }
+      - { op: engrave, mask: tag-yellow, params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: tag-yellow, color: enamel.yellow }
+      - { op: engrave, mask: [window, -plaque, -left-tab, -hazard, frame, panel-ink, adv-box, -adv-text, tag-text], params: { depth_mm: 0.05 } }
+      - { op: enamel,  mask: [window, -plaque, -left-tab, -hazard, frame, panel-ink, adv-box, -adv-text, tag-text], color: enamel.ink }
+      - { op: foil, mask: [hud-left, hud-title, hud-back], metal: metal.ui, params: { emboss: 0.2 } }
+      - { op: foil, mask: hud-yellow, metal: metal.accent, params: { emboss: 0.2 } }
+
+render:
+  lights: [-1, 0, 1]
+  bench: "#0a0a0c"
+produce:
+  separations: per-op

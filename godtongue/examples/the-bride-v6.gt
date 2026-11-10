@@ -1,0 +1,36 @@
+-- The Bride v2 · red, yellow and black only. No cream. Fan concept, not for sale.
+create a card called the-bride-v6 from stainless, seed 1973.
+
+sign "The Bride" called signature-front, at 620 1682, 440 wide, size 120, tilted -4.
+sign "The Bride" called signature-back, at 620 1682, 440 wide, size 120, tilted -4.
+
+sign "The Bride" called vertical-front, at 152 500, 400 wide, size 100, tilted -90.
+sign "The Bride" called vertical-back, at 152 500, 400 wide, size 100, tilted -90.
+
+make the window 826 by 1415, at 207 207.
+
+-- the bezel: a thick red frame with a black line inside it
+draw a rectangle called inner-line, 826 by 1415, corners 8, hollow, 12 wide, at 620 914.
+
+
+-- the back checker
+draw a rectangle called squares, 40 by 40, at 100 100.
+copy the squares 14 times, 80 apart.
+copy the squares 21 times, 80 apart, down.
+copy the squares, by 40 40, called squares-2.
+
+on the front.
+enamel the card in red.
+print @bride-full-suit.jpg in the window, focused at 0.5 0.5.
+enamel the inner-line in black.
+enamel the signature-front in #e69d27.
+enamel the vertical-front in #e69d27.
+
+on the back.
+enamel the card in red.
+enamel the window in #e69d27.
+enamel the squares within the window in red.
+enamel the squares-2 within the window in black.
+enamel the inner-line in black.
+enamel the signature-back in #e69d27.
+enamel the vertical-back in #e69d27.
