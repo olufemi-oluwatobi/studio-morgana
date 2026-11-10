@@ -96,3 +96,19 @@ attaching (tape, stamps), curl, wet-on-wet paint, then the motion timeline (M1).
 
 1. WebGPU first, WebGL2 fallback.
 2. The factory stays only as the reference the web engine is tested against.
+
+## Order sheet progress (Step 0: unify)
+
+| Order | Status | What landed | Left open |
+| --- | --- | --- | --- |
+| 0.1 Element IR | done | Every document has `stage` and `elements`. A card or canvas is one element with its faces. Card goldens re-blessed once; checked that only the two added keys changed. | — |
+| 0.2 One renderer | done | `web/engine.js` draws every document. `web/runtime.js` is deleted. Cards keep their held look (tilt turns the surface, gloss sheen moves); stage elements stay lit by a moving light. Glitter and metal flake, candy, gloss, matte, print on foil, flip. Parity against the old card runtime: mean difference 0.1–3% on the examples (see `golden/web/`). | Pearl and crystal sprays still skipped (7.1). |
+| 0.3 Card on a stage | done | `place a card called X from @file.gt at x y, scale S.` compiles the file into a two-faced element. `flip X at T s, over D s.` turns it in a video. Example: `examples/stage/card-on-desk.gt`. | The order sheet wrote "S big"; the word is `scale S`. |
+| 0.4 Frame goldens | done | `test/web.js` renders nine fixed moments headless and compares each with `golden/web/*.png` (tolerance: mean error under 2%). `web/capture.cjs` is the shared capture. Not in `test/run.js` (it needs a browser). | Goldens are PNG; move to WebP if the repo size matters. |
+| 0.5 Freeze the factory | done | `engines/fancard-py.js` is labelled reference only. The default engine is `web` (`bin/gt.js` and `core/build.js`). | — |
+
+Decisions taken on the way:
+
+- A card's back face builds on the first flip, not at load. Load time matches the old runtime (Marilyn front 5.4 s against 5.2 s); building both faces up front doubled it.
+- The lighting has two modes, chosen per element by the scene (`held`). Merging the two shaders without this moved the Goku card 30 luma units darker. The modes are in the shader, documented at the top of `web/engine.js`.
+- `place` for cards is handled inside the shapes `place` verb, because `place` is already claimed by the room and shapes packs.

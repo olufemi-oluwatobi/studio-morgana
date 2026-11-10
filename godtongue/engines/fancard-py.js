@@ -1,5 +1,7 @@
 // Engine: the locked v1 factory (fancard.py). Card Document → v1 manifest + SVG art → physical render.
 // The factory is called, never edited.
+// REFERENCE ONLY (order 0.5): the reference the web engine is checked against. It is never the default engine,
+// and no feature may depend on it. The Python factory stays as a comparison, not a production path.
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -67,7 +69,8 @@ const round = (v) => Math.round(v * 10) / 10;
 
 export default {
   name: 'fancard-py',
-  label: 'Fancard v1 · physical render',
+  label: 'Fancard v1 · reference only (Python factory)',
+  reference: true,
   describe: 'Runs the locked v1 factory: metals, relief, enamel and light, as a tilt-and-flip card page. About 30–90 s.',
   supports() { return fs.existsSync(path.join(config.fancardHome, 'fancard.py')) || `fancard.py not found in ${config.fancardHome} (set FANCARD_HOME)`; },
   async build(doc, { outDir, log = () => { } }) {

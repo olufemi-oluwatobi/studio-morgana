@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // gt: the godtongue command line.
-//   gt build card.gt [--engine svg-preview|fancard-py] [--out out/]
+//   gt build card.gt [--engine web|svg-preview|fancard-py] [--out out/]   (default: web; fancard-py is reference only)
 //   gt batch template.gt sheet.csv [--engine …] [--out out/]     one card per row; columns become $variables
 //   gt check card.gt                                             compile only, print problems
 //   gt engines | gt reference
@@ -11,7 +11,7 @@ import { compile, createRegistry } from '../index.js';
 
 const [cmd, ...rest] = process.argv.slice(2);
 const opt = (k, d) => { const i = rest.indexOf(`--${k}`); return i >= 0 ? rest.splice(i, 2)[1] : d; };
-const engine = opt('engine', 'svg-preview'), outRoot = opt('out', 'out');
+const engine = opt('engine', 'web'), outRoot = opt('out', 'out');
 const say = (d) => console.log(`${d.level === 'error' ? '✗' : '!'} line ${d.line}${d.via ? ` (in ${d.via})` : ''}: ${d.msg}${d.hint ? `\n    ${d.hint}` : ''}`);
 
 async function one(file, vars = {}, label = null) {

@@ -6,7 +6,7 @@ import { compile, loadEngines } from '../index.js';
 let ENGINES = null;
 export async function engines() { return (ENGINES ||= await loadEngines()); }
 
-export async function buildSource(source, { engine = 'svg-preview', outDir, baseDir = '.', assetDirs = [], vars = {}, file = null, log = () => { } } = {}) {
+export async function buildSource(source, { engine = 'web', outDir, baseDir = '.', assetDirs = [], vars = {}, file = null, log = () => { } } = {}) {
   const t0 = Date.now();
   const r = compile(source, { baseDir, assetDirs, vars, file });
   const result = { ok: r.ok, diagnostics: r.diagnostics, doc: r.doc, engine, outDir, ms: { compile: Date.now() - t0 } };
