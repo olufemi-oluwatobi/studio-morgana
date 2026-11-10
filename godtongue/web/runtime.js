@@ -130,6 +130,23 @@ void main(){
   hud.textContent = `${S.name} · ${side} · built in ${built[side].ms.toFixed(0)} ms (${S.sides[side].length} steps)` + (S.unsupported.length ? ` · skipped: ${S.unsupported.join(', ')}` : '');
   cv.addEventListener('pointermove', (e) => { const r = cv.getBoundingClientRect(); manual = true; tilt = [((e.clientX - r.left) / r.width - .5) * 1.1, ((e.clientY - r.top) / r.height - .5) * .7]; });
   cv.addEventListener('pointerleave', () => { manual = false; });
-  if (names.length > 1) { const b = document.getElementById('flip'); b.hidden = false; b.onclick = async () => { await show(names[(names.indexOf(side) + 1) % names.length]); hud.textContent = `${S.name} · ${side} · built in ${built[side].ms.toFixed(0)} ms (${S.sides[side].length} steps)`; }; }
+  // flip: both sides are built up front; the card turns about its vertical axis and swaps maps edge-on
+  const label = () => { hud.textContent = `${S.name} · ${side} · built in ${built[side].ms.toFixed(0)} ms (${S.sides[side].length} steps)`; };
+  let flipping = false;
+  const flip = async () => {
+    if (flipping || names.length < 2) return; flipping = true;
+    const next = names[(names.indexOf(side) + 1) % names.length];
+    if (!built[next]) { hud.textContent = 'building the other side…'; await prebuild; }
+    const t0f = performance.now(), dur = 760; let swapped = false;
+    await new Promise(done => { const step = (now) => {
+      const t = Math.min(1, (now - t0f) / dur), e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2, a = e * 180;
+      if (a >= 90 && !swapped) { swapped = true; show(next); }
+      cv.style.transform = `rotateY(${a < 90 ? a : a - 180}deg)`;
+      if (t < 1) requestAnimationFrame(step); else { cv.style.transform = ''; done(); }
+    }; requestAnimationFrame(step); });
+    label(); flipping = false;
+  };
+  const prebuild = (async () => { for (const k of names) if (!built[k]) { const b = await buildSide(S.sides[k]); b.tex = upload(b.maps); built[k] = b; } await show(side); })();
+  if (names.length > 1) { const b = document.getElementById('flip'); b.hidden = false; b.onclick = flip; cv.addEventListener('dblclick', flip); window.__gt.flip = flip; }
   requestAnimationFrame(draw);
 })().catch(e => { document.getElementById('hud').textContent = 'web renderer error: ' + e.message; window.__gtError = e.message; });

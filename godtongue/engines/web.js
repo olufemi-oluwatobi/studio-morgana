@@ -71,7 +71,7 @@ export default {
     if (scene.unsupported.length) log?.(`web engine: not yet supported, skipped: ${scene.unsupported.join(', ')}`);
     const runtime = fs.readFileSync(path.join(HERE, '..', 'web', 'runtime.js'), 'utf8');
     const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(doc.name)}</title>
-<style>html,body{margin:0;height:100%;background:${scene.bench};overflow:hidden;font:12px system-ui,sans-serif;color:#9aa0a8}canvas{display:block;margin:auto;height:100vh;max-width:100vw;object-fit:contain;touch-action:none}#hud{position:fixed;left:12px;bottom:10px}button{position:fixed;right:12px;bottom:10px;font:inherit;padding:6px 12px;border-radius:6px;border:1px solid #444;background:#1b1d22;color:#ddd}</style></head>
+<style>html,body{margin:0;height:100%;background:${scene.bench};overflow:hidden;perspective:2600px;font:12px system-ui,sans-serif;color:#9aa0a8}canvas{display:block;margin:auto;height:100vh;max-width:100vw;object-fit:contain;touch-action:none;backface-visibility:visible;will-change:transform}#hud{position:fixed;left:12px;bottom:10px}button{position:fixed;right:12px;bottom:10px;font:inherit;padding:6px 12px;border-radius:6px;border:1px solid #444;background:#1b1d22;color:#ddd}</style></head>
 <body><canvas id="gl"></canvas><div id="hud"></div><button id="flip" hidden>Flip</button>
 <script>window.SCENE=${JSON.stringify(scene)};</script><script>${runtime}</script></body></html>`;
     fs.writeFileSync(path.join(outDir, 'index.html'), html);
