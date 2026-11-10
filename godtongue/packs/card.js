@@ -5,11 +5,12 @@ import { show } from '../core/read.js';
 export default function card(reg) {
   reg.verb({
     words: ['create', 'start'],
-    help: 'Start a card. Everything after "called" names it; modifiers set the blank.',
-    examples: ['create a card called marilyn from stainless, 0.8 mm thick, seed 19260601.'],
+    help: 'Start a card, or a canvas of any size. Everything after "called" names it; modifiers set the blank.',
+    examples: ['create a card called marilyn from stainless, 0.8 mm thick, seed 19260601.', 'create a canvas called post, 1080 by 1350.'],
     run(ctx, toks) {
       const t = dropArticles(toks);
-      if (!isWord(t[0], 'card')) ctx.err('godtongue makes cards: start with "create a card called …"');
+      const isCanvas = isWord(t[0], 'canvas');
+      if (!isWord(t[0], 'card') && !isCanvas) ctx.err('start with "create a card called …" or "create a canvas called …, 1080 by 1350"');
       const head = t.slice(1); const comma = head.findIndex(x => x.t === ',');
       const first = comma < 0 ? head : head.slice(0, comma), rest = comma < 0 ? [] : head.slice(comma + 1);
       const mods = readMods([...first.flatMap((x, i) => isWord(x, 'from') ? [{ t: ',' }, x] : [x]), { t: ',' }, ...rest]);
@@ -25,6 +26,16 @@ export default function card(reg) {
       if (mods.edition) c.edition.no = num(mods.edition);
       if (mods.of) { c.edition.no = num(mods.of[0]); c.edition.of = num(mods.of[1]); }
       c.seed = c.seed === 1 ? hash(ctx.doc.name) : c.seed;
+      if (isCanvas) {                                   // any artboard: the whole grid is the body, no card blank
+        if (!mods.size) ctx.err('a canvas needs a size', 'e.g. "create a canvas called post, 1080 by 1350."');
+        const [w, h] = mods.size.map(num);
+        ctx.doc.kind = 'canvas';
+        ctx.doc.canvas = { size_px: [w, h] };
+        c.grid = [w, h]; c.rect = [0, 0, w, h]; c.r = 0;
+        c.size_mm = [w * 25.4 / 300, h * 25.4 / 300];   // 300 dpi unless told otherwise
+        ctx.doc.zones.card = { rect: [0, 0, w, h], r: 0 };
+        ctx.doc.zones.window = { rect: [0, 0, w, h], r: 0 };
+      }
       ctx.it = 'card';
     },
   });

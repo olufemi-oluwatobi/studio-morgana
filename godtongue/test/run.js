@@ -104,6 +104,14 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
     ok(`card IR unchanged ${f}`, CG[f] === hash, `golden ${CG[f]} now ${hash} (run with BLESS=1 if the change is intended)`);
   }
   if (process.env.BLESS) fs.writeFileSync(cgold, JSON.stringify(CG, null, 1));
+  // canvas word and the web engine's scene
+  { const cp = path.join(ex, 'canvas', 'post.gt'); const r = compile(fs.readFileSync(cp, 'utf8'), { baseDir: path.dirname(cp) });
+    ok('canvas: any size, whole grid is the body', r.ok && r.doc.kind === 'canvas' && r.doc.card.grid.join() === '1080,1350' && r.doc.card.rect.join() === '0,0,1080,1350', JSON.stringify(r.diagnostics));
+    const { toScene } = await import('../engines/web.js');
+    const sc = toScene(r.doc);
+    ok('web scene: one mask per step, materials resolved', sc.sides.front.length === r.doc.sides.front.steps.length && sc.sides.front.every(s => s.mask.startsWith('data:image/svg+xml')) && sc.sides.front.find(s => s.op === 'plate').mat.metal === 1);
+    const bad = compile('create a canvas called x.', { baseDir: ex });
+    ok('canvas needs a size', !bad.ok && /needs a size/.test(bad.diagnostics[0].msg)); }
   const L = compile(fs.readFileSync(path.join(rx, 'lagos-lounge.gt'), 'utf8'), { baseDir: rx });
   const R = L.doc.room;
   ok('lounge: shots, panorama and walk', R.shots.length === 8 && R.panoramas.length === 1 && R.walks.length === 1, JSON.stringify([R.shots.length, R.panoramas?.length, R.walks?.length]));

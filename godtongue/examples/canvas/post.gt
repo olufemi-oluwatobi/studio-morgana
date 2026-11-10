@@ -1,0 +1,19 @@
+-- First canvas piece: a 1080 by 1350 post, chrome headline on red enamel.
+create a canvas called post, 1080 by 1350.
+
+write "SALE" called headline in Lilita One, at 540 620, size 380.
+write "THIS WEEKEND ONLY" called sub in Martian Mono, at 540 820, size 44.
+draw a circle called badge, 220 big, at 900 170.
+write "50" called pct in Lilita One, at 900 192, size 130.
+
+on the front.
+enamel the card in #a8141d.
+emboss the headline, 0.2 mm high, soft 0.6.
+plate the headline with chrome.
+emboss the badge, 0.12 mm high.
+plate the badge with gold.
+engrave the pct, 0.05 mm deep.
+inlay the pct with #a8141d, 0.02 mm deep.
+engrave the sub, 0.03 mm deep.
+inlay the sub with #f4e3b0, 0.02 mm deep.
+spray the card with gloss, 30 µm thick.
