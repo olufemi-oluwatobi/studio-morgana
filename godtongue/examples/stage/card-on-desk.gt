@@ -1,0 +1,4 @@
+-- A card placed on a desk and turned over in a 3 s clip. The card is its own file; the stage places it.
+create a video called card-on-desk, 1080 by 1350, on #c9b99a, 3 s long.
+place a card called ticket from @desk-ticket.gt at 540 720, scale 0.7.
+flip the ticket at 1.2 s, over 0.8 s.

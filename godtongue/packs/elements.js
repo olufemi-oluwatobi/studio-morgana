@@ -2,6 +2,9 @@
 // An element is an object on a stage: outline + body + surface + content. Paper, card stock and metal are
 // body presets, not different kinds of thing. Paints are mixed from pigments with Kubelka-Munk, so blue and
 // yellow make green, and sprayed with a gun that has real settings.
+import fs from 'node:fs';
+import path from 'node:path';
+import { compile } from '../core/compile.js';
 import { readMods, readName, isWord, dropArticles, num, flag } from '../core/phrases.js';
 
 // ── bodies: physical presets every element starts from (any property can be overridden) ─────────────
@@ -231,4 +234,47 @@ export function sprayParams(ctx, mods) {
     soft: /soft/.test(ph), wet: /wet/.test(ph), drips: mods.drips === true || /drip/.test(ph),
     ...(mods.at != null && !Array.isArray(mods.at) ? { t0: num(mods.at) } : {}), ...(mods.for != null ? { dur: num(mods.for) } : {}),
   };
+}
+
+// ── a card on a stage (order 0.3): a card file becomes one element with its own faces, layers and materials.
+//   place a card called ticket from @ticket.gt at 540 900, scale 0.6.
+//   flip the ticket at 1.5 s, over 0.8 s.
+const secsOf = (v) => v == null ? null : Array.isArray(v) ? num(v[0]) : num(v);
+export function placeCard(ctx, toks) {
+  const t = dropArticles(toks), kind = t[0].v;
+  if (ctx.doc.kind !== 'stage') ctx.err('cards go on a stage', 'start with "create a stage called …, 1080 by 1350." and place the card on it');
+  const ci = t.findIndex(x => isWord(x, 'called', 'named'));
+  if (ci < 0) ctx.err(`name the ${kind}`, `e.g. "place a ${kind} called ticket from @ticket.gt at 540 900, scale 0.6."`);
+  const { name } = readName(t, ci + 1, new Set(['from']));
+  const af = t.find(x => x.t === 'asset');
+  if (!af) ctx.err(`which file is the ${kind} in?`, `e.g. "place a ${kind} called ${name} from @${name}.gt at 540 900."`);
+  const file = path.resolve(ctx.baseDir || '.', af.v);
+  if (!fs.existsSync(file)) ctx.err(`no file "${af.v}" next to this one`, 'a card file is a godtongue file of its own');
+  const sub = compile(fs.readFileSync(file, 'utf8'), { registry: ctx.reg, baseDir: path.dirname(file) });
+  if (!sub.ok) { const bad = sub.diagnostics.find(d => d.level === 'error'); ctx.err(`${af.v} has an error on line ${bad.line}: ${bad.msg}`, bad.hint); }
+  if (!(['card', 'canvas'].includes(sub.doc.kind))) ctx.err(`${af.v} is not a card`, 'only a card or a canvas can be placed');
+  const ati = t.findIndex(x => isWord(x, 'at'));
+  if (ati < 0 || t[ati + 1]?.t !== 'num' || t[ati + 2]?.t !== 'num') ctx.err(`where does the ${name} go?`, 'e.g. "at 540 900"');
+  const at = [t[ati + 1].v, t[ati + 2].v];
+  const si = t.findIndex(x => isWord(x, 'scale'));
+  const scale = si >= 0 && t[si + 1]?.t === 'num' ? t[si + 1].v : 1;
+  const c = sub.doc.card, els = (ctx.doc.elements ||= {});
+  els[name] = {
+    kind: 'card', order: Object.keys(els).length, line: ctx.line, file: af.v, card: sub.doc,
+    size: [...c.grid], rect: [...c.rect], corners: c.r, at, turn: 0, scale, up_mm: .3, held: false,
+    stock: c.stock, thick_mm: c.thickness_mm, outline: 'rect', edge: { style: 'clean', side: 'all' }, aged: 0,
+    faces: Object.keys(sub.doc.sides),
+  };
+  ctx.side = name; ctx.sideObj(name); ctx.it = name;
+}
+
+// "flip the ticket at 1.5 s, over 0.8 s." turns a placed card over; returns false when the name is not a card
+export function flipElement(ctx, toks) {
+  const t = dropArticles(toks), els = ctx.doc.elements || {};
+  const { name, i } = readName(t, 0, new Set(['at', 'over', 'for']));
+  const e = els[name];
+  if (!e || !e.faces || e.faces.length < 2) return false;
+  const m = readMods(t.slice(i));
+  (e.flips ||= []).push({ t0: secsOf(m.at) ?? 0, dur: secsOf(m.over) ?? secsOf(m.for) ?? .8 });
+  return true;
 }

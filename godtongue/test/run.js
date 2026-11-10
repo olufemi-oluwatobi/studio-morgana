@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compile } from '../index.js';
+import { toScene } from '../engines/web.js';
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ex = path.join(ROOT, 'examples');
 let pass = 0, fail = 0;
@@ -112,7 +113,7 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
     ok('canvas: any size, whole grid is the body', r.ok && r.doc.kind === 'canvas' && r.doc.card.grid.join() === '1080,1350' && r.doc.card.rect.join() === '0,0,1080,1350', JSON.stringify(r.diagnostics));
     const { toScene } = await import('../engines/web.js');
     const sc = toScene(r.doc);
-    ok('web scene: one mask per step, materials resolved', sc.sides.front.length === r.doc.sides.front.steps.length && sc.sides.front.every(s => s.mask.startsWith('data:image/svg+xml')) && sc.sides.front.find(s => s.op === 'plate').mat.metal === 1);
+    { const F = sc.elements[0].faces.front; ok('web scene: one mask per step, materials resolved', F.length === r.doc.sides.front.steps.length && F.every(s => s.mask.startsWith('data:image/svg+xml')) && F.find(s => s.op === 'plate').mat.metal === 1); }
     // element model: bodies, layering, paint
     const sp = path.join(ex, 'stage', 'three-bodies.gt'); const st = compile(fs.readFileSync(sp, 'utf8'), { baseDir: path.dirname(sp) });
     ok('stage compiles with four elements', st.ok && st.doc.kind === 'stage' && Object.keys(st.doc.elements).join() === 'memo,ticket,plaque,swatch', JSON.stringify(st.diagnostics));
@@ -150,6 +151,22 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
   }
   const card = compile('create a card called c.\ndraw a bezel called frame.\non the front.\nplate the frame with chrome.', {});
   ok('cards still own "create", "place" and "make"', card.ok && !card.doc.room, JSON.stringify(card.diagnostics));
+}
+
+// a card on a stage (orders 0.2 and 0.3): one renderer, placed cards are elements with their own faces
+{
+  const dp = path.join(ex, 'stage', 'card-on-desk.gt');
+  const cd = compile(fs.readFileSync(dp, 'utf8'), { baseDir: path.dirname(dp) });
+  ok('stage places a card file', cd.ok, JSON.stringify(cd.diagnostics));
+  const t = cd.doc.elements.ticket;
+  ok('placed card: two faces, scale 0.7, one flip at 1.2 s', !!t && t.faces.join() === 'front,back' && t.scale === 0.7 && t.flips?.length === 1 && t.flips[0].t0 === 1.2, JSON.stringify(t && { faces: t.faces, scale: t.scale, flips: t.flips }));
+  const tk = toScene(cd.doc).elements.find(e => e.name === 'ticket');
+  ok('placed card: its own faces and metal body in the scene', !!tk && tk.faces.back.length > 0 && tk.body.family === 'metal' && tk.card === undefined, JSON.stringify(tk && Object.keys(tk)));
+  const missing = compile('create a stage called s, 600 by 600.\nplace a card called x from @nothere.gt at 1 1.', { baseDir: ex });
+  ok('placing a missing file says so', !missing.ok && missing.diagnostics.some(d => /no file/.test(d.msg)), JSON.stringify(missing.diagnostics));
+  const offStage = compile('create a card called c.\nplace a card called x from @hello.gt at 1 1.', { baseDir: ex });
+  ok('cards are placed only on a stage', !offStage.ok && offStage.diagnostics.some(d => /stage/.test(d.msg)), JSON.stringify(offStage.diagnostics));
+  ok('0.2: the web engine is the one runtime', !fs.existsSync(path.join(ROOT, 'web', 'runtime.js')) && fs.existsSync(path.join(ROOT, 'web', 'engine.js')));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

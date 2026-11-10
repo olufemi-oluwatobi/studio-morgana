@@ -1,0 +1,12 @@
+-- A ticket card for the desk: red enamel and a gold signature on the front, chrome and black mirror on the back.
+create a card called desk-ticket from brass, 0.8 mm thick.
+on the front.
+enamel the card in #a8141d.
+draw a bezel called frame.
+plate the frame with chrome.
+sign "ADMIT ONE" at 620 900.
+plate the signature with gold.
+on the back.
+plate the card with black mirror.
+draw a bezel called back-frame.
+plate the back-frame with chrome.

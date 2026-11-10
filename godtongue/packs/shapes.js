@@ -4,6 +4,7 @@
 // Objects:       "define a rose with $size 60 as: … end." then "place a rose at 620 900, size 90."
 // An element is a layer whose geometry is kept as points, so every manipulation works on every element.
 import { readMods, readName, isWord, dropArticles, num, flag, PREPS } from '../core/phrases.js';
+import { placeCard, flipElement } from './elements.js';
 
 const TAU = Math.PI * 2;
 const r1 = (v) => Math.round(v * 10) / 10;
@@ -177,6 +178,7 @@ export default function shapes(reg) {
     words: ['flip'], help: 'Flip elements in place: left to right, or "upside down".',
     examples: ['flip the wing.', 'flip it upside down.'],
     run(ctx, toks) {
+      if (flipElement(ctx, toks)) return;   // a placed card turns over in time
       each(ctx, toks, (L, m) => {
         const [cx, cy] = pivot(ctx, m, L.shapes);
         L.shapes = mapShapes(L.shapes, flag(m, 'upside', 'vertically', 'over') ? T.flipY(cy) : T.flipX(cx));
@@ -256,6 +258,7 @@ export default function shapes(reg) {
     examples: ['place a rose called big-rose at 620 1250, size 120, turned 10.', 'place 3 roses from 380 1500, 240 apart, size 50.'],
     run(ctx, toks, s) {
       const t = dropArticles(toks); let count = 1;
+      if (isWord(t[0], 'card', 'canvas')) return placeCard(ctx, toks);   // a card file on a stage
       if (t[0]?.t === 'num') count = t.shift().v;
       const words = []; let k = 0; while (t[k]?.t === 'word' && !['called', 'named', ...PREPS].includes(t[k].v)) words.push(t[k++].v);
       let obj = null, used = 0;

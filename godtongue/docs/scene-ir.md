@@ -20,8 +20,10 @@ superset: a v1 document is a v2 document with `kind: "card"`.
 | `zones` | yes | yes | Named rects with corner radius (`card`, `window`, user zones) |
 | `materials` | yes | yes | Name to material: metal (finish, polish), enamel (hex, process), later paper, ink, film |
 | `layers` | yes | yes | Name to drawable: see Layers |
-| `sides` | front, back | faces | Card: `front`, `back`. Canvas: `main`. Each face holds `steps` |
+| `sides` | front, back | front, back | Each face holds `steps`. A stage element names its own side. A placed card's faces live in its own document |
 | `assets` | yes | yes | Key to `{ path, sha256 }`; v2 adds `w`, `h`, `mime` |
+| `stage` | — | every document (order 0.1) | `size`, `background`. Cards and canvases carry a default stage of the same size |
+| `elements` | — | every document (order 0.1) | Name to element. A card or canvas is one element `card` (or `canvas`) whose `faces` are its sides. A stage element has its own body, outline, faces, placement (`at`, `turn`, `scale`), `moves`, `enter`, `exit` and `flips`. A placed card (`place a card called X from @file.gt`) carries its compiled document in `card` |
 | `room` | rooms only | rooms only | Room document (see `rooms/build.js`) |
 
 ## Layers
@@ -50,6 +52,12 @@ A face is an ordered list of steps. Order matters: each step reads the result of
 - v1 ops: `enamel`, `plate`, `foil`, `engrave`, `emboss`, `deboss`, `etch`, `print`, `illustrate`, `spray`
   (gloss, candy, glitter, metalflake, pearl, chameleon, matte), `inlay`, `outline`.
 - v2 ops (P3): `adjust`, `filter`, `shadow`, `glow`, `blur`, `texture` (grain, grunge, halftone, riso), `cutout`.
+
+## One renderer (order 0.2)
+
+The web engine draws every document the same way: a list of elements, each with faces, each face built in its own maps and
+lit once. A card is held, so its surface turns with the hand (`held: true`). A stage element is flat and lit by a moving
+light. A card flips about its vertical axis (the hand flips it, or a timed `flip` does in a video). `web/runtime.js` is gone.
 
 ## What every renderer must produce
 

@@ -1,7 +1,10 @@
-// Engine: web (Morgana P1, thin slice). Scene IR → one self-contained page that builds the height and material
-// maps in the browser (2D canvas compositing of per-step masks) and lights them live in WebGL2.
-// Covers: plate, foil, enamel, emboss, deboss, engrave, etch, print, illustrate, spray gloss/glitter/metalflake/candy/matte.
-// Not yet: pearl and chameleon sprays, holo and crystal finishes, brushed anisotropy, WebGPU path, incremental rebuilds.
+// Engine: web (Morgana order 0.2: the one renderer). Compiled document → one self-contained page.
+// Every document becomes a list of elements; each element has faces (a stage element has one, a card or canvas
+// has front and back). The browser builds each face's maps (colour, material, height, silhouette, shadow, flakes)
+// and lights them live in WebGL2. Runtime: web/engine.js.
+// Covers: plate, foil, enamel, emboss, deboss, engrave, etch, print, illustrate, sprays (paint, gloss, matte,
+// glitter, metal flake, candy), flip, elements, layers, motion, captions, video.
+// Not yet: pearl and crystal sprays, holo finishes, brushed anisotropy (see docs/morgana-execution.md).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -36,54 +39,79 @@ function maskSvg(doc, area) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${fonts.size ? `<style>${[...fonts.values()].join('')}</style>` : ''}<defs>${defs.join('')}</defs><rect width="${W}" height="${H}" fill="#fff" mask="url(#m)"/></svg>`;
 }
 
-export function toScene(doc) {
-  const c = doc.card, pxmm = c.rect[2] / c.size_mm[0];
+const cardBody = (card) => ({
+  preset: card.stock, family: 'metal', color: STOCK[card.stock] || STOCK.stainless, metal: 1, rough: .28,
+  thick_mm: card.thickness_mm, fibres: 0,
+});
+
+// a document's steps → what the runtime needs; d supplies the layers, zones, materials and assets they use
+function faceSet(d, sides, unsupported) {
   const mat = (key) => {
-    const m = doc.materials[key] || {};
+    const m = d.materials[key] || {};
     if (m.type === 'enamel') return { metal: 0, rough: m.process === 'niello-inlay' ? .35 : .2, color: m.hex };
     if (m.type === 'paint') return { metal: m.finish === 'metallic' ? .6 : 0, rough: { gloss: .08, satin: .3, matte: .85, metallic: .3, pearl: .25, candy: .06 }[m.finish] ?? .3, color: m.hex, finish: m.finish };
     const hi = m.preview?.hi || '#dddddd', lo = m.preview?.lo || '#777777';
     return { metal: 1, rough: m.polish === 'mirror' ? .05 : m.polish === 'satin' ? .22 : .32, color: mixHex(hi, lo, .3) };
   };
+  const stepOf = (s) => {
+    const out = { op: s.op, line: s.line, params: s.params || {}, kind: s.kind, mask: 'data:image/svg+xml;base64,' + Buffer.from(maskSvg(d, s.area)).toString('base64') };
+    if (s.material) out.mat = mat(s.material);
+    if (s.image) { const a = d.assets[s.image.asset], z = d.zones[s.image.zone] || d.zones.window; out.image = { src: `data:${MIME[a.path.split('.').pop().toLowerCase()]};base64,${fs.readFileSync(a.path).toString('base64')}`, rect: z.rect, focus: s.image.focus || [.5, .5], onFoil: !!s.on_foil }; }
+    if (s.op === 'spray' && !['gloss', 'glitter', 'metalflake', 'candy', 'matte', 'paint'].includes(s.kind)) unsupported.add(`spray ${s.kind}`);
+    return out;
+  };
+  for (const m of Object.values(d.materials)) if (m.finish?.startsWith('holo') || m.finish === 'crystal') unsupported.add(m.finish);
+  return Object.fromEntries(Object.entries(sides).map(([f, S]) => [f, S.steps.map(stepOf)]));
+}
+
+export function toScene(doc) {
+  const c = doc.card, W = c.grid[0], H = c.grid[1], pxmm = c.rect[2] / c.size_mm[0];
   const unsupported = new Set();
-  const sides = {};
-  for (const [side, S] of Object.entries(doc.sides)) {
-    sides[side] = S.steps.map(s => {
-      const out = { op: s.op, line: s.line, params: s.params || {}, kind: s.kind, mask: 'data:image/svg+xml;base64,' + Buffer.from(maskSvg(doc, s.area)).toString('base64') };
-      if (s.material) out.mat = mat(s.material);
-      if (s.image) { const a = doc.assets[s.image.asset], z = doc.zones[s.image.zone] || doc.zones.window; out.image = { src: `data:${MIME[a.path.split('.').pop().toLowerCase()]};base64,${fs.readFileSync(a.path).toString('base64')}`, rect: z.rect, focus: s.image.focus || [.5, .5], onFoil: !!s.on_foil }; }
-      if (s.op === 'spray' && !['gloss', 'glitter', 'metalflake', 'candy', 'matte', 'paint'].includes(s.kind)) unsupported.add(`spray ${s.kind}`);
-      return out;
-    });
-  }
+  const tl = doc.timeline || {}, rv = tl.reveals || {};
+  const cs = tl.captionStyle || { font: 'Jost', size: 60, color: '#1d1b18', y: null, weight: 500 };
+  const ff = (tl.captions || []).length ? (fontFile(cs.font, cs.weight, 'normal') || fontFile(cs.font, 400, 'normal')) : null;
+  const timeline = { camera: tl.camera || [], captions: tl.captions || [], captionStyle: { ...cs, src: ff ? 'data:font/woff2;base64,' + fs.readFileSync(ff).toString('base64') : null } };
+
+  const elements = Object.entries(doc.elements).sort((a, b) => a[1].order - b[1].order).map(([name, e]) => {
+    // a placed card carries its own document: its faces, layers and materials are that file's
+    if (e.card) {
+      const { card: sub, ...rest } = e;
+      return { name, ...rest, body: cardBody(sub.card), faces: faceSet(sub, sub.sides, unsupported) };
+    }
+    if (doc.kind === 'stage') {
+      // a stage element is one face: its own steps, with reveals timed from the layers it draws
+      const src = doc.sides[name]?.steps || [];
+      const steps = faceSet(doc, { front: { steps: src } }, unsupported).front;
+      steps.forEach((st, k) => { const hit = src[k].area?.terms.map(x => rv[x.ref]).find(Boolean); if (hit) st.reveal = hit; });
+      return { name, ...e, faces: { front: steps } };
+    }
+    // a card or canvas: the blank is its stock, sized to its body rectangle inside the grid; faces are its sides
+    return {
+      name, order: e.order, kind: e.kind, size: [W, H], rect: c.rect, at: [W / 2, H / 2], turn: 0, up_mm: 0,
+      // a held blank is tilted by the hand (its surface turns); a stage element is lit by a moving light
+      held: true, outline: 'rect', corners: c.r, aged: 0, edge: { style: 'clean', side: 'all' },
+      body: cardBody(c), faces: faceSet(doc, Object.fromEntries(e.faces.map(f => [f, doc.sides[f]])), unsupported),
+    };
+  });
   for (const m of Object.values(doc.materials)) if (m.finish?.startsWith('holo') || m.finish === 'crystal') unsupported.add(m.finish);
-  if (doc.kind === 'stage') {
-    const els = Object.entries(doc.elements).sort((a, b) => a[1].order - b[1].order)
-      .map(([name, e]) => ({ name, ...e, steps: sides[name] || [] }));
-    // reveals: a step whose area draws a revealed layer carries that layer's timing
-    const rv = doc.timeline?.reveals || {};
-    for (const e of els) e.steps.forEach((st, k) => { const src = doc.sides[e.name].steps[k]; const hit = src.area?.terms.map(x => rv[x.ref]).find(Boolean); if (hit) st.reveal = hit; });
-    const tl = doc.timeline || {}, cs = tl.captionStyle || { font: 'Jost', size: 60, color: '#1d1b18', y: null, weight: 500 };
-    const ff = (tl.captions || []).length ? (fontFile(cs.font, cs.weight, 'normal') || fontFile(cs.font, 400, 'normal')) : null;
-    const timeline = { camera: tl.camera || [], captions: tl.captions || [], captionStyle: { ...cs, src: ff ? 'data:font/woff2;base64,' + fs.readFileSync(ff).toString('base64') : null } };
-    return { name: doc.name, kind: 'stage', video: doc.video || null, timeline, W: c.grid[0], H: c.grid[1], bench: doc.stage.background, layers: {}, elements: els, unsupported: [...unsupported] };
-  }
-  return { name: doc.name, kind: doc.kind, W: c.grid[0], H: c.grid[1], rect: c.rect, r: c.r, pxmm, bench: doc.view?.bench || c.bench,
-    stock: { color: STOCK[c.stock] || STOCK.stainless, rough: .28 }, sides, unsupported: [...unsupported] };
+  return {
+    name: doc.name, kind: doc.kind === 'stage' ? 'stage' : 'card', video: doc.video || null, timeline,
+    W, H, pxmm, bench: doc.stage?.background || c.bench, elements, unsupported: [...unsupported],
+  };
 }
 
 export default {
   name: 'web',
   label: 'Web renderer (live light, WebGL2)',
-  describe: 'Builds height and material maps in the browser and lights them live. Thin slice of Morgana P1.',
+  describe: 'Builds each face of each element in the browser and lights it live. One renderer for cards, canvases, stages and videos.',
   supports: (doc) => doc.kind === 'room' ? 'rooms use the room engine' : true,
   async build(doc, { outDir, log }) {
     fs.mkdirSync(outDir, { recursive: true });
     const scene = toScene(doc);
     if (scene.unsupported.length) log?.(`web engine: not yet supported, skipped: ${scene.unsupported.join(', ')}`);
-    const runtime = fs.readFileSync(path.join(HERE, '..', 'web', scene.kind === 'stage' ? 'stage.js' : 'runtime.js'), 'utf8');
+    const runtime = fs.readFileSync(path.join(HERE, '..', 'web', 'engine.js'), 'utf8');
     const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(doc.name)}</title>
-<style>html,body{margin:0;height:100%;background:${scene.bench};overflow:hidden;perspective:2600px;font:12px system-ui,sans-serif;color:#9aa0a8}canvas{display:block;margin:auto;height:100vh;max-width:100vw;object-fit:contain;touch-action:none;backface-visibility:visible;will-change:transform}#hud{position:fixed;left:12px;bottom:10px}button{position:fixed;right:12px;bottom:10px;font:inherit;padding:6px 12px;border-radius:6px;border:1px solid #444;background:#1b1d22;color:#ddd}</style></head>
+<style>html,body{margin:0;height:100%;background:${scene.bench};overflow:hidden;font:12px system-ui,sans-serif;color:#9aa0a8}canvas{display:block;margin:auto;height:100vh;max-width:100vw;object-fit:contain;touch-action:none}#hud{position:fixed;left:12px;bottom:10px}button{position:fixed;right:12px;bottom:10px;font:inherit;padding:6px 12px;border-radius:6px;border:1px solid #444;background:#1b1d22;color:#ddd}</style></head>
 <body><canvas id="gl"></canvas><div id="hud"></div><button id="flip" hidden>Flip</button><div id="bar" hidden style="position:fixed;left:50%;transform:translateX(-50%);bottom:34px;display:flex;gap:10px;align-items:center;background:#000a;padding:6px 12px;border-radius:8px"><button id="play" style="position:static">Pause</button><input id="scrub" type="range" min="0" max="1000" value="0" style="width:min(60vw,420px)"><span id="tc" style="min-width:52px;color:#ddd">0.0 s</span></div>
 <script>window.SCENE=${JSON.stringify(scene)};</script><script>${runtime}</script></body></html>`;
     fs.writeFileSync(path.join(outDir, 'index.html'), html);

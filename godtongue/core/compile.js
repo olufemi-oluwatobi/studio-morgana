@@ -48,7 +48,7 @@ function toTokens(v) {   // batch values: numbers, files, colours, text
 
 function makeContext(doc, reg, diagnostics, baseDir, assetDirs) {
   const ctx = {
-    doc, reg, vars: new Map(), objects: new Map(), side: null, it: null, line: 0, depth: 0, _diag: diagnostics, inDefinition: false,
+    doc, reg, baseDir, assetDirs, vars: new Map(), objects: new Map(), side: null, it: null, line: 0, depth: 0, _diag: diagnostics, inDefinition: false,
     err(msg, hint) { throw new GTError(msg, hint); },
     warn(msg, hint) { diagnostics.push({ level: 'warning', line: ctx.line, msg, hint }); },
     suggest(word, options) { const c = closest(word, options); return c ? `did you mean "${c}"?` : undefined; },
