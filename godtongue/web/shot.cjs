@@ -12,7 +12,7 @@ const { chromium } = require('playwright');
   if (side) await p.evaluate((s) => window.__gt.show(s), side);
   await p.evaluate(() => window.__gt.setTilt(0.12, -0.05));
   await p.waitForTimeout(1500);
-  const info = await p.evaluate(() => ({ buildMs: Math.round(__gt.buildMs), decodeMs: Math.round(__gt.decodeMs), steps: __gt.steps, fps: Math.round(__gt.fps()) }));
+  const info = await p.evaluate(() => ({ buildMs: Math.round(__gt.buildMs), steps: __gt.steps, fps: Math.round(__gt.fps()) }));
   await p.locator('#gl').screenshot({ path: out });
   console.log(JSON.stringify(info)); await br.close();
 })();
