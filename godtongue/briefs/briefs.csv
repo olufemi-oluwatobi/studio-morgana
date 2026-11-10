@@ -1,0 +1,21 @@
+id,group,format,prompt,reference,photo
+fan-01,fan and merch,card 54x86mm,Goku collectible card in red and gold,Qilin poster gold line art,examples/goku/goku-art.jpg
+fan-02,fan and merch,sticker sheet A6,Holo sticker sheet of five anime faces,Die-cut holo stickers,to source
+fan-03,fan and merch,pin 30mm,Enamel pin face with gold edges,Hard enamel pin,to source
+fan-04,fan and merch,card 54x86mm,Trading card back with guilloche and number,Banknote guilloche,to source
+mus-01,musicians and creators,1080x1080,Single cover with screen-print grunge,Risograph gig poster,to source
+mus-02,musicians and creators,A2 poster,Tour poster with dates in metal type,Letterpress tour poster,to source
+mus-03,musicians and creators,1080x1350,Release-day post with foil title,Foil-stamped record sleeve,to source
+mus-04,musicians and creators,1080x1920 video,Tilt video of the cover for the drop,Holo card tilt clip,to source
+brand-01,premium brands,85x55mm,Foil business card,Gold foil on black card,to source
+brand-02,premium brands,label 90x120mm,Embossed bottle label,Wine label with blind emboss,to source
+brand-03,premium brands,1080x1350,Launch post with brushed-metal type,Brushed steel logo,to source
+brand-04,premium brands,box front 150x200mm,Packaging front with spot gloss,Luxury box with spot UV,to source
+event-01,events,A5 invite,Wedding invite with gold foil and deckle edge,Foil wedding suite,to source
+event-02,events,A4 menu,Letterpress menu,Letterpress menu card,to source
+event-03,events,place card 90x50mm,Place card with engraved name,Engraved brass tag,to source
+event-04,events,1080x1920 video,Save-the-date with shine sweep,Foil card under moving light,to source
+social-01,social marketers,1080x1350,Product promo with chrome headline,Chrome Y2K type,to source
+social-02,social marketers,1080x1920,Story with shine sweep over the product,Glossy product ad,to source
+social-03,social marketers,1080x1080,Sale banner with metal numbers,Embossed metal numbers,to source
+social-04,social marketers,1080x1350,Carousel cover with paper grain,Uncoated paper print,to source

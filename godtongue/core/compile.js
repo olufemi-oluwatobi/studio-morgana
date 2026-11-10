@@ -8,6 +8,13 @@ import { read, show } from './read.js';
 import { newDoc, pxPerMm, areaRefs } from './doc.js';
 import { closest } from './registry.js';
 
+// v2 (docs/scene-ir.md): explicit kind, view split from the blank. v1 fields stay for the factory.
+function toV2(doc) {
+  doc.gtdoc = 2;
+  doc.kind ??= 'card';
+  if (doc.card) doc.view = { bench: doc.card.bench, lights: doc.card.lights };
+}
+
 export class GTError extends Error { constructor(msg, hint) { super(msg); this.hint = hint; } }
 
 export function compile(source, { registry, baseDir = '.', vars = {}, assetDirs = [], file = null } = {}) {
@@ -18,6 +25,7 @@ export function compile(source, { registry, baseDir = '.', vars = {}, assetDirs 
   if (file) doc.source = { file: path.basename(file) };
   ctx.run(source);
   validate(ctx);
+  toV2(doc);
   return { doc, diagnostics, ok: !diagnostics.some(d => d.level === 'error') };
 }
 
@@ -52,13 +60,13 @@ function makeContext(doc, reg, diagnostics, baseDir, assetDirs) {
     addLayer(name, layer) {
       if (!name) ctx.err('this needs a name', 'add "called <name>"');
       if (doc.zones[name] && name !== 'window') ctx.warn(`"${name}" is also a zone; the layer wins`);
-      doc.layers[name] = { ...layer, line: ctx.line }; ctx.it = name; return doc.layers[name];
+      doc.layers[name] = { ...layer, line: ctx.line, span: ctx.span }; ctx.it = name; return doc.layers[name];
     },
     layer(name) { return doc.layers[name]; },
     sideObj(side = ctx.side || 'front') { return (doc.sides[side] ||= { silhouette: [], steps: [] }); },
     addStep(step) {
       if (ctx.inDefinition) ctx.err('a definition only draws; finish it after placing it', 'e.g. after "place a rose called r." write "plate the r-petal with rose gold."');
-      ctx.sideObj().steps.push({ ...step, line: ctx.line });
+      ctx.sideObj().steps.push({ ...step, line: ctx.line, span: ctx.span });
     },
     resolve(name) {                       // "petals" finds "petal"
       const L = doc.layers, Z = doc.zones;
@@ -83,6 +91,7 @@ function makeContext(doc, reg, diagnostics, baseDir, assetDirs) {
   function runStatement(ctx, s, origin) {
     const prevLine = ctx.line;
     ctx.line = origin ? prevLine : s.line;
+    if (!origin) ctx.span = [s.line, s.col, s.text.length];
     const where = origin ? { line: prevLine, via: origin } : { line: s.line, col: s.col };
     try {
       if (s.error) ctx.err(s.error);

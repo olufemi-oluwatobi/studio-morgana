@@ -4,7 +4,7 @@ The scene IR is the only contract between godtongue and the renderers. The compi
 (`svg-preview`, `fancard-py`, `room`, and the coming `web` engine) reads it and never sees godtongue text.
 It is plain JSON, deterministic for a given source, seed and asset set.
 
-Status: **v1 is live** (cards and rooms, `core/doc.js`). **v2 is the P0 target** described below. v2 is a
+Status: **v2 is live** for `gtdoc`, `kind`, `view` and `span`; `canvas`, `faces` and the v2 layer kinds and ops land with P3. v2 is a
 superset: a v1 document is a v2 document with `kind: "card"`.
 
 ## Top level
@@ -60,7 +60,7 @@ factory bakes three lit images; the web engine lights live. Both must agree with
 
 ## Provenance (the edit model)
 
-Every layer and step keeps `line` now; v2 adds `span` `[startCol, endCol]`. A click on a pixel resolves to the
+Every layer and step carries `line` and `span` `[line, col, length]` of the statement that made it. A click on a pixel resolves to the
 top layer and step there, and from them to the exact source text, so an edit in the UI is an edit to one line.
 
 ## Rules

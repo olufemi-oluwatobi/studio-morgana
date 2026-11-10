@@ -8,7 +8,7 @@ Background and the customer: the "Morgana: First Principles" doc.
 
 | Phase | Work | Exit criteria | Status |
 | --- | --- | --- | --- |
-| P0 | Scene IR v2 spec; card IR goldens; factory reference renders | Spec written; 7 card goldens and refs in repo; tests green | In progress |
+| P0 | Scene IR v2 spec; card IR goldens; factory reference renders | Spec written; 7 card goldens and refs in repo; tests green | Done |
 | P1 | `web` engine: masks, op passes, live lighting, on the GPU | All 7 golden cards match refs within tolerance; 1240x1829 rebuild < 300 ms; 60 fps tilt | Next |
 | P2 | Incremental rebuilds; in-browser export (PNG, PDF, MP4, GIF) | One-line edit < 100 ms; video export without the server | |
 | P3 | `canvas` word; effects library; pattern packs in JS | Five non-card briefs built only in `.gt` | |
@@ -21,9 +21,9 @@ Background and the customer: the "Morgana: First Principles" doc.
 - [x] Card IR goldens: `test/golden-cards.json`, 7 cards, checked by `node test/run.js`
 - [x] Factory reference renders: `golden/make-refs.sh` writes `golden/refs/<card>-<side>.webp`
 - [x] Scene IR spec: `docs/scene-ir.md`
-- [ ] Add `kind`, `view` and `canvas` to the compiler output (v2), keeping v1 cards byte-identical in meaning
-- [ ] Add `span` provenance to layers and steps
-- [ ] Brief set for Test 1: 20 briefs (photo, prompt, reference) in `briefs/`
+- [x] Compiler emits v2: `gtdoc: 2`, `kind`, `view` (v1 fields kept for the factory; `canvas` comes with the P3 word)
+- [x] `span` provenance on every layer and step: `[line, col, length]`
+- [x] Brief set for Test 1: `briefs/briefs.csv`, 20 briefs (photos and references to source, except Goku)
 
 ## P1 design notes
 
@@ -35,7 +35,7 @@ Background and the customer: the "Morgana: First Principles" doc.
   `golden/refs/` (mean and 99th-percentile error per face).
 - The factory stays as the reference, not the production path.
 
-## Decisions still open
+## Decisions (defaults taken, change if needed)
 
-1. WebGPU first with WebGL2 fallback, or WebGL2 only.
-2. Retire the factory once P1 passes, or keep it for offline renders.
+1. WebGPU first, WebGL2 fallback.
+2. The factory stays only as the reference the web engine is tested against.
