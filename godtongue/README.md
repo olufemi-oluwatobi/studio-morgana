@@ -1,119 +1,137 @@
-# Godtongue
+# Godtongue (Studio Morgana, branch `morgana-p0`)
 
-A plain-English language for manufacturing fancards. Write a card as a recipe, one statement per full stop, and an engine builds it.
+Godtongue is a plain-English language for making graphics. You write a short recipe, one statement per full stop, and the compiler turns it into a scene. Engines draw the scene: a web engine (WebGL, the default), a pure-JS SVG preview, and two engines for the older fancard factory and rooms.
 
 ```
-create a card called marilyn, seed 19260601.
-use the studded bezel style.
-
+create a card called hello.
+draw a bezel called frame.
 on the front.
-use $studded-finish.
-print @marilyn.jpg in the window, focused at 0.5 0.2.
-write "fancard" called wordmark in Bodoni Moda italic, at 620 230, size 58.
-sign "Marilyn" at 620 1478.
-use $gild on the wordmark and the signature.
+plate the card with black mirror.
+plate the frame with chrome.
+sign "Hello" at 620 900.
+plate the signature with gold.
 ```
 
-That file is about 150 tokens. The same card in v1 was a manifest plus an art script of about 7,200 tokens.
+That is `examples/hello.gt`. Build it with `node bin/gt.js build examples/hello.gt` and open the `index.html` it writes.
 
-## Run it
+This repository is the working code for the Studio Morgana effort. It holds:
 
-Node 18 or later, no npm packages.
+- the godtongue compiler (`core/`, `packs/`, `index.js`);
+- the scene format it writes, documented in `docs/scene-ir.md`;
+- the web engine and its single WebGL runtime (`engines/web.js`, `web/engine.js`);
+- the browser studio, a page where you edit `.gt` and press Run (`tools/studio/`);
+- tests and golden images (`test/`, `golden/`);
+- examples, from a single card to two videos (`examples/`).
 
-| Command | What it does |
+## Status
+
+- **Step 0 is done:** one renderer, cards placed on a stage, timed flips, deterministic golden frames, and the browser studio.
+- **Step 1 (logic core) is not started:** lists, loops, expressions, seeded random, and a `lib/` of patterns and charts.
+- **Steps 2 to 7** are planned in `docs/morgana-execution.md`.
+- **Known gaps:**
+  - the Goku sample still uses Python art scripts in `examples/goku/` (`goku_art.py`, `goku_fire.py`, `trace_*.py`); Step 1 replaces them;
+  - two lighting models remain (held cards and stage), to be merged into one;
+  - the studio can only use the files recorded in it (the samples and their neighbours), not new uploads;
+  - rooms do not run in the studio yet;
+  - sound is deferred to the end.
+
+## Requirements
+
+- Node.js. Version 22 is what the tests were run on. `package.json` says 18 or later.
+- Google Chrome or Chromium, only for the golden-frame tests and for video export. Playwright is used for both.
+- `ffmpeg`, only for `web/video.cjs` (MP4 export).
+- npm, only for the studio build (`tools/studio`). The compiler itself has no npm dependencies.
+
+## Quick start
+
+```
+node test/run.js                    # 79 language and IR tests, a few seconds
+node bin/gt.js build examples/hello.gt
+node bin/gt.js check examples/hello.gt
+node bin/gt.js engines              # list the engines
+node bin/gt.js reference            # every verb, generator and style
+```
+
+`node bin/gt.js build` uses the `web` engine by default. Use `--engine svg-preview` for the pure-JS preview, and `--out <dir>` to choose the output folder.
+
+### Golden frames (slow)
+
+```
+node test/web.js                    # renders 9 frames in a headless browser and compares them with golden/web/
+BLESS=1 node test/web.js            # rewrite the goldens after an intended visual change, and say so in the commit
+```
+
+The tolerance is 0.1% mean error per pixel. Run-to-run noise is about 0.05%.
+
+### The browser studio
+
+The studio is generated, so it is not stored in git. To rebuild it:
+
+```
+cd tools/studio
+npm install
+node record.mjs     # records every file the 13 samples read into vfs.json (needs out/, so it builds them first)
+node bundle.mjs     # bundles the compiler and engine into gt-bundle.js
+node page.mjs       # writes studio.html
+```
+
+Open `tools/studio/studio.html` in a browser. Pick a sample, edit the godtongue on the left, and press Run (or Ctrl/Cmd + Enter). The render appears on the right. The studio runs entirely in the browser; the only network request is for the fonts.
+
+`studio.html` is self-contained once built, so you can copy that single file to another machine and open it. Other studio files (`record.mjs`, `bundle.mjs`, `page.mjs`, `shim-*.js`, `entry.js`) are the build.
+
+## Layout
+
+| Path | What it is |
 |---|---|
-| `node studio/server.js` | the studio at http://localhost:4400: editor, Run, engine picker, drawing pad, reference |
-| `node bin/gt.js build card.gt --engine svg-preview` | build one card (`--engine fancard-py` for the physical render) |
-| `node bin/gt.js batch template.gt cards.csv` | one card per row; each column becomes a `$variable` |
-| `node bin/gt.js check card.gt` | compile only and list problems |
-| `node bin/gt.js engines` / `reference` | list engines / every verb, generator and style |
-| `node test/run.js` | language tests |
+| `bin/gt.js` | command line: `build`, `batch`, `check`, `engines`, `reference` |
+| `index.js` | the public entry: `compile`, `createRegistry` |
+| `core/` | the compiler: split statements, read words and units, expand `$variables`, dispatch verbs |
+| `packs/` | verbs and generators, each a plug-in (`card`, `elements`, `shapes`, `room`, …) |
+| `engines/` | `web.js` (default), `svg-preview.js`, `fancard-py.js` (reference only), `room.js` |
+| `web/` | the browser runtime (`engine.js`), capture and video tools (`capture.cjs`, `video.cjs`) |
+| `tools/studio/` | the studio build and its page |
+| `examples/` | samples: `hello.gt`, the Goku card, `stage/`, `video/`, `canvas/`, `rooms/` |
+| `test/` | `run.js` (language tests), `web.js` (golden frames) |
+| `golden/` | expected outputs for the tests |
+| `styles/`, `cards/`, `briefs/` | reusable styles and earlier briefs |
+| `rooms/` | the room pipeline (Python renderers and a 3D viewer), not used by the web engine |
+| `docs/` | `morgana-execution.md` (the plan and progress), `scene-ir.md` (the scene format), `properties.md` (the words), `README-v1.md` (the first README) |
 
-The `fancard-py` engine needs the v1 factory. By default it looks in `../fancard-complete/fancard-studio`. Set `FANCARD_HOME`, or write `godtongue.config.json` with `{ "fancardHome": "/path/to/fancard-studio" }`.
+## The language in brief
 
-## How it fits together
+- **Statements** end with a full stop. Comments start with `--` or `//`.
+- **"it"** means the last thing named. `on the front.` and `on the back.` choose the side for the steps that follow.
+- **Variables and recipes:** `define $finish as: … end.`, then `use $finish on the frame.`
+- **Images** come from files next to the source: `print @photo.jpg in the window.`
+- **Stages and cards:** `place a card called ticket from @ticket.gt at 540 900, scale 0.6.` and `flip the card …` with a timing.
+- **Video:** a stage can carry a `timeline` with reveals, camera moves and captions; `web/video.cjs` exports it to MP4.
 
-```
-card.gt → core (split, read, $ and @, dispatch) → Card Document (JSON) → engine → output
-             packs/ plug in verbs, generators, materials, styles      engines/ are swappable
-```
+`docs/properties.md` lists every word the language accepts, and `node bin/gt.js reference` prints the verbs with their examples.
 
-- **core/** splits statements, reads words and numbers with units, expands `$variables` and dispatches each statement to the verb that claims it. It names no verb, material or generator itself.
-- **packs/** are plug-ins. Each registers verbs, generators, materials, colours or styles. Add a file and list it in `index.js`.
-- **styles/** are `.gt` files written in godtongue. `studded-bezel.gt` becomes `use the studded bezel style.`
-- **engines/** each read the Card Document: `svg-preview` (instant, pure JS) and `fancard-py` (calls the locked v1 factory). Drop in another file with `{ name, label, describe, supports, build }` and it appears in the studio.
+## Where to read next
 
-## The language
+- `docs/morgana-execution.md`: the order sheet, what is done, and the decisions taken.
+- `docs/scene-ir.md`: the scene format every engine reads.
+- `docs/properties.md`: the words and what can be animated.
 
-**Statements** end with a full stop. `0.8 mm` and `@photo.jpg` don't end a statement. Comments start with `--` or `//`.
+## Git and the three folders
 
-**"it"** is the last thing named. `on the front.` and `on the back.` choose the side for the following steps.
-
-**Variables and recipes**
-```
-define $chrome as mirror chrome.
-define $finish as:
-  plate it with $chrome.
-  outline it in niello, 6 wide.
-end.
-use $finish on the frame and the scrolls.
-```
-
-**Images** are the only outside files: `@photo.jpg`, or a drawing `@sketch-1.svg`.
-
-**Modifiers** come after commas and read the same for every verb and generator:
-
-| Form | Example |
-|---|---|
-| number then word | `38 apart`, `0.16 mm high`, `24 big`, `88 in` |
-| word then number | `size 58`, `density 0.7`, `flakes 110 µm`, `tilted -6` |
-| place | `along the frame`, `around the window`, `at 620 1478`, `inside the strip` |
-| repeats | `leaves every 114`, `with blossoms every 228` |
-| switches | `without the crest`, `leaving a gap at the top`, `clear of the corners and the middles` |
-| name | `called studs` |
-
-**Areas** say where a step happens:
-
-| Phrase | Meaning |
-|---|---|
-| `the frame and the studs` | both |
-| `the outline of the frame by 6` | a 6 px ring round it |
-| `the vine grown by 5` | the vine, 5 px bigger |
-| `the card except the window` | subtract |
-| `the rays where it meets the window` | intersect |
-
-### Verbs
-
-| Verb | Example |
-|---|---|
-| create | `create a card called oxana from stainless, 0.8 mm thick, edition 1 of 100.` |
-| set | `set the bench to #0e0f12.` · `set the title to "Oxana".` |
-| make | `make the window 756 by 1345, at 242 242, corners 9.` |
-| define · use | see above; `use the studded bezel style.` |
-| on · let | `on the back.` · `let the scrolls break the card edge.` |
-| draw · set · grow · fill | `draw a bezel called frame.` · `set studs along the frame, 38 apart.` · `fill the strip with crosshatch.` |
-| plate · foil | `plate the frame with chrome.` · `foil the rays with silk holo.` |
-| engrave · enamel · inlay · outline | `inlay the vine with ivory.` · `outline the frame, 6 wide.` |
-| emboss · deboss · etch | `emboss the studs, 0.24 mm high, soft 1.` |
-| spray | `spray it with glitter in pale gold and deep gold, flakes 110 µm, density 0.7.` |
-| print · illustrate | `print @photo.jpg in the window.` · `illustrate @poster.jpg in the window, 16 colours.` |
-| write · sign | `write "fancard" in Bodoni Moda italic, at 620 230, size 58.` · `sign $name at 620 1478.` |
-
-### Generators
-
-bezel, rule, band, ironwork, studs, jewels, rims, beads, vine, dots, crosshatch, damask, rays, plus `draw a path …` and `draw @sketch.svg …`. Each one lists its settings in the studio's Reference tab.
-
-## Batch production
+The git repository is one level up, in the folder that holds this project. It has three folders side by side:
 
 ```
-node bin/gt.js batch examples/batch/template.gt examples/batch/cards.csv --engine fancard-py
+src/
+  godtongue/          this project (the compiler, web engine, studio, tests)
+  fancard-complete/   the v1 fancard factory; the fancard-py engine calls it (reference only)
+  room/               the room pipeline's data and page builder (build_page.py, acc_*.json)
 ```
 
-`cards.csv` has a header row such as `id,name,photo`. Each row builds one card, with `$id`, `$name` and `$photo` filled in, and no AI is involved.
+Keep all three together. From a fresh clone of the bundle, the paths above work as they are.
 
-## Extending
+Branch `morgana-p0` is the working branch, with 15 commits from the first fancard factory commit (`b234ea0`) to the current head. To load the repo elsewhere:
 
-- **New generator:** in a pack, `reg.generator({ name, words, help, params, run(ctx, mods, name) })` returning `{ kind: 'vector', svg, path?, points?, clip? }`. It gets the shared modifier grammar for free.
-- **New verb:** `reg.verb({ words, help, examples, run(ctx, toks) })`. Use `readArea`, `readMaterial` and `readMods` from `core/phrases.js`.
-- **New engine:** a file in `engines/` exporting `{ name, label, describe, supports(doc), build(doc, { outDir, log }) }`.
-- **New style:** a `.gt` file in `styles/`.
+```
+git clone godtongue-morgana-p0.bundle src -b morgana-p0
+cd src/godtongue && node test/run.js
+```
+
+The `.zip` has the same folders at the top level, for a copy without git history. It does not include generated output (`out/`, the studio build), which the commands above recreate.
