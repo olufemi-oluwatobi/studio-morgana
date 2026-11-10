@@ -110,6 +110,15 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
     const { toScene } = await import('../engines/web.js');
     const sc = toScene(r.doc);
     ok('web scene: one mask per step, materials resolved', sc.sides.front.length === r.doc.sides.front.steps.length && sc.sides.front.every(s => s.mask.startsWith('data:image/svg+xml')) && sc.sides.front.find(s => s.op === 'plate').mat.metal === 1);
+    // element model: bodies, layering, paint
+    const sp = path.join(ex, 'stage', 'three-bodies.gt'); const st = compile(fs.readFileSync(sp, 'utf8'), { baseDir: path.dirname(sp) });
+    ok('stage compiles with four elements', st.ok && st.doc.kind === 'stage' && Object.keys(st.doc.elements).join() === 'memo,ticket,plaque,swatch', JSON.stringify(st.diagnostics));
+    ok('bodies: paper, card stock, metal', st.ok && st.doc.elements.memo.body.family === 'paper' && st.doc.elements.ticket.body.family === 'card' && st.doc.elements.plaque.body.family === 'metal' && st.doc.elements.memo.edge.style === 'torn');
+    ok('layering: send behind', st.ok && st.doc.elements.swatch.order < st.doc.elements.plaque.order && st.doc.elements.swatch.order > st.doc.elements.ticket.order);
+    const { mixPigments } = await import('../packs/elements.js');
+    const g = mixPigments([{ pigment: 'phthalo blue', amount: 1 }, { pigment: 'hansa yellow', amount: 2 }]), gv = [1, 3, 5].map(i => parseInt(g.slice(i, i + 2), 16));
+    ok(`paint: blue and yellow make green (${g})`, gv[1] > gv[0] && gv[1] > gv[2]);
+    ok('spray with a paint records gun settings', st.ok && st.doc.sides.swatch.steps[0].kind === 'paint' && st.doc.sides.swatch.steps[0].params.passes === 2 && st.doc.sides.swatch.steps[1].params.soft === true);
     const bad = compile('create a canvas called x.', { baseDir: ex });
     ok('canvas needs a size', !bad.ok && /needs a size/.test(bad.diagnostics[0].msg)); }
   const L = compile(fs.readFileSync(path.join(rx, 'lagos-lounge.gt'), 'utf8'), { baseDir: rx });

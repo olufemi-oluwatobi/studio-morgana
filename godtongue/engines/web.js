@@ -41,6 +41,7 @@ export function toScene(doc) {
   const mat = (key) => {
     const m = doc.materials[key] || {};
     if (m.type === 'enamel') return { metal: 0, rough: m.process === 'niello-inlay' ? .35 : .2, color: m.hex };
+    if (m.type === 'paint') return { metal: m.finish === 'metallic' ? .6 : 0, rough: { gloss: .08, satin: .3, matte: .85, metallic: .3, pearl: .25, candy: .06 }[m.finish] ?? .3, color: m.hex, finish: m.finish };
     const hi = m.preview?.hi || '#dddddd', lo = m.preview?.lo || '#777777';
     return { metal: 1, rough: m.polish === 'mirror' ? .05 : m.polish === 'satin' ? .22 : .32, color: mixHex(hi, lo, .3) };
   };
@@ -51,11 +52,16 @@ export function toScene(doc) {
       const out = { op: s.op, line: s.line, params: s.params || {}, kind: s.kind, mask: 'data:image/svg+xml;base64,' + Buffer.from(maskSvg(doc, s.area)).toString('base64') };
       if (s.material) out.mat = mat(s.material);
       if (s.image) { const a = doc.assets[s.image.asset], z = doc.zones[s.image.zone] || doc.zones.window; out.image = { src: `data:${MIME[a.path.split('.').pop().toLowerCase()]};base64,${fs.readFileSync(a.path).toString('base64')}`, rect: z.rect, focus: s.image.focus || [.5, .5], onFoil: !!s.on_foil }; }
-      if (s.op === 'spray' && !['gloss', 'glitter', 'metalflake', 'candy', 'matte'].includes(s.kind)) unsupported.add(`spray ${s.kind}`);
+      if (s.op === 'spray' && !['gloss', 'glitter', 'metalflake', 'candy', 'matte', 'paint'].includes(s.kind)) unsupported.add(`spray ${s.kind}`);
       return out;
     });
   }
   for (const m of Object.values(doc.materials)) if (m.finish?.startsWith('holo') || m.finish === 'crystal') unsupported.add(m.finish);
+  if (doc.kind === 'stage') {
+    const els = Object.entries(doc.elements).sort((a, b) => a[1].order - b[1].order)
+      .map(([name, e]) => ({ name, ...e, steps: sides[name] || [] }));
+    return { name: doc.name, kind: 'stage', W: c.grid[0], H: c.grid[1], bench: doc.stage.background, layers: {}, elements: els, unsupported: [...unsupported] };
+  }
   return { name: doc.name, kind: doc.kind, W: c.grid[0], H: c.grid[1], rect: c.rect, r: c.r, pxmm, bench: doc.view?.bench || c.bench,
     stock: { color: STOCK[c.stock] || STOCK.stainless, rough: .28 }, sides, unsupported: [...unsupported] };
 }
@@ -69,7 +75,7 @@ export default {
     fs.mkdirSync(outDir, { recursive: true });
     const scene = toScene(doc);
     if (scene.unsupported.length) log?.(`web engine: not yet supported, skipped: ${scene.unsupported.join(', ')}`);
-    const runtime = fs.readFileSync(path.join(HERE, '..', 'web', 'runtime.js'), 'utf8');
+    const runtime = fs.readFileSync(path.join(HERE, '..', 'web', scene.kind === 'stage' ? 'stage.js' : 'runtime.js'), 'utf8');
     const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(doc.name)}</title>
 <style>html,body{margin:0;height:100%;background:${scene.bench};overflow:hidden;perspective:2600px;font:12px system-ui,sans-serif;color:#9aa0a8}canvas{display:block;margin:auto;height:100vh;max-width:100vw;object-fit:contain;touch-action:none;backface-visibility:visible;will-change:transform}#hud{position:fixed;left:12px;bottom:10px}button{position:fixed;right:12px;bottom:10px;font:inherit;padding:6px 12px;border-radius:6px;border:1px solid #444;background:#1b1d22;color:#ddd}</style></head>
 <body><canvas id="gl"></canvas><div id="hud"></div><button id="flip" hidden>Flip</button>

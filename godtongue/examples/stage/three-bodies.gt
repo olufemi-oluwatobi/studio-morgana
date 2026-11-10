@@ -1,0 +1,35 @@
+-- First element-model test: the same SUMMONS notice on three bodies, plus a sprayed card.
+create a stage called three-bodies, 1500 by 1100, on #cfc6b4.
+
+mix a paint called leaf from 1 part phthalo blue and 2 parts hansa yellow, satin.
+mix a paint called sunset from 3 parts cadmium red and 1 part hansa yellow and a touch of white, gloss.
+
+make a paper called memo from bond, 420 by 560, at 260 560, turned -4, torn top edge, aged 0.3.
+write "SUMMONS" called memo-title in Big Shoulders Display, at 210 110, size 64.
+write "to report for duty" called memo-line in Lora, at 210 170, size 26.
+draw a circle called memo-seal, 54 big, at 210 360.
+enamel the memo-title and the memo-line in #222018.
+enamel the memo-seal in #a3221b.
+
+make a card called ticket from cardstock, 420 by 560, at 740 560, turned 2.
+write "SUMMONS" called ticket-title in Big Shoulders Display, at 210 110, size 64.
+write "to report for duty" called ticket-line in Lora, at 210 170, size 26.
+draw a circle called ticket-seal, 54 big, at 210 360.
+enamel the ticket-title and the ticket-line in #222018.
+emboss the ticket-seal, 0.15 mm high.
+foil the ticket-seal with gold.
+
+make a plate called plaque from stainless, 420 by 560, at 1220 560, turned -1.
+write "SUMMONS" called plaque-title in Big Shoulders Display, at 210 110, size 64.
+write "to report for duty" called plaque-line in Lora, at 210 170, size 26.
+draw a circle called plaque-seal, 54 big, at 210 360.
+engrave the plaque-title and the plaque-line, 0.06 mm deep.
+inlay the plaque-title and the plaque-line with #1c1c20, 0.02 mm deep.
+emboss the plaque-seal, 0.2 mm high.
+plate the plaque-seal with gold.
+
+make a card called swatch from black-card, 300 by 300, at 980 940, turned 8, 3 mm up.
+draw a star called swatch-star, 5 points, 110 big, 46 inner, at 150 150.
+spray the swatch with sunset, medium nozzle, 25 cm away, 2 passes, sweeping left to right.
+spray the swatch-star with leaf, fine nozzle, 10 cm away, 3 passes, soft edges.
+send the swatch behind the plaque.

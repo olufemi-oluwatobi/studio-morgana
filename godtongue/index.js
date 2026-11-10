@@ -12,8 +12,9 @@ import art from './packs/art.js';
 import styles from './packs/styles.js';
 import shapes from './packs/shapes.js';
 import room from './packs/room.js';
+import elements from './packs/elements.js';
 
-export const PACKS = [materials, card, ops, text, art, shapes, styles, room];
+export const PACKS = [materials, card, ops, text, art, shapes, styles, room, elements];
 
 export function createRegistry(packs = PACKS) {
   const reg = new Registry();

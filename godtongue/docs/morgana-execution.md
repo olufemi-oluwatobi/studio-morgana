@@ -57,6 +57,25 @@ Background and the customer: the "Morgana: First Principles" doc.
 - Material response tuning against `golden/refs/`; signature fitting; missing sprays and finishes.
 - WebGPU path, WebGL2 kept as fallback.
 
+## Element model: first cut (done)
+
+Spec: the "Morgana: The Element Model" doc.
+
+- Words: `create a stage …, on #colour`, `make a paper | card | piece | plate | sheet | sticker called … from <body>, W by H,
+  at X Y, turned D, N mm up, torn/deckle <side> edge, aged A`, `on the <element>.`, `bring … to the front`,
+  `send … behind …`, `mix a paint called … from <parts> of <pigments>, <finish>`, and `spray … with <paint or pigment>,
+  fine/medium/coarse nozzle, N cm away, N passes, sweeping …, soft edges`.
+- Bodies (`packs/elements.js`): bond, newsprint, kraft, cardstock, black-card, stainless, brass, gold, copper, acrylic.
+- Paint mixing is Kubelka-Munk over 15 pigments (blue + yellow = green, tested).
+- `web/stage.js` renders a stage: each element built in local maps (outline with torn/deckle edges, body colour,
+  fibres, ageing, ink that soaks into paper, plating, emboss, engrave, spray coats), then drawn in stack order with
+  a height shadow, a thickness edge band and live light. Spray paint deposits droplets per pass into a coverage
+  buffer with nozzle grain, stencils and soft overspray.
+- Example: `examples/stage/three-bodies.gt` (the "one content, three bodies" test plus a sprayed swatch).
+
+Next: shapes as elements with outlines (star, polygon), placing a card file as an element, children and
+attaching (tape, stamps), curl, wet-on-wet paint, then the motion timeline (M1).
+
 ## Decisions (defaults taken, change if needed)
 
 1. WebGPU first, WebGL2 fallback.

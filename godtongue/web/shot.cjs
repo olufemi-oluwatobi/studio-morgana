@@ -4,7 +4,7 @@ const { chromium } = require('playwright');
 (async () => {
   const [html, out, side] = process.argv.slice(2);
   const br = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-  const p = await br.newPage({ viewport: { width: 700, height: 1000 } });
+  const p = await br.newPage({ viewport: { width: +(process.env.VW || 700), height: +(process.env.VH || 1000) } });
   p.on('console', m => m.type() === 'error' && console.log('console:', m.text()));
   await p.goto('file://' + require('path').resolve(html));
   await p.waitForFunction(() => window.__gt || window.__gtError, null, { timeout: 60000 });

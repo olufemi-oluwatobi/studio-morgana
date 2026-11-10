@@ -9,8 +9,8 @@ export default function card(reg) {
     examples: ['create a card called marilyn from stainless, 0.8 mm thick, seed 19260601.', 'create a canvas called post, 1080 by 1350.'],
     run(ctx, toks) {
       const t = dropArticles(toks);
-      const isCanvas = isWord(t[0], 'canvas');
-      if (!isWord(t[0], 'card') && !isCanvas) ctx.err('start with "create a card called …" or "create a canvas called …, 1080 by 1350"');
+      const isStage = isWord(t[0], 'stage'), isCanvas = isWord(t[0], 'canvas') || isStage;
+      if (!isWord(t[0], 'card') && !isCanvas) ctx.err('start with "create a card called …", "create a canvas called …, 1080 by 1350" or "create a stage called …, 1080 by 1350"');
       const head = t.slice(1); const comma = head.findIndex(x => x.t === ',');
       const first = comma < 0 ? head : head.slice(0, comma), rest = comma < 0 ? [] : head.slice(comma + 1);
       const mods = readMods([...first.flatMap((x, i) => isWord(x, 'from') ? [{ t: ',' }, x] : [x]), { t: ',' }, ...rest]);
@@ -29,8 +29,9 @@ export default function card(reg) {
       if (isCanvas) {                                   // any artboard: the whole grid is the body, no card blank
         if (!mods.size) ctx.err('a canvas needs a size', 'e.g. "create a canvas called post, 1080 by 1350."');
         const [w, h] = mods.size.map(num);
-        ctx.doc.kind = 'canvas';
+        ctx.doc.kind = isStage ? 'stage' : 'canvas';
         ctx.doc.canvas = { size_px: [w, h] };
+        if (isStage) { ctx.doc.stage = { size: [w, h], background: mods.on?.t === 'color' ? mods.on.v : (typeof mods.on === 'string' ? mods.on : '#d9d2c4') }; ctx.doc.elements = {}; }
         c.grid = [w, h]; c.rect = [0, 0, w, h]; c.r = 0;
         c.size_mm = [w * 25.4 / 300, h * 25.4 / 300];   // 300 dpi unless told otherwise
         ctx.doc.zones.card = { rect: [0, 0, w, h], r: 0 };
@@ -71,6 +72,7 @@ export default function card(reg) {
       const t = dropArticles(toks);
       let name;
       if (isWord(t[0], 'zone')) { const m = readMods(t.slice(1)); name = m.name; return zone(ctx, name, m); }
+      if (isWord(t[0], 'paper', 'piece', 'plate', 'sheet', 'sticker') || (isWord(t[0], 'card') && isWord(t[1], 'called', 'named'))) return ctx.reg.verbs.get('element').run(ctx, toks, s);
       if (isWord(t[0], 'it')) {
         const rest = t.slice(1);
         if (ctx.it && ctx.doc.zones[ctx.it] && ctx.it !== 'card') return zone(ctx, ctx.it, readMods(rest));
@@ -144,7 +146,8 @@ export default function card(reg) {
     run(ctx, toks) {
       const t = dropArticles(toks);
       const w = t[0]?.v;
-      if (w !== 'front' && w !== 'back') ctx.err('on the front or on the back?');
+      if (ctx.doc.elements?.[w] || ctx.doc.elements?.[ctx.resolve?.(w)]) { const n = ctx.doc.elements[w] ? w : ctx.resolve(w); ctx.side = n; ctx.sideObj(n); ctx.it = n; return; }
+      if (w !== 'front' && w !== 'back') ctx.err('on the front or on the back?', ctx.doc.elements ? `or an element: ${Object.keys(ctx.doc.elements).join(', ')}` : undefined);
       ctx.side = w; ctx.sideObj(w);
     },
   });

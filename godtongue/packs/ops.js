@@ -1,5 +1,6 @@
 // Manufacturing ops: each statement adds one or more steps to the current side, in order.
 //   <op> <area> [with|in <material>] [, modifiers]
+import { mixPigments, findPigment, sprayParams } from './elements.js';
 import { readArea, readMaterial, readMods, readColors, isWord, dropArticles, clauses, num, flag } from '../core/phrases.js';
 
 export default function ops(reg) {
@@ -130,6 +131,21 @@ export default function ops(reg) {
       const { area } = readArea(ctx, toks.slice(0, w));
       const rest = toks.slice(w + 1);
       const kind = SPRAYS[rest[0]?.v] || SPRAYS[`${rest[0]?.v}-${rest[1]?.v}`];
+      if (!kind) {                                     // a mixed paint, or a pigment straight from the tin
+        const words = []; for (const x of rest) { if (x.t !== 'word' || x.t === ',') break; words.push(x.v); }
+        let pname = null, paint = null;
+        for (let n = Math.min(3, words.length); n > 0 && !paint; n--) {
+          const w = words.slice(0, n).join('-'), m = ctx.doc.materials[w] || ctx.doc.materials[words.slice(0, n).join(' ')];
+          if (m?.type === 'paint') { pname = w; paint = m; break; }
+          const pg = findPigment(words.slice(0, n));
+          if (pg) { pname = pg.replace(/ /g, '-'); paint = { type: 'paint', pigments: [{ pigment: pg, amount: 1 }], hex: mixPigments([{ pigment: pg, amount: 1 }]), finish: 'satin' }; ctx.doc.materials[pname] = paint; }
+        }
+        if (paint) {
+          const ci = rest.findIndex(x => x.t === ',');
+          const mods = readMods(ci < 0 ? [] : rest.slice(ci + 1));
+          return step(ctx, 'spray', area, { kind: 'paint', material: pname, params: sprayParams(ctx, mods) });
+        }
+      }
       if (!kind) ctx.err(`unknown spray "${rest[0]?.v}"`, ctx.suggest(rest[0]?.v || '', Object.keys(SPRAYS)));
       const after = rest.slice(SPRAYS[rest[0]?.v] ? 1 : 2);
       const cs = clauses(after);
