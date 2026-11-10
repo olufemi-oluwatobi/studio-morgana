@@ -1,5 +1,5 @@
 // Golden frames for the web engine (order 0.4). Builds each case with the web engine, renders one fixed moment
-// headless, and compares it with golden/web/<name>.png: mean error per pixel on a 0..1 scale, pass under 0.02.
+// headless, and compares it with golden/web/<name>.png: mean error per pixel on a 0..1 scale, pass under 0.001 (0.1%).
 //   node test/web.js           check (slow: one browser per case; run it on its own, not in test/run.js)
 //   BLESS=1 node test/web.js   write the goldens after an intended change, and say so in the commit
 import fs from 'node:fs';
@@ -11,7 +11,7 @@ import { buildSource } from '../core/build.js';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const GOLD = path.join(ROOT, 'golden', 'web');
 const OUT = path.join(ROOT, 'out', 'web-test');
-const TOL = 0.02;
+const TOL = 0.001;   // 0.1%: twice the worst run-to-run noise (0.05%); a 3% shader-constant change moves a frame 0.1%
 const { frame, compare } = createRequire(import.meta.url)(path.join(ROOT, 'web', 'capture.cjs'));
 
 // one case per kind of thing the engine draws: a held card front and back, a canvas, a stage, sprays, video, flip
@@ -42,7 +42,7 @@ for (const c of CASES) {
   const err = await compare(shot, fs.readFileSync(gold));
   const ok = err < TOL;
   if (!ok) failed++;
-  console.log(`${ok ? '✓' : '✗'} ${c.name}: mean error ${(err * 100).toFixed(2)}% (tolerance ${TOL * 100}%)`);
+  console.log(`${ok ? '✓' : '✗'} ${c.name}: mean error ${(err * 100).toFixed(3)}% (tolerance ${(TOL * 100).toFixed(1)}%)`);
 }
 if (bless) console.log(`${CASES.length} goldens written to golden/web/`);
 else console.log(failed ? `${failed} case(s) failed` : `all ${CASES.length} frames match`);

@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { compile } from '../index.js';
+import { compile, createRegistry } from '../index.js';
 import { toScene } from '../engines/web.js';
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ex = path.join(ROOT, 'examples');
@@ -167,6 +167,13 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
   const offStage = compile('create a card called c.\nplace a card called x from @hello.gt at 1 1.', { baseDir: ex });
   ok('cards are placed only on a stage', !offStage.ok && offStage.diagnostics.some(d => /stage/.test(d.msg)), JSON.stringify(offStage.diagnostics));
   ok('0.2: the web engine is the one runtime', !fs.existsSync(path.join(ROOT, 'web', 'runtime.js')) && fs.existsSync(path.join(ROOT, 'web', 'engine.js')));
+}
+
+// R3: every word ships help and an example
+{
+  const reg = createRegistry();
+  const missing = reg.verbList.filter(v => !v.help || !(v.examples && v.examples.length)).map(v => v.words[0]);
+  ok('every verb has help and an example', missing.length === 0, 'missing: ' + missing.join(', '));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

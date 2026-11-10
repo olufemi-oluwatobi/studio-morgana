@@ -81,7 +81,7 @@
 
   // ── one face of an element is prepared once (masks, outline, paint coats, drips), then composed at any time t
   async function prepareFace(e, steps, key) {
-    const [w, h] = e.size, seed = hashStr(e.name + ':' + key), rnd = rng(seed);
+    const [w, h] = e.size, seed = key === 'front' ? hashStr(e.name) : hashStr(e.name + ':' + key), rnd = rng(seed);
     const P = { e, steps, shape: outline(e, rnd), masks: await Promise.all(steps.map(s => load(s.mask))), coats: [], photos: {} };
     for (const [i, s] of steps.entries()) {
       if (s.image) P.photos[i] = await load(s.image.src);

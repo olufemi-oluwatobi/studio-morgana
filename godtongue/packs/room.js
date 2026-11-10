@@ -93,7 +93,7 @@ export default function room(reg) {
       R.openings.push(o); ctx.it = o.name;
     });
 
-  claim(['place', 'put', 'lay', 'hang', 'add'], 'Place a piece: a sofa, armchair, coffee table, rug, art or pendant. Say where with "against the … wall", "in front of …", "facing …", "over …", "under …" or "at e n".',
+  claim(['place', 'put', 'lay', 'hang', 'add'], 'Place a piece: a sofa, armchair, coffee table, rug, art or pendant. Say where with "against the … wall", "in front of …", "facing …", "over …", "under …" or "at e n". On a stage, a card file goes on as one element: "place a card called ticket from @ticket.gt at 540 900, scale 0.6." Objects: "place a rose at 620 900."',
     ['place a sofa against the west wall, 2.1 long, in green velvet.', 'place a coffee table in front of the sofa, 0.4 away.', 'hang a pendant over the coffee table, 1.95 high.'], (ctx, toks) => {
       const R = need(ctx), t = dropArticles(toks);
       const kind = pieceKind(ctx, t);

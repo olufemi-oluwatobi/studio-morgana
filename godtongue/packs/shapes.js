@@ -233,7 +233,7 @@ export default function shapes(reg) {
     run(ctx, toks) { each(ctx, toks, (L, m) => { L.shapes = L.shapes.map(s => ({ ...s, paint: 'stroke', width: m.wide != null ? ctx.px(m.wide) : 3 })); }); },
   });
   reg.verb({
-    words: ['solidify', 'make-solid'], help: '(the opposite of hollow; also "fill it.")',
+    words: ['solidify', 'make-solid'], help: '(the opposite of hollow; also "fill it.")', examples: ['solidify the rose.', 'fill it.'],
     run(ctx, toks) { each(ctx, toks, (L) => { L.shapes = L.shapes.map(s => ({ ...s, paint: s.closed ? 'fill' : s.paint })); }); },
   });
   reg.verb({
