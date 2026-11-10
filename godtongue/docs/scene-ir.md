@@ -1,0 +1,70 @@
+# Scene IR (gtdoc)
+
+The scene IR is the only contract between godtongue and the renderers. The compiler writes it; every engine
+(`svg-preview`, `fancard-py`, `room`, and the coming `web` engine) reads it and never sees godtongue text.
+It is plain JSON, deterministic for a given source, seed and asset set.
+
+Status: **v1 is live** (cards and rooms, `core/doc.js`). **v2 is the P0 target** described below. v2 is a
+superset: a v1 document is a v2 document with `kind: "card"`.
+
+## Top level
+
+| Field | v1 | v2 | Meaning |
+| --- | --- | --- | --- |
+| `gtdoc` | 1 | 2 | Format version |
+| `kind` | card, room | card, canvas, room | What is being made |
+| `name`, `id` | yes | yes | `id` = `godtongue/<name>` |
+| `card` | yes | kept for cards | Card blank: size in mm, grid, body rect, corner radius, stock, thickness, brush angle, seed, edition |
+| `canvas` | — | new | Any artboard: `size_px`, optional `size_mm` and `dpi`, `bleed`, `safe`, `background`, `r`, `seed` |
+| `view` | in `card` | new | How it is shown, not what it is: `bench` colour, `lights`, camera for tilt |
+| `zones` | yes | yes | Named rects with corner radius (`card`, `window`, user zones) |
+| `materials` | yes | yes | Name to material: metal (finish, polish), enamel (hex, process), later paper, ink, film |
+| `layers` | yes | yes | Name to drawable: see Layers |
+| `sides` | front, back | faces | Card: `front`, `back`. Canvas: `main`. Each face holds `steps` |
+| `assets` | yes | yes | Key to `{ path, sha256 }`; v2 adds `w`, `h`, `mime` |
+| `room` | rooms only | rooms only | Room document (see `rooms/build.js`) |
+
+## Layers
+
+A layer is something drawn into a mask. Every layer carries `line`, the source line that made it.
+
+| Kind | v1 | Fields |
+| --- | --- | --- |
+| `vector` | yes | `svg` group on the grid (generators, `@file.svg` art) |
+| `text` | yes | `text`, `font` (family, weight, style), position, size, alignment |
+| `signature` | yes | `text`, script `font`, `center`, `max_width`, `size`, `rotate_deg` |
+| `image` | v2 | `asset`, placement rect, `focus`, crop |
+| `cutout` | v2 | `asset`, `model`, refinement params; output is an alpha mask |
+| `pattern` | v2 | `generator` (seigaiha, guilloche, rays…), params, clip zone |
+
+## Steps
+
+A face is an ordered list of steps. Order matters: each step reads the result of the ones before it.
+
+```json
+{ "op": "engrave", "area": { "terms": [{ "ref": "lore", "mod": null, "r": null }], "minus": [], "within": [] },
+  "params": { "depth_mm": 0.05 }, "line": 32 }
+```
+
+- `area` is the selection: union of `terms` (each may be `grown by r`), minus `minus`, clipped to `within`.
+- v1 ops: `enamel`, `plate`, `foil`, `engrave`, `emboss`, `deboss`, `etch`, `print`, `illustrate`, `spray`
+  (gloss, candy, glitter, metalflake, pearl, chameleon, matte), `inlay`, `outline`.
+- v2 ops (P3): `adjust`, `filter`, `shadow`, `glow`, `blur`, `texture` (grain, grunge, halftone, riso), `cutout`.
+
+## What every renderer must produce
+
+From the steps, a renderer builds per face: a **height** field, a **material stack** (which material is on top
+at each pixel, with its params) and **coat** data (sprays, gloss). Lighting turns those into pixels. The
+factory bakes three lit images; the web engine lights live. Both must agree with the reference renders in
+`golden/refs/` within the P1 tolerance.
+
+## Provenance (the edit model)
+
+Every layer and step keeps `line` now; v2 adds `span` `[startCol, endCol]`. A click on a pixel resolves to the
+top layer and step there, and from them to the exact source text, so an edit in the UI is an edit to one line.
+
+## Rules
+
+1. Deterministic: same source, seed and assets give byte-identical JSON (checked by `test/golden-cards.json`).
+2. Engines never read godtongue text, and never change the IR.
+3. A new word adds IR fields or ops; it never changes the meaning of existing ones without a version bump.

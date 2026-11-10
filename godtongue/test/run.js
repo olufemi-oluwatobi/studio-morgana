@@ -90,6 +90,20 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
     ok(`room scene unchanged ${f}`, G[f] === hash, `golden ${G[f]} now ${hash} (run with BLESS=1 if the change is intended)`);
   }
   if (process.env.BLESS) fs.writeFileSync(golden, JSON.stringify(G, null, 1));
+  // card IR goldens: the compiled document every renderer reads (asset paths dropped, content hashes kept)
+  const cgold = path.join(ROOT, 'test', 'golden-cards.json');
+  const CG = fs.existsSync(cgold) ? JSON.parse(fs.readFileSync(cgold, 'utf8')) : {};
+  const CARDS = ['hello.gt', 'marilyn.gt', 'rose-and-plane.gt', 'lounge-card.gt', 'the-bride.gt', 'the-bride-v10.gt', 'goku/goku.gt'];
+  const strip = (k, v) => (k === 'path' || k === 'file' || k === 'baseDir') ? undefined : v;
+  for (const f of CARDS) {
+    const fp = path.join(ex, f);
+    const r = compile(fs.readFileSync(fp, 'utf8'), { baseDir: path.dirname(fp) });
+    if (!r.ok) { ok(`card compiles ${f}`, false, JSON.stringify(r.diagnostics)); continue; }
+    const hash = crypto.createHash('sha256').update(JSON.stringify(r.doc, strip)).digest('hex').slice(0, 16);
+    if (process.env.BLESS) CG[f] = hash;
+    ok(`card IR unchanged ${f}`, CG[f] === hash, `golden ${CG[f]} now ${hash} (run with BLESS=1 if the change is intended)`);
+  }
+  if (process.env.BLESS) fs.writeFileSync(cgold, JSON.stringify(CG, null, 1));
   const L = compile(fs.readFileSync(path.join(rx, 'lagos-lounge.gt'), 'utf8'), { baseDir: rx });
   const R = L.doc.room;
   ok('lounge: shots, panorama and walk', R.shots.length === 8 && R.panoramas.length === 1 && R.walks.length === 1, JSON.stringify([R.shots.length, R.panoramas?.length, R.walks?.length]));
