@@ -9,10 +9,18 @@ import { newDoc, pxPerMm, areaRefs } from './doc.js';
 import { closest } from './registry.js';
 
 // v2 (docs/scene-ir.md): explicit kind, view split from the blank. v1 fields stay for the factory.
+// Order 0.1: every document carries a stage and an elements table. A card or canvas is one element whose faces
+// are the sides; a stage keeps its own elements. Added after parsing, so parse-time routing is unchanged.
 function toV2(doc) {
   doc.gtdoc = 2;
   doc.kind ??= 'card';
   if (doc.card) doc.view = { bench: doc.card.bench, lights: doc.card.lights };
+  doc.stage ??= { size: [doc.card.grid[0], doc.card.grid[1]], background: doc.card.bench };
+  doc.elements ??= {};
+  if (doc.kind !== 'stage' && doc.kind !== 'room') {
+    const name = doc.kind === 'canvas' ? 'canvas' : 'card';
+    doc.elements[name] = { order: 0, kind: name, faces: Object.keys(doc.sides), stock: doc.card.stock, size_mm: doc.card.size_mm };
+  }
 }
 
 export class GTError extends Error { constructor(msg, hint) { super(msg); this.hint = hint; } }

@@ -102,6 +102,9 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
     const hash = crypto.createHash('sha256').update(JSON.stringify(r.doc, strip)).digest('hex').slice(0, 16);
     if (process.env.BLESS) CG[f] = hash;
     ok(`card IR unchanged ${f}`, CG[f] === hash, `golden ${CG[f]} now ${hash} (run with BLESS=1 if the change is intended)`);
+    // order 0.1: every document has a stage and an elements table; a card is one element with its faces
+    const el = r.doc.elements?.card;
+    ok(`element table ${f}`, !!r.doc.stage && !!el && el.faces.join() === Object.keys(r.doc.sides).join(), 'card must be one element whose faces are its sides');
   }
   if (process.env.BLESS) fs.writeFileSync(cgold, JSON.stringify(CG, null, 1));
   // canvas word and the web engine's scene
