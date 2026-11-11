@@ -1,0 +1,90 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-11T09:00:00Z"
+  },
+  "title": "Godtongue Studio: main flow",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1180,
+      "title": "1 \u00b7 Wall",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Detail.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 960,
+      "title": "2 \u00b7 Card, AI edit",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Edit.dc.html": {
+      "x": 3040,
+      "y": 0,
+      "w": 1440,
+      "h": 960,
+      "title": "3 \u00b7 Card, human edit",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "WallPhone.dc.html": {
+      "x": 0,
+      "y": 1500,
+      "w": 390,
+      "h": 844,
+      "title": "4 \u00b7 Wall, phone",
+      "is_interactive": true
+    },
+    "CardPhone.dc.html": {
+      "x": 470,
+      "y": 1500,
+      "w": 390,
+      "h": 844,
+      "title": "5 \u00b7 Card, AI edit, phone",
+      "is_interactive": true
+    },
+    "EditPhone.dc.html": {
+      "x": 940,
+      "y": 1500,
+      "w": 390,
+      "h": 844,
+      "title": "6 \u00b7 Card, human edit, phone",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Detail.dc.html",
+    "Edit.dc.html",
+    "WallPhone.dc.html",
+    "CardPhone.dc.html",
+    "EditPhone.dc.html"
+  ],
+  "notes": {
+    "t1": {
+      "x": 0,
+      "y": -260,
+      "text": "Studio: wall, then a card, then edit by words or by hand",
+      "kind": "title1",
+      "maxW": 4480
+    },
+    "t2": {
+      "x": 0,
+      "y": 1240,
+      "text": "Phone: drag a card to Remove, New card or Edit",
+      "kind": "title1",
+      "maxW": 1330
+    }
+  },
+  "designSystems": []
+}

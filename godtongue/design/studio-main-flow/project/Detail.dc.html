@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Card, AI edit</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+.app{--bg:#0b0b0c;--panel:#161618;--raised:#1d1d20;--hover:#1a1a1d;--ink:#ece9e4;--ink2:#b3b0aa;--muted:#8e8b85;--line:rgba(255,255,255,.14);--ring:0 0 0 1px rgba(255,255,255,.09);--shadow:0 20px 50px rgba(0,0,0,.55);--scrim:rgba(11,11,12,.86);--accent:#e0b552;--on-accent:#1a1407;--accent-text:#f0d58a;--add:rgba(127,183,164,.16);--add-ink:#cdeadf;--del:rgba(217,106,90,.16);--del-ink:#f2cdc7;
+  display:flex;min-height:960px;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,sans-serif;box-sizing:border-box}
+@media (prefers-color-scheme:light){.app:not([data-theme="dark"]){--bg:#f6f4f0;--panel:#ffffff;--raised:#ece9e3;--hover:#ebe8e2;--ink:#1b1a18;--ink2:#4a4743;--muted:#6b6862;--line:rgba(0,0,0,.18);--ring:0 0 0 1px rgba(0,0,0,.08);--shadow:0 18px 44px rgba(0,0,0,.14);--scrim:rgba(246,244,240,.88);--accent-text:#7a5800;--add:rgba(46,125,98,.14);--add-ink:#14513b;--del:rgba(184,60,44,.12);--del-ink:#7d241a}}
+.app[data-theme="light"]{--bg:#f6f4f0;--panel:#ffffff;--raised:#ece9e3;--hover:#ebe8e2;--ink:#1b1a18;--ink2:#4a4743;--muted:#6b6862;--line:rgba(0,0,0,.18);--ring:0 0 0 1px rgba(0,0,0,.08);--shadow:0 18px 44px rgba(0,0,0,.14);--scrim:rgba(246,244,240,.88);--accent-text:#7a5800;--add:rgba(46,125,98,.14);--add-ink:#14513b;--del:rgba(184,60,44,.12);--del-ink:#7d241a}
+.side{flex:0 0 208px;width:208px;box-sizing:border-box;padding:20px 12px;display:flex;flex-direction:column;gap:26px}
+.side a{display:block;padding:8px 12px;border-radius:8px;color:var(--ink2)}
+.side a:hover{background:var(--hover);color:var(--ink)}
+.side a.on{background:var(--hover);color:var(--ink);font-weight:500}
+.lbl{padding:0 12px 8px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.wm{font:400 26px/1 'Instrument Serif',Georgia,serif;letter-spacing:-.01em;color:var(--ink)}
+.col{flex:1;min-width:0}
+.hd{position:sticky;top:0;z-index:30;background:var(--scrim);-webkit-backdrop-filter:saturate(1.4) blur(16px);backdrop-filter:saturate(1.4) blur(16px)}
+.hrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px}
+.back{flex:1 1 0;min-width:0;display:flex;align-items:center;gap:8px;color:var(--ink2);font-size:13px;white-space:nowrap}
+.back b{font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis}
+.cmd{flex:0 1 660px;min-width:0;display:flex;align-items:center;gap:12px;height:48px;box-sizing:border-box;padding:0 8px 0 16px;border-radius:24px;background:var(--panel);box-shadow:var(--ring),var(--shadow)}
+.cmd input{flex:1 1 auto;min-width:0;height:44px;border:0;background:transparent;color:var(--ink);font:400 16px Inter,system-ui,sans-serif}
+.kbd{font:500 12px 'JetBrains Mono',monospace;color:var(--muted);padding:4px 8px;border-radius:6px;background:var(--raised)}
+.act{flex:1 1 0;display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.ic{width:40px;height:40px;border-radius:50%;border:0;background:transparent;color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;padding:0}
+.ic:hover{background:var(--hover)}
+.btn{height:36px;padding:0 16px;border-radius:18px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:13px;font-weight:500;cursor:pointer}
+.btn.go{border:0;background:var(--accent);color:var(--on-accent);font-weight:600}
+.btn.go:hover{filter:brightness(1.07)}
+.btn.sm{height:34px;padding:0 14px;border-radius:17px}
+.seg{display:flex;padding:3px;border-radius:18px;background:var(--panel);box-shadow:var(--ring)}
+.seg button{height:30px;padding:0 14px;border-radius:15px;border:0;background:transparent;color:var(--ink2);font-size:13px;font-weight:500;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--raised);color:var(--ink)}
+.body{padding:8px 16px 28px;display:flex;flex-direction:column;gap:18px}
+.plan{align-self:center;width:100%;max-width:660px;box-sizing:border-box;padding:12px 14px;border-radius:16px;background:var(--panel);box-shadow:var(--ring);display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
+.plan code{font:400 13px 'JetBrains Mono',monospace;color:var(--accent-text);overflow-wrap:anywhere}
+.cols2{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:24px}
+.stagebox{flex:999 1 400px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:14px}
+.card{position:relative;width:100%;max-width:440px;aspect-ratio:592/914;filter:drop-shadow(0 26px 36px rgba(0,0,0,.4))}
+.card img{display:block;width:100%;height:100%}
+.pin{position:absolute;transform:translate(-50%,-50%);min-width:32px;height:24px;box-sizing:border-box;padding:0 8px;border-radius:12px;background:#fff;color:#0b0b0c;font:600 11px Inter,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px rgba(11,11,12,.55),0 4px 14px rgba(0,0,0,.5)}
+.pin.sel{background:var(--accent);color:var(--on-accent)}
+.pin:hover{transform:translate(-50%,-50%) scale(1.1)}
+.meta{display:flex;align-items:center;gap:12px;font-size:12px;color:var(--muted);flex-wrap:wrap;justify-content:center}
+.insp{flex:1 1 320px;max-width:400px;box-sizing:border-box;padding:8px;border-radius:18px;background:var(--panel);box-shadow:var(--ring);display:flex;flex-direction:column;gap:4px}
+.tabs2{display:flex;gap:4px;padding:4px}
+.tabs2 button{height:30px;padding:0 14px;border-radius:15px;border:0;background:transparent;color:var(--ink2);font-size:13px;font-weight:500;cursor:pointer}
+.tabs2 button[aria-selected="true"]{background:var(--raised);color:var(--ink)}
+.prow{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px}
+.prow:hover{background:var(--hover)}
+.prow.sel{background:var(--raised);box-shadow:inset 0 0 0 1px var(--accent)}
+.pn{min-width:32px;height:24px;box-sizing:border-box;border-radius:12px;border:1px solid var(--line);color:var(--ink);font:600 11px Inter,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;flex:none}
+.prow.sel .pn{background:var(--accent);color:var(--on-accent);border:0}
+.sw{width:16px;height:16px;border-radius:50%;flex:none;box-shadow:0 0 0 1px var(--line)}
+.sub{display:block;font-size:12px;color:var(--muted)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:760px){.side{display:none}.hrow{padding:8px 12px}.cmd{order:3;flex:1 1 100%}.body{padding:8px 12px 28px}.act .btn{display:none}}
+</style>
+</helmet>
+<div class="app" data-theme="{{theme}}">
+
+  <nav class="side" aria-label="Projects">
+    <div class="wm" style="padding:0 12px">Morgana</div>
+    <div><a href="Main.dc.html">Wall</a></div>
+    <div>
+      <div class="lbl">Projects</div>
+      <a class="on" href="Detail.dc.html">Goku</a>
+      <a href="Main.dc.html">Marilyn</a>
+      <a href="Main.dc.html">The Bride</a>
+      <a href="Main.dc.html">Stages</a>
+      <a href="Main.dc.html">Videos</a>
+      <a href="Main.dc.html">Posts</a>
+    </div>
+  </nav>
+
+  <div class="col">
+    <header class="hd">
+      <div class="hrow">
+        <a class="back" href="Main.dc.html">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M10 3 5 8l5 5"/></svg>
+          <b>Goku, front</b>
+        </a>
+        <form class="cmd">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="#e0b552" aria-hidden="true" style="flex:none"><path d="M10 1.5c.5 4.6 2.4 6.5 7 7-4.6.5-6.5 2.4-7 7-.5-4.6-2.4-6.5-7-7 4.6-.5 6.5-2.4 7-7Z"/></svg>
+          <label for="cmd" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Tell the studio what to change</label>
+          <input id="cmd" type="text" value="make p1 chrome">
+          <span class="kbd">Enter</span>
+        </form>
+        <div class="act">
+          <button type="button" class="btn">Export</button>
+          <button type="button" class="ic" aria-label="Switch light and dark" onClick="{{ toggleTheme }}">
+            <sc-if value="{{ isLight }}" hint-placeholder-val="{{ false }}">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 1 1 9.8 3.5a6.7 6.7 0 0 0 10.7 10.7Z"/></svg>
+            </sc-if>
+            <sc-if value="{{ isDark }}" hint-placeholder-val="{{ true }}">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>
+            </sc-if>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="body">
+      <div class="plan" role="status">
+        <div style="flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:12px;color:var(--muted)">{{ planNote }}</span>
+          <code>plate the trim with chrome.</code>
+        </div>
+        <sc-if value="{{ pending }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;gap:8px">
+            <button type="button" class="btn sm">Not that</button>
+            <button type="button" class="btn sm go" onClick="{{ apply }}">Apply</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ applied }}" hint-placeholder-val="{{ false }}">
+          <button type="button" class="btn sm" onClick="{{ undo }}">Undo</button>
+        </sc-if>
+      </div>
+
+      <div class="cols2">
+        <section class="stagebox" aria-label="Card">
+          <div class="card">
+            <img src="/_blob/170609c1259ea59d1acf1689d5b1ca45" alt="Goku card front: red enamel, gold trim, fire print" width="592" height="914">
+            <sc-for list="{{ parts }}" as="p" hint-placeholder-count="6">
+              <a class="pin {{ p.sel }}" href="Edit.dc.html" aria-label="{{ p.aria }}" style="left:{{ p.x }};top:{{ p.y }}">{{ p.n }}</a>
+            </sc-for>
+          </div>
+          <div class="meta">
+            <div class="seg" role="group" aria-label="Side">
+              <button type="button" aria-pressed="true">Front</button>
+              <button type="button" aria-pressed="false">Back</button>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace">goku.gt</span>
+            <span>seed 1984</span>
+            <label style="display:flex;align-items:center;gap:6px;color:var(--ink2)"><input type="checkbox" checked style="accent-color:#e0b552;margin:0">Numbers</label>
+          </div>
+        </section>
+
+        <aside class="insp" aria-label="Parts">
+          <div class="tabs2" role="tablist">
+            <button type="button" role="tab" aria-selected="true">Parts</button>
+            <button type="button" role="tab" aria-selected="false">Source</button>
+          </div>
+          <sc-for list="{{ parts }}" as="p" hint-placeholder-count="6">
+            <a class="prow {{ p.sel }}" href="Edit.dc.html">
+              <span class="pn">{{ p.n }}</span>
+              <span style="flex:1;min-width:0"><span style="display:block;font-weight:500">{{ p.name }}</span><span class="sub">{{ p.detail }}</span></span>
+              <span style="font-size:11px;color:var(--accent-text)">{{ p.tag }}</span>
+              <span class="sw" style="background:{{ p.sw }}"></span>
+            </a>
+          </sc-for>
+          <p style="margin:6px 12px 8px;font-size:12px;color:var(--muted)">Say it or select it. Try “make p3 warmer”, “p4 bigger”, or “hide p6”.</p>
+        </aside>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","default":"auto","options":["auto","dark","light"],"section":"Look"},"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  state = { theme: null, applied: false };
+
+  renderVals() {
+    const s = this.state, p = this.props;
+    const theme = s.theme ?? p.theme ?? 'auto';
+    const light = theme === 'light' || (theme === 'auto' && typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+    const chrome = 'linear-gradient(135deg,#f4f6f8,#8e9aa6 55%,#e8ecef)';
+    const gold = 'linear-gradient(135deg,#f3d27a,#c99a3a)';
+    const parts = [
+      { n: 'P1', name: 'Trim', detail: (s.applied ? 'Chrome' : 'Gold') + ' plate · emboss 0.12 mm', tag: s.applied ? '' : 'pending: chrome', sw: s.applied ? chrome : gold, x: '96%', y: '24%', sel: 'sel' },
+      { n: 'P2', name: 'Lore', detail: 'Engraved 0.05 mm · red inlay', tag: '', sw: '#6e0c12', x: '48.3%', y: '3.4%', sel: '' },
+      { n: 'P3', name: 'Window art', detail: 'Print goku-art-fire.png', tag: '', sw: 'linear-gradient(135deg,#f08a4b,#6b2a1a)', x: '42.9%', y: '28.1%', sel: '' },
+      { n: 'P4', name: 'Signature', detail: 'Gold · emboss 0.2 mm · glitter', tag: '', sw: gold, x: '51.7%', y: '88.6%', sel: '' },
+      { n: 'P5', name: 'Enamel', detail: '#a8141d', tag: '', sw: '#a8141d', x: '7%', y: '6%', sel: '' },
+      { n: 'P6', name: 'Gloss coat', detail: 'Spray 30 µm', tag: '', sw: 'radial-gradient(circle at 30% 30%,#fff,#8f9aa3)', x: '87.2%', y: '52.1%', sel: '' }
+    ].map((q) => ({ ...q, aria: q.n + ' ' + q.name }));
+    return {
+      theme, isLight: light, isDark: !light, parts,
+      applied: s.applied, pending: !s.applied,
+      planNote: s.applied ? 'Applied to P1 Trim: gold to chrome' : 'Changes 1 part: P1 Trim, gold to chrome',
+      apply: () => this.setState({ applied: true }),
+      undo: () => this.setState({ applied: false }),
+      toggleTheme: () => this.setState({ theme: light ? 'dark' : 'light' })
+    };
+  }
+}
+</script>
+</body>
+</html>
