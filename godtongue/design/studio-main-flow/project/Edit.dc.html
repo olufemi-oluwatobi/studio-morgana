@@ -47,9 +47,8 @@ button{font-family:inherit}
 .body{padding:12px 16px 28px}
 .cols2{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:24px}
 .stagebox{flex:999 1 400px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:14px}
-.card{position:relative;width:100%;max-width:440px;aspect-ratio:592/914;filter:drop-shadow(0 26px 36px rgba(0,0,0,.4))}
+.card{position:relative;width:100%;max-width:440px;aspect-ratio:592/914}
 .card img{display:block;width:100%;height:100%}
-.outline{position:absolute;inset:0;border:2px solid var(--accent);border-radius:3.7%/2.4%;box-shadow:0 0 0 6px rgba(224,181,82,.2)}
 .pin{position:absolute;transform:translate(-50%,-50%);min-width:32px;height:24px;box-sizing:border-box;padding:0 8px;border-radius:12px;background:#fff;color:#0b0b0c;font:600 11px Inter,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;opacity:.62;box-shadow:0 0 0 2px rgba(11,11,12,.55),0 4px 14px rgba(0,0,0,.5)}
 .pin.sel{opacity:1;background:var(--accent);color:var(--on-accent);box-shadow:0 0 0 2px rgba(11,11,12,.6),0 0 0 6px rgba(224,181,82,.3),0 4px 14px rgba(0,0,0,.5)}
 .pin:hover{opacity:1}
@@ -131,10 +130,11 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
         <section class="stagebox" aria-label="Card">
           <div class="card">
             <img src="/_blob/170609c1259ea59d1acf1689d5b1ca45" alt="Goku card front with the trim selected" width="592" height="914">
-            <div class="outline" aria-hidden="true"></div>
+                        <sc-if value="{{ showPins }}" hint-placeholder-val="{{ false }}">
             <sc-for list="{{ pins }}" as="p" hint-placeholder-count="6">
               <a class="pin {{ p.sel }}" href="Edit.dc.html" aria-label="{{ p.aria }}" style="left:{{ p.x }};top:{{ p.y }}">{{ p.n }}</a>
             </sc-for>
+            </sc-if>
           </div>
           <div class="meta">
             <div class="seg" role="group" aria-label="Side">
@@ -143,7 +143,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
             </div>
             <span style="font-family:'JetBrains Mono',monospace">goku.gt</span>
             <span>seed 1984</span>
-            <label style="display:flex;align-items:center;gap:6px;color:var(--ink2)"><input type="checkbox" checked style="accent-color:#e0b552;margin:0">Numbers</label>
+            <label style="display:flex;align-items:center;gap:6px;color:var(--ink2)"><input type="checkbox" checked="{{ showPins }}" onChange="{{ togglePins }}" style="accent-color:#e0b552;margin:0">Numbers</label>
           </div>
         </section>
 
@@ -211,7 +211,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","default":"auto","options":["auto","dark","light"],"section":"Look"},"$preview":{"width":1440,"height":960}}'>
 class Component extends DCLogic {
-  state = { theme: null, mat: 'Chrome', emb: 0.12, soft: 0.7 };
+  state = { theme: null, showPins: false, mat: 'Chrome', emb: 0.12, soft: 0.7 };
 
   renderVals() {
     const s = this.state, p = this.props;
@@ -240,7 +240,7 @@ class Component extends DCLogic {
       { n: 'P6', name: 'Gloss coat', sw: 'radial-gradient(circle at 30% 30%,#fff,#8f9aa3)' }
     ];
     return {
-      theme, isLight: light, isDark: !light, mats, diff, pins, others,
+      theme, isLight: light, isDark: !light, mats, diff, pins, others, showPins: s.showPins, togglePins: () => this.setState({ showPins: !s.showPins }),
       emb: s.emb, soft: s.soft, embText: s.emb.toFixed(2), softText: s.soft.toFixed(1),
       setEmb: (e) => this.setState({ emb: parseFloat(e.target.value) }),
       setSoft: (e) => this.setState({ soft: parseFloat(e.target.value) }),

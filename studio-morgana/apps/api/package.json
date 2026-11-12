@@ -1,0 +1,21 @@
+{
+  "name": "@morgana/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --env offline --port 8787",
+    "dev:ai": "wrangler dev --port 8787",
+    "db:local": "wrangler d1 migrations apply morgana --local --env offline",
+    "db:remote": "wrangler d1 migrations apply morgana --remote",
+    "deploy": "wrangler d1 migrations apply morgana --remote && wrangler deploy",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "hono": "4.13.18"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261112.1",
+    "typescript": "5.9.3",
+    "wrangler": "4.160.1"
+  }
+}

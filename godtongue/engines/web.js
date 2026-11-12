@@ -17,7 +17,7 @@ const STOCK = { brass: '#b8923f', stainless: '#b9bdc2', aluminium: '#c9ccd1', ti
 const mixHex = (a, b, t = .5) => '#' + [1, 3, 5].map(i => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - t) + parseInt(b.slice(i, i + 2), 16) * t).toString(16).padStart(2, '0')).join('');
 
 // one SVG per step: the step's area in white on transparent, carrying only the layers and fonts it uses
-function maskSvg(doc, area) {
+export function maskSvg(doc, area) {
   const [W, H] = doc.card.grid, defs = [], filters = new Set(), fonts = new Map();
   const refs = [...area.terms, ...(area.minus || []), ...(area.within || [])];
   for (const name of new Set(refs.map(t => t.ref))) {

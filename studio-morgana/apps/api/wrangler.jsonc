@@ -1,0 +1,55 @@
+{
+  // Studio Morgana: one Worker serves the web app (static assets) and the API.
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "studio-morgana",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "../web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/files/*"]
+  },
+  "d1_databases": [
+    // create with: wrangler d1 create morgana, then put its id here
+    { "binding": "DB", "database_name": "morgana", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "migrations" }
+  ],
+  "r2_buckets": [
+    // create with: wrangler r2 bucket create morgana-files
+    { "binding": "BUCKET", "bucket_name": "morgana-files" }
+  ],
+  "ai": { "binding": "AI" },
+  "observability": { "enabled": true },
+  "vars": {
+    "AI_MODE": "workers-ai",
+    "AI_MODEL": "@cf/openai/gpt-oss-120b",
+    "APP_URL": "http://localhost:8787",
+    "EMAIL_FROM": "Studio Morgana <studio@example.com>",
+    "ANON_DAILY_GENERATIONS": "12",
+    "USER_DAILY_GENERATIONS": "200",
+    "ANON_DAILY_COMMANDS": "40",
+    "USER_DAILY_COMMANDS": "600"
+  }
+  // secrets (wrangler secret put …): RESEND_API_KEY (email stays off until it is set)
+  ,
+  "env": {
+    // local work without a Cloudflare account: no Workers AI binding, the built-in generator instead
+    //   npm run dev  →  wrangler dev --env offline
+    "offline": {
+      "d1_databases": [
+        { "binding": "DB", "database_name": "morgana", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "migrations" }
+      ],
+      "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "morgana-files" }],
+      "vars": {
+        "AI_MODE": "local",
+        "APP_URL": "http://localhost:8787",
+        "EMAIL_FROM": "Studio Morgana <studio@example.com>",
+        "ANON_DAILY_GENERATIONS": "40",
+        "USER_DAILY_GENERATIONS": "400",
+        "ANON_DAILY_COMMANDS": "100",
+        "USER_DAILY_COMMANDS": "1000"
+      }
+    }
+  }
+}

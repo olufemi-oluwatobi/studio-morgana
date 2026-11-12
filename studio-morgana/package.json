@@ -1,0 +1,16 @@
+{
+  "name": "studio-morgana",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "build:runtime": "node packages/renderer/build.mjs",
+    "build:guide": "node apps/api/scripts/build-guide.mjs",
+    "build": "npm run build:runtime && npm run build:guide && npm -w @morgana/web run build",
+    "db:local": "npm -w @morgana/api run db:local",
+    "dev": "npm run build && npm -w @morgana/api run dev",
+    "seed": "node scripts/seed.mjs",
+    "typecheck": "npm -w @morgana/web run typecheck && npm -w @morgana/api run typecheck",
+    "deploy": "npm run build && npm -w @morgana/api run deploy"
+  }
+}

@@ -407,6 +407,8 @@ void main(){
     return a;
   };
   const refresh = (t) => { for (const b of built) for (const k of Object.keys(b.surf)) { const f = b.surf[k]; if (!f.tex) continue; const maps = compose(f.P, t); [0, 1, 2, 3, 4, 6].forEach((i) => { gl.bindTexture(gl.TEXTURE_2D, f.tex[i]); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, maps[i]); }); } };
+  // bare: no background, no cast shadow, no edge band; alpha is the silhouette (clean cut-outs for posters)
+  let bare = false;
   let light = [0, 0], manual = false, frames = 0, tf = performance.now(), lastT = -1, lastFace = null;
   // card flips: a half turn about the vertical axis, eased; the face changes edge-on
   const tickFlips = (now) => {
@@ -420,7 +422,7 @@ void main(){
     } else if (!manual) light = [Math.sin(now / 2300) * .5, Math.cos(now / 3100) * .3];
     const cam = camera(t);
     gl.uniform2f(U('uCam'), cam.x, cam.y); gl.uniform1f(U('uZoom'), cam.zoom); gl.uniform1i(U('uScreen'), 0);
-    gl.clearColor(bg[0], bg[1], bg[2], 1); gl.clear(gl.COLOR_BUFFER_BIT);
+    if (bare) gl.clearColor(0, 0, 0, 0); else gl.clearColor(bg[0], bg[1], bg[2], 1); gl.clear(gl.COLOR_BUFFER_BIT);
     // the two lighting modes (see the shader): a held card tilts with the hand; a stage element is lit by the light
     const Ls = norm3(-.45 + light[0] * .6, .6 - light[1] * .6, .8), Ds = norm2(1 + light[0] * .8, .55 + light[1] * .8);
     const Lh = norm3(.35, .6, .75), Dh = norm2(1, .55);
@@ -435,9 +437,9 @@ void main(){
       gl.uniform2f(U('uAt'), q.x, q.y); gl.uniform2f(U('uSize'), w, h); gl.uniform1f(U('uTurn'), turn); gl.uniform1f(U('uScale'), q.scale); gl.uniform1f(U('uAlpha'), q.alpha);
       gl.uniform1f(U('uFlip'), angle * Math.PI / 180); gl.uniform1f(U('uFibres'), e.body.fibres || 0);
       const lift = (e.up_mm + q.lift) * PXMM;
-      if (!inkB) { gl.uniform1i(U('uMode'), 0); gl.uniform1f(U('uMirror'), 0); gl.uniform1f(U('uPad'), 80); gl.uniform2f(U('uOff'), lift * (.5 - light[0] * .4), lift * (.8 - light[1] * .4)); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); }
+      if (!inkB && !bare) { gl.uniform1i(U('uMode'), 0); gl.uniform1f(U('uMirror'), 0); gl.uniform1f(U('uPad'), 80); gl.uniform2f(U('uOff'), lift * (.5 - light[0] * .4), lift * (.8 - light[1] * .4)); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); }
       gl.uniform1f(U('uPad'), 0); gl.uniform1f(U('uMirror'), mirror);
-      if (thick > .6) {
+      if (thick > .6 && !bare) {
         const ec = lin(e.body.color).map(v => e.body.family === 'metal' ? Math.min(1, v * 1.6 + .15) : v * .72);
         gl.uniform3f(U('uEdge'), ec[0], ec[1], ec[2]); gl.uniform1i(U('uMode'), 1); gl.uniform2f(U('uOff'), thick * .55, thick * .8); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       }
@@ -483,6 +485,15 @@ void main(){
     requestAnimationFrame(loop); };
   window.__gt = {
     frame: (t) => { window.__capturing = true; render(t, 0); gl.finish(); return cv.toDataURL('image/jpeg', .93); },
+    // draw one moment into the canvas and stop the live loop; { bare: true } draws only the lit surfaces on transparent
+    draw: (t, o = {}) => {
+      window.__capturing = true; bare = !!o.bare;
+      if (bare) gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+      try { render(t, 0); gl.finish(); } finally { bare = false; gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); }
+      return cv;
+    },
+    canvas: cv, scene: S,
+    dispose: () => { window.__capturing = true; gl.getExtension('WEBGL_lose_context')?.loseContext(); },
     video: V, buildMs, steps: allSteps.length, faces: built.map(b => Object.keys(b.surf)),
     setTilt: (x, y) => { manual = true; light = [x, y]; }, show, flip,
     fps: () => frames / ((performance.now() - tf) / 1000),

@@ -1,0 +1,7 @@
+node_modules/
+apps/web/dist/
+apps/api/.wrangler/
+apps/api/.dev.vars
+.wrangler/
+out/
+apps/web/public/runtime/

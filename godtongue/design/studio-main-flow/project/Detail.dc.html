@@ -46,7 +46,7 @@ button{font-family:inherit}
 .plan code{font:400 13px 'JetBrains Mono',monospace;color:var(--accent-text);overflow-wrap:anywhere}
 .cols2{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:24px}
 .stagebox{flex:999 1 400px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:14px}
-.card{position:relative;width:100%;max-width:440px;aspect-ratio:592/914;filter:drop-shadow(0 26px 36px rgba(0,0,0,.4))}
+.card{position:relative;width:100%;max-width:440px;aspect-ratio:592/914}
 .card img{display:block;width:100%;height:100%}
 .pin{position:absolute;transform:translate(-50%,-50%);min-width:32px;height:24px;box-sizing:border-box;padding:0 8px;border-radius:12px;background:#fff;color:#0b0b0c;font:600 11px Inter,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px rgba(11,11,12,.55),0 4px 14px rgba(0,0,0,.5)}
 .pin.sel{background:var(--accent);color:var(--on-accent)}
@@ -131,9 +131,11 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
         <section class="stagebox" aria-label="Card">
           <div class="card">
             <img src="/_blob/170609c1259ea59d1acf1689d5b1ca45" alt="Goku card front: red enamel, gold trim, fire print" width="592" height="914">
+            <sc-if value="{{ showPins }}" hint-placeholder-val="{{ false }}">
             <sc-for list="{{ parts }}" as="p" hint-placeholder-count="6">
               <a class="pin {{ p.sel }}" href="Edit.dc.html" aria-label="{{ p.aria }}" style="left:{{ p.x }};top:{{ p.y }}">{{ p.n }}</a>
             </sc-for>
+            </sc-if>
           </div>
           <div class="meta">
             <div class="seg" role="group" aria-label="Side">
@@ -142,7 +144,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
             </div>
             <span style="font-family:'JetBrains Mono',monospace">goku.gt</span>
             <span>seed 1984</span>
-            <label style="display:flex;align-items:center;gap:6px;color:var(--ink2)"><input type="checkbox" checked style="accent-color:#e0b552;margin:0">Numbers</label>
+            <label style="display:flex;align-items:center;gap:6px;color:var(--ink2)"><input type="checkbox" checked="{{ showPins }}" onChange="{{ togglePins }}" style="accent-color:#e0b552;margin:0">Numbers</label>
           </div>
         </section>
 
@@ -168,7 +170,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","default":"auto","options":["auto","dark","light"],"section":"Look"},"$preview":{"width":1440,"height":960}}'>
 class Component extends DCLogic {
-  state = { theme: null, applied: false };
+  state = { theme: null, showPins: false, applied: false };
 
   renderVals() {
     const s = this.state, p = this.props;
@@ -185,7 +187,7 @@ class Component extends DCLogic {
       { n: 'P6', name: 'Gloss coat', detail: 'Spray 30 µm', tag: '', sw: 'radial-gradient(circle at 30% 30%,#fff,#8f9aa3)', x: '87.2%', y: '52.1%', sel: '' }
     ].map((q) => ({ ...q, aria: q.n + ' ' + q.name }));
     return {
-      theme, isLight: light, isDark: !light, parts,
+      theme, isLight: light, isDark: !light, parts, showPins: s.showPins, togglePins: () => this.setState({ showPins: !s.showPins }),
       applied: s.applied, pending: !s.applied,
       planNote: s.applied ? 'Applied to P1 Trim: gold to chrome' : 'Changes 1 part: P1 Trim, gold to chrome',
       apply: () => this.setState({ applied: true }),
