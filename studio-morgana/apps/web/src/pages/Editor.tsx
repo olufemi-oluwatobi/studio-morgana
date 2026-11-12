@@ -240,24 +240,26 @@ export default function Editor({ id }: { id: string }) {
         </section>
 
         <aside className="panel" aria-label="Godtongue">
-          <div className="panel-head">
-            <span className="panel-title">Godtongue</span>
-            <span className="panel-meta">{d ? `v${d.version.n}${d.version.command ? ' · ' + d.version.command : d.version.by === 'human' ? ' · edited by hand' : ''}` : ''}</span>
-            <button className="btn small" onClick={run} disabled={!d || busy} title="Run (⌘↵)">Run</button>
+          <div className="codepanel">
+            <div className="panel-head">
+              <span className="panel-title">Godtongue</span>
+              <span className="panel-meta">{d ? `v${d.version.n}${d.version.command ? ' · ' + d.version.command : d.version.by === 'human' ? ' · edited by hand' : ''}` : ''}</span>
+              <button className="run" onClick={run} disabled={!d || busy} title="Run (⌘↵)">Run <kbd>⌘↵</kbd></button>
+            </div>
+            <CodeBox ref={code} value={source} onChange={setSource} onRun={run} changed={changed} errors={errorLines} disabled={!d} />
+            {diags.some((x) => x.level === 'error') && (
+              <ul className="diags">
+                {diags.filter((x) => x.level === 'error').slice(0, 6).map((x, i) => (
+                  <li key={i}><button onClick={() => x.line && code.current?.goToLine(x.line)}>{x.line ? `Line ${x.line}: ` : ''}{x.msg}</button>{x.hint && <span>{x.hint}</span>}</li>
+                ))}
+              </ul>
+            )}
+            <form className="command" onSubmit={submitCommand}>
+              <label className="sr-only" htmlFor="cmd">Describe a change</label>
+              <input id="cmd" ref={cmdInput} value={cmd} onChange={(e) => setCmd(e.target.value)} placeholder="Describe a change, like “make p1 chrome”" autoComplete="off" disabled={!d} />
+              <button className="make" type="submit" disabled={!cmd.trim() || busy} aria-label="Apply the change"><Send size={16} /></button>
+            </form>
           </div>
-          <CodeBox ref={code} value={source} onChange={setSource} onRun={run} changed={changed} errors={errorLines} disabled={!d} />
-          {diags.some((x) => x.level === 'error') && (
-            <ul className="diags">
-              {diags.filter((x) => x.level === 'error').slice(0, 6).map((x, i) => (
-                <li key={i}><button onClick={() => x.line && code.current?.goToLine(x.line)}>{x.line ? `Line ${x.line}: ` : ''}{x.msg}</button>{x.hint && <span>{x.hint}</span>}</li>
-              ))}
-            </ul>
-          )}
-          <form className="command" onSubmit={submitCommand}>
-            <label className="sr-only" htmlFor="cmd">Describe a change</label>
-            <input id="cmd" ref={cmdInput} value={cmd} onChange={(e) => setCmd(e.target.value)} placeholder="Describe a change, like “make p1 chrome”" autoComplete="off" disabled={!d} />
-            <button className="make" type="submit" disabled={!cmd.trim() || busy} aria-label="Apply the change"><Send size={16} /></button>
-          </form>
         </aside>
       </div>
     </div>

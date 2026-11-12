@@ -4,7 +4,8 @@ import { dragStore, type Tile } from '../lib/wall';
 import { linkHandler } from '../lib/router';
 import { watchPreview } from './previews';
 
-const GAP = 6;
+// gutters: room to breathe on wide screens, still tight on phones (matches --pad in the CSS)
+const gapFor = (w: number) => (w < 560 ? 8 : w < 1280 ? 14 : 16);
 const columnsFor = (w: number) => (w < 560 ? 2 : w < 900 ? 3 : w < 1280 ? 4 : w < 1700 ? 5 : 6);
 const DEFAULT_RATIO = 914 / 592; // a card, until the real shape is known
 
@@ -70,7 +71,7 @@ export const Masonry = memo(function Masonry({ items, onEnd }: { items: Tile[]; 
 
   const layout = useMemo(() => {
     if (!width) return { pos: [] as { x: number; y: number; w: number; h: number }[], height: 0 };
-    const cols = columnsFor(width), cw = (width - GAP * (cols - 1)) / cols;
+    const cols = columnsFor(width), GAP = gapFor(width), cw = (width - GAP * (cols - 1)) / cols;
     const hs = new Array(cols).fill(0);
     const pos = items.map((t) => {
       const ratio = t.w && t.h ? t.h / t.w : DEFAULT_RATIO;

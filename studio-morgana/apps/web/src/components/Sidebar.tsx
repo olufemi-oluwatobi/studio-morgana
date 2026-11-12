@@ -5,7 +5,7 @@ import { meStore, themeStore, toggleTheme, loadMe, toast } from '../lib/session'
 import { linkHandler, navigate, useLocation } from '../lib/router';
 import { loadWall, wallStore } from '../lib/wall';
 import { api } from '../lib/api';
-import { Grid, Moon, Sun, User, X, Sparkle } from './Icons';
+import { Grid, Mine, Moon, Sun, User, X } from './Icons';
 
 export const drawerStore = createStore(false);
 
@@ -38,7 +38,7 @@ export const Sidebar = memo(function Sidebar() {
         </div>
         <div className="side-nav">
           <button className={'side-link' + (onWall && view === 'all' ? ' on' : '')} onClick={() => go('all')}><Grid /> Wall</button>
-          <button className={'side-link' + (onWall && view === 'mine' ? ' on' : '')} onClick={() => go('mine')}><Sparkle /> Your pieces</button>
+          <button className={'side-link' + (onWall && view === 'mine' ? ' on' : '')} onClick={() => go('mine')}><Mine /> Your pieces</button>
         </div>
         <div className="side-foot">
           <button className="side-link" onClick={toggleTheme} aria-label={theme === 'light' ? 'Switch to dark' : 'Switch to light'}>

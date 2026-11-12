@@ -32,7 +32,7 @@ check('wall shows the featured pieces', featured >= 8, `${featured} tiles`);
 const borders = await page.evaluate(() => { const t = document.querySelector('a.tile'); const s = getComputedStyle(t); return [s.borderTopWidth, s.boxShadow, s.backgroundColor]; });
 check('tiles have no border, shadow or backdrop', borders[0] === '0px' && borders[1] === 'none' && /rgba\(0, 0, 0, 0\)|transparent/.test(borders[2]), borders.join(' | '));
 const gap = await page.evaluate(() => { const r = [...document.querySelectorAll('a.tile')].slice(0, 2).map((t) => t.getBoundingClientRect()); return Math.round(r[1].left - r[0].right); });
-check('tight gutters', gap >= 4 && gap <= 8, `${gap}px between columns`);
+check('gutters with room to breathe', gap >= 12 && gap <= 16, `${gap}px between columns`);
 await shot(page, 'wall-desktop-dark');
 
 await page.evaluate(() => window.scrollTo(0, 700)); await page.waitForTimeout(300);
@@ -187,7 +187,7 @@ await m.goto(BASE + '/'); await m.waitForSelector('a.tile img.loaded'); await m.
 const mw = await m.evaluate(() => document.documentElement.scrollWidth);
 const cols = await m.evaluate(() => new Set([...document.querySelectorAll('a.tile')].map((t) => Math.round(t.getBoundingClientRect().left))).size);
 const pad = await m.evaluate(() => Math.round(document.querySelector('a.tile').getBoundingClientRect().left));
-check('phone: two columns, small side padding, no sideways scroll', mw === 390 && cols === 2 && pad <= 8, `${cols} columns, ${pad}px side padding, width ${mw}`);
+check('phone: two columns, small side padding, no sideways scroll', mw === 390 && cols === 2 && pad >= 12 && pad <= 16, `${cols} columns, ${pad}px side padding, width ${mw}`);
 await m.screenshot({ path: path.join(OUT, 'wall-phone.png') });
 await m.evaluate(() => window.scrollTo(0, 900)); await m.waitForTimeout(300);
 await m.screenshot({ path: path.join(OUT, 'wall-phone-scrolled.png') });
