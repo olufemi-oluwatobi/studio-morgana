@@ -4,7 +4,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState, type FormEvent
 import { useStore } from '../lib/store';
 import { TABS, draftsStore, hiddenStore, loadWall, wallStore, type Tab, type Tile } from '../lib/wall';
 import { deleteProject, projectsStore, renameProject } from '../lib/projects';
-import type { Scope } from '../lib/router';
+import { linkHandler, type Scope } from '../lib/router';
 import { Composer } from '../components/Composer';
 import { Masonry } from '../components/Masonry';
 import { drawerStore } from '../components/Sidebar';
@@ -82,10 +82,11 @@ export default function Wall({ scope }: { scope: Scope }) {
   return (
     <div className="page wall-page">
       <header className="bar">
-        <div className="bar-row">
+        <div className="bar-top">
+          <a className="wordmark" href="/" onClick={linkHandler('/')}>Morgana</a>
           <button className="icon-btn menu-btn" aria-label="Open menu" onClick={() => drawerStore.set(true)}><Menu /></button>
-          <Composer />
         </div>
+        <Composer />
         <Tabs />
       </header>
       <main className="wall">
