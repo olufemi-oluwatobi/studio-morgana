@@ -13,7 +13,7 @@
   },
   "d1_databases": [
     // create with: wrangler d1 create morgana, then put its id here
-    { "binding": "DB", "database_name": "morgana", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "migrations" }
+    { "binding": "DB", "database_name": "morgana", "database_id": "fb924cbd-fd9a-4004-8bbc-a883ee5c741c", "migrations_dir": "migrations" }
   ],
   "r2_buckets": [
     // create with: wrangler r2 bucket create morgana-files
