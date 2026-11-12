@@ -1,8 +1,13 @@
 // The composer: a bar that opens into a panel. Type, add references (drop a piece, upload or paste an image), Make.
-import { memo, useCallback, useEffect, useLayoutEffect, useRef, type ClipboardEvent, type DragEvent, type KeyboardEvent } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useSyncExternalStore, type ClipboardEvent, type DragEvent, type KeyboardEvent } from 'react';
 import { useStore } from '../lib/store';
 import { addPieceRef, addUpload, composerStore, generate, removeRef, wallStore, type Ref } from '../lib/wall';
 import { ArrowUp, ImageIcon, Sparkle, X } from './Icons';
+
+// phones get a shorter placeholder, so it never wraps
+const narrowQ = typeof window === 'undefined' ? null : matchMedia('(max-width: 560px)');
+const subNarrow = (f: () => void) => { narrowQ?.addEventListener('change', f); return () => narrowQ?.removeEventListener('change', f); };
+const useNarrow = () => useSyncExternalStore(subNarrow, () => !!narrowQ?.matches, () => false);
 
 const RefChip = memo(function RefChip({ r }: { r: Ref }) {
   const label = r.kind === 'piece' ? r.title : r.name;
@@ -20,6 +25,7 @@ export const Composer = memo(function Composer() {
   const refs = useStore(composerStore, (c) => c.refs);
   const busy = useStore(composerStore, (c) => c.busy);
   const project = useStore(wallStore, (w) => (w.scope.kind === 'project' ? w.project?.name ?? null : null));
+  const narrow = useNarrow();
   const box = useRef<HTMLDivElement>(null);
   const ta = useRef<HTMLTextAreaElement>(null);
   const file = useRef<HTMLInputElement>(null);
@@ -30,7 +36,7 @@ export const Composer = memo(function Composer() {
   useLayoutEffect(() => {
     const t = ta.current; if (!t) return;
     t.style.height = '0px';
-    t.style.height = Math.min(t.scrollHeight, 168) + 'px';
+    t.style.height = Math.min(t.scrollHeight, 200) + 'px';
   }, [text, open]);
 
   useEffect(() => { if (open) ta.current?.focus({ preventScroll: true }); }, [open]);
@@ -68,12 +74,12 @@ export const Composer = memo(function Composer() {
       <div className="composer-row">
         <span className="composer-mark" aria-hidden="true"><Sparkle size={16} /></span>
         <label className="sr-only" htmlFor="prompt">Describe a piece</label>
-        <textarea id="prompt" ref={ta} rows={1} value={text} placeholder={busy ? 'Making…' : project ? `Make something for ${project}` : 'Describe what to make'}
+        <textarea id="prompt" ref={ta} rows={1} value={text} placeholder={busy ? 'Making…' : project ? (narrow ? `Make for ${project}` : `Make something for ${project}`) : narrow ? 'Describe a piece' : 'Describe what to make'}
           onFocus={() => setOpen(true)} onKeyDown={onKey}
           onChange={(e) => composerStore.set((c) => ({ ...c, text: e.target.value }))} />
-        <button className="icon-btn" aria-label="Add a reference image" onClick={() => file.current?.click()}><ImageIcon /></button>
+        <button className="icon-btn" aria-label="Add a reference image" onClick={() => file.current?.click()}><ImageIcon size={18} /></button>
         <button className="make" onClick={() => void generate()} disabled={busy || !text.trim()} aria-label="Make">
-          {busy ? <span className="spin" aria-hidden="true" /> : <ArrowUp size={16} />}
+          {busy ? <span className="spin" aria-hidden="true" /> : <ArrowUp size={14} />}
           <span className="make-label">Make</span>
         </button>
         <input ref={file} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple hidden
