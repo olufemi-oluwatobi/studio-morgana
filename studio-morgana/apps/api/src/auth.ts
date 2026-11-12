@@ -113,7 +113,10 @@ export async function spend(env: Env, who: Who, kind: 'generate' | 'command', n 
 
 // anonymous work follows you into your account
 export async function adoptVisitorWork(env: Env, visitor: string, userId: string): Promise<void> {
-  await env.DB.prepare('UPDATE pieces SET owner = ? WHERE owner = ?').bind('u:' + userId, 'a:' + visitor).run();
+  await env.DB.batch([
+    env.DB.prepare('UPDATE pieces SET owner = ? WHERE owner = ?').bind('u:' + userId, 'a:' + visitor),
+    env.DB.prepare('UPDATE projects SET owner = ? WHERE owner = ?').bind('u:' + userId, 'a:' + visitor),
+  ]);
 }
 
 export async function makeToken(env: Env, userId: string, kind: 'verify' | 'reset', hours: number): Promise<string> {

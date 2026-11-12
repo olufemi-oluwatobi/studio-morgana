@@ -50,16 +50,18 @@ export async function streamLines(path: string, body: unknown, onLine: (o: any) 
 }
 
 // ── shapes shared with the Worker
+import type { PieceType } from './types';
 export interface PieceCard {
-  id: string; title: string; category: Category; status: 'draft' | 'ready' | 'failed'; mine: boolean;
+  id: string; title: string; category: Category; type: PieceType; status: 'draft' | 'ready' | 'failed'; mine: boolean;
   w: number | null; h: number | null; sm: string | null; lg: string | null; video: string | null; updated: number;
 }
 export type Category = 'cards' | 'posts' | 'scenes' | 'videos';
 export interface Version { id: string; n: number; source: string; by: string; command: string | null; parentId: string | null; fingerprint: string | null; created: number }
 export interface PieceFile { name: string; url: string; type: string; bytes: number }
 export interface PieceDetail {
-  piece: PieceCard & { prompt: string | null; parentId: string | null; versionId: string | null };
+  piece: PieceCard & { prompt: string | null; parentId: string | null; versionId: string | null; pinnedIn: string[] };
   version: Version; versions: { id: string; n: number; by: string; command: string | null; created: number; fingerprint: string | null }[];
   files: PieceFile[]; ai: 'workers-ai' | 'local';
 }
+export interface Project { id: string; name: string; updated: number; count: number; cover: string | null }
 export interface Me { user: { id: string; email: string; role: 'user' | 'admin'; verified: number } | null; ai: 'workers-ai' | 'local'; email: boolean }

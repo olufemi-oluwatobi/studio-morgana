@@ -99,6 +99,17 @@ PUT /api/admin/collections/featured   { "pieceIds": ["…", "…"] }
 
 `scripts/seed.mjs` fills it with godtongue's examples.
 
+## Projects and piece types
+
+- **Projects** are your own walls (`/projects/:id`). Pin any piece to one: drop it on the project in the sidebar,
+  or use **Pin** in the editor. Pieces made from a project's wall are pinned to it. Pins never copy a piece;
+  unpinning (drag to **Unpin**) leaves the piece alone. A visitor's projects move to their account on sign-in.
+- **Deleting**: drag your piece to **Delete**, or use the bin in the editor; both offer Undo. Featured pieces
+  you don't own can only be hidden.
+- **Piece types** say what a piece is as media: `image` or `video` today (anything with a timeline is a video),
+  `slides` next. The wall's tabs, the editor's viewer and the export menu come from `apps/web/src/lib/types.ts`;
+  the server's list is `apps/api/src/types.ts`. A new type goes in both, with a viewer.
+
 ## API
 
 All writes need the header `x-morgana: 1`.
@@ -106,15 +117,18 @@ All writes need the header `x-morgana: 1`.
 ```
 GET  /api/me
 POST /api/auth/signup | login | logout | verify | forgot | reset
-GET  /api/wall?cat=&cursor=                  your pieces, then featured
-POST /api/generate {prompt, refs, uploads, n} NDJSON: one line per option as it is written
+GET  /api/wall?type=&cursor=                 your pieces, then featured (type: image | video)
+POST /api/generate {prompt, refs, uploads, n, projectId}  NDJSON, one line per option; projectId pins them
 GET  /api/pieces/:id[?version=]
 POST /api/pieces/:id/command  {text, versionId, parts}
 POST /api/pieces/:id/versions {source, parentId}
 POST /api/pieces/:id/repair   {versionId, diagnostics}
-POST /api/pieces/:id/commit   {versionId, category, fingerprint, w, h}
+POST /api/pieces/:id/commit   {versionId, category, type, fingerprint, w, h}
 PUT  /api/versions/:vid/outputs/poster-480 | poster-1200 | video
 DELETE /api/pieces/:id · POST /api/pieces/:id/restore
+GET  /api/projects · POST /api/projects {name, pieceId?} · PATCH|DELETE /api/projects/:id · POST /api/projects/:id/restore
+GET  /api/projects/:id/wall?type=&cursor=     the project's pins, newest first
+PUT|DELETE /api/projects/:id/pins/:pieceId   pin or unpin any piece (featured ones too)
 POST /api/uploads                             an image or a .gt file (raw body, x-file-name)
 GET  /files/<key>                             R2, immutable, supports Range
 ```

@@ -25,7 +25,7 @@ export default function App() {
     <div className="app">
       <Sidebar />
       <div className="main">
-        {route.name === 'wall' ? <Wall /> : <Suspense fallback={<div className="page" />}><Editor id={route.id} /></Suspense>}
+        {route.name === 'wall' ? <Wall scope={route.scope} /> : <Suspense fallback={<div className="page" />}><Editor id={route.id} /></Suspense>}
       </div>
       <DragTray />
       <Toasts />

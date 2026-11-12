@@ -5,6 +5,7 @@ import type { App } from './env';
 import { identify } from './auth';
 import { account } from './account';
 import { pieces } from './pieces';
+import { projects } from './projects';
 import { admin } from './admin';
 
 const app = new Hono<App>();
@@ -19,6 +20,7 @@ app.use('/api/*', async (c, next) => {
 app.use('/api/*', identify);
 app.route('/api', account);
 app.route('/api', pieces);
+app.route('/api', projects);
 app.route('/api/admin', admin);
 app.all('/api/*', (c) => c.json({ error: 'not found' }, 404));
 

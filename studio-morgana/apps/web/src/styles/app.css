@@ -67,6 +67,20 @@ a { color: inherit; }
 .side-link { width: 100%; height: 42px; display: flex; align-items: center; gap: 12px; padding: 0 12px; border: 0; border-radius: 12px; font-size: 14px; background: none; color: var(--ink2); font-weight: 500; text-decoration: none; text-align: left; }
 .side-link:hover { background: var(--hover); color: var(--ink); }
 .side-link.on { background: var(--hover); color: var(--ink); }
+.side-projects { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 4px; margin-top: -8px; }
+.side-head { display: flex; align-items: center; justify-content: space-between; height: 32px; padding: 0 4px 0 12px; font-size: 12px; font-weight: 500; color: var(--muted); }
+.icon-btn.small { width: 28px; height: 28px; border-radius: 9px; color: var(--ink2); }
+.side-list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; scrollbar-width: thin; margin: 0 -4px; padding: 0 4px; }
+.side-link.project { height: 40px; gap: 10px; padding: 0 10px 0 8px; transition: background .15s, box-shadow .15s; }
+.project-cover { width: 26px; height: 26px; flex: none; border-radius: 7px; object-fit: cover; background: var(--hover); }
+.project-cover.blank { display: inline-flex; align-items: center; justify-content: center; color: var(--muted); }
+.project-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.project-n { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.side-link.project.target { box-shadow: inset 0 0 0 1.5px var(--line); }
+.side-link.project.hot { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent); color: var(--ink); }
+.side-empty { margin: 2px 0; padding: 10px 12px; border: 1.5px dashed var(--line); border-radius: 12px; background: none; color: var(--muted); font-size: 12.5px; text-align: left; line-height: 1.4; }
+.side-empty:hover { color: var(--ink2); border-color: var(--muted); }
+.new-project input, .menu-form input { width: 100%; height: 40px; padding: 0 12px; border: 0; border-radius: 12px; outline: none; background: var(--hover); color: var(--ink); font-size: 14px; box-shadow: inset 0 0 0 1.5px var(--accent); }
 .side-foot { margin-top: auto; display: flex; flex-direction: column; gap: 6px; }
 .account { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 8px 12px; }
 .account-email { max-width: 100%; display: flex; align-items: center; gap: 12px; color: var(--ink2); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -112,6 +126,16 @@ a { color: inherit; }
 .tab:hover, .tab.on { color: var(--ink); }
 .tab::after { content: ""; position: absolute; left: 0; right: 0; bottom: 6px; height: 2px; border-radius: 2px; background: var(--ink); transform: scaleX(0); transition: transform .25s var(--ease); }
 .tab.on::after { transform: scaleX(1); }
+.tab.soon { color: var(--muted); opacity: .6; cursor: default; display: inline-flex; align-items: center; gap: 6px; }
+.soon-tag { font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 2px 6px; border-radius: 6px; background: var(--hover); }
+
+/* a project's wall: its name (click to rename), count, delete */
+.project-head { display: flex; align-items: center; gap: 12px; padding: 6px 0 16px; }
+.project-name { margin: 0; min-width: 0; font: 400 30px/1.1 var(--display); letter-spacing: -.01em; }
+.project-name button { max-width: 100%; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: text; }
+.project-name-form { flex: 0 1 520px; min-width: 0; }
+.project-name-input { width: 100%; padding: 0; border: 0; outline: none; background: none; color: var(--ink); font: 400 30px/1.1 var(--display); letter-spacing: -.01em; border-bottom: 1.5px solid var(--accent); }
+.project-count { flex: none; color: var(--muted); font-size: 13px; margin-right: auto; }
 @media (max-width: 899px) { .make-label { display: none; } .make { padding: 0; width: 40px; } .bar-row { padding: 10px 0 4px; margin-left: -6px; } .tabs { gap: 22px; } }
 
 /* ── the wall: tight gutters, borderless pieces */
@@ -151,6 +175,16 @@ a.tile:hover img { transform: scale(1.025); }
 .menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; min-width: 190px; padding: 6px; border-radius: 14px; background: var(--panel); box-shadow: var(--ring), var(--shadow); display: flex; flex-direction: column; animation: rise-t .15s var(--ease); }
 .menu button { height: 36px; padding: 0 12px; border: 0; border-radius: 9px; background: none; text-align: left; }
 .menu button:hover { background: var(--hover); }
+.menu button { display: flex; align-items: center; gap: 10px; color: var(--ink); font-size: 13.5px; }
+.pin-menu { min-width: 240px; max-height: min(420px, 70vh); overflow-y: auto; }
+.menu-label { padding: 6px 12px 4px; font-size: 12px; color: var(--muted); }
+.menu-empty { padding: 8px 12px; font-size: 13px; color: var(--muted); }
+.menu-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu-form { padding: 4px 2px; }
+.check { width: 18px; height: 18px; flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; box-shadow: inset 0 0 0 1.5px var(--line); color: var(--on-accent); }
+.check.on { background: var(--accent); box-shadow: none; }
+.check.plus { box-shadow: none; color: var(--ink2); }
+.btn.pinned { border-color: transparent; background: var(--accent-soft); }
 .editor { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 460px); gap: 24px; padding: 4px var(--pad) 24px; align-items: start; }
 .stage { display: flex; flex-direction: column; align-items: center; gap: 14px; min-width: 0; }
 .stage-inner { position: relative; display: flex; justify-content: center; width: 100%; }
@@ -222,6 +256,12 @@ a.tile:hover img { transform: scale(1.025); }
   .code { height: 46dvh; flex: none; }
   .editor-title { font-size: 20px; }
   .editor-bar .btn { padding: 0 10px; }
+}
+@media (max-width: 560px) {
+  .editor-bar { gap: 2px; }
+  .editor-bar .btn { width: 36px; padding: 0; justify-content: center; border-color: transparent; }
+  .editor-bar .btn-label { display: none; }
+  .editor-bar .seg button { padding: 0 10px; }
 }
 
 /* ── account screens */

@@ -5,17 +5,20 @@ import { useStore } from '../lib/store';
 import { meStore, toast } from '../lib/session';
 import { linkHandler, navigate } from '../lib/router';
 import { changedLines } from '../lib/diff';
-import { wallStore } from '../lib/wall';
+import { deletePiece, patchPiece, upsertPiece } from '../lib/wall';
+import { PinMenu } from '../components/PinMenu';
+import { typeInfo } from '../lib/types';
 import { compile, warmCompiler, type Diagnostic, type Part } from '../render/compiler';
 import { PRIORITY } from '../render/host';
 import { commit, download, encodePreview, exportImage, exportVideo, render, type Pin } from '../render/pipeline';
 import { CodeBox, type CodeBoxHandle } from '../components/CodeBox';
 import { Player } from '../components/Player';
-import { ArrowLeft, Download, Pins, Send, Undo } from '../components/Icons';
+import { ArrowLeft, Download, Pins, Send, Trash, Undo } from '../components/Icons';
 
 type Phase = 'idle' | 'writing' | 'repairing' | 'rendering' | 'saving' | 'exporting';
 const PHASE_TEXT: Record<Phase, string> = { idle: '', writing: 'Writing the change', repairing: 'Fixing the source', rendering: 'Rendering', saving: 'Saving', exporting: 'Exporting' };
 const NONE: ReadonlySet<number> = new Set();
+const EXPORT_LABEL = { png: 'Image (PNG)', mp4: 'Video (MP4)', gt: 'Godtongue (.gt)' } as const;
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'piece';
 
 export default function Editor({ id }: { id: string }) {
@@ -51,7 +54,7 @@ export default function Editor({ id }: { id: string }) {
       const url = await encodePreview(pieceId, v, files, (k) => { if (alive.current && current.current === v.id) setProgress(k); });
       if (alive.current && current.current === v.id && url) {
         setVideo(url);
-        wallStore.set((w) => ({ ...w, mine: w.mine.map((m) => (m.id === pieceId ? { ...m, video: url } : m)) }));
+        patchPiece(pieceId, { video: url });
       }
     } catch (e) { if (alive.current) toast('The video preview did not render: ' + (e as Error).message); }
     finally { if (alive.current && current.current === v.id) setProgress(null); }
@@ -84,7 +87,7 @@ export default function Editor({ id }: { id: string }) {
       const card = await commit(pieceId, v, r);
       if (!alive.current) return true;
       setD((p) => (p ? { ...p, version: v, piece: { ...p.piece, ...card, versionId: v.id } } : p));
-      wallStore.set((w) => ({ ...w, mine: [{ key: card.id, id: card.id, title: card.title, category: card.category, mine: true, state: 'ready', src: card.sm, w: card.w, h: card.h, video: null }, ...w.mine.filter((m) => m.id !== card.id)] }));
+      upsertPiece(card);
     }
     setPhase('idle');
     if (r.compiled.video && save) void makeVideo(pieceId, v, files);
@@ -106,7 +109,7 @@ export default function Editor({ id }: { id: string }) {
       if (det.piece.status !== 'ready' && det.piece.mine) { await show(det.piece.id, det.version, det.files, true); return; }
       const c = await compile('/p/' + det.piece.id, det.version.source, det.files);
       if (alive.current && c.ok) setParts(c.parts);
-      if (det.piece.mine && det.piece.category === 'videos' && !det.piece.video && c.ok && c.video) void makeVideo(det.piece.id, det.version, det.files);
+      if (det.piece.mine && det.piece.type === 'video' && !det.piece.video && c.ok && c.video) void makeVideo(det.piece.id, det.version, det.files);
     }).catch((e) => { if ((e as Error).name !== 'AbortError') setLoadError((e as Error).message); });
     return () => ctl.abort();
   }, [id, show, makeVideo]);
@@ -126,7 +129,7 @@ export default function Editor({ id }: { id: string }) {
     if (r.pieceId !== det.piece.id) { pid.current = r.pieceId; navigate('/p/' + r.pieceId, { replace: true }); toast('Saved as your own copy'); }
     setChanged(changedLines(prevSource, r.version.source));
     setSource(r.version.source);
-    setD({ ...det, version: r.version, files, piece: { ...det.piece, id: r.pieceId, mine: true } });
+    setD({ ...det, version: r.version, files, piece: { ...det.piece, id: r.pieceId, mine: true, pinnedIn: r.pieceId === det.piece.id ? det.piece.pinnedIn : [] } });
     setPins(null);
     await show(r.pieceId, r.version, files, true);
   }, [show]);
@@ -139,8 +142,11 @@ export default function Editor({ id }: { id: string }) {
     if (!text || busy || !det) return;
     setPhase('writing');
     try {
+      // "p1" means nothing without the parts: if the piece has not compiled yet, compile it first
+      let ps = parts;
+      if (!ps) { const c = await compile('/p/' + det.piece.id, det.version.source, det.files); ps = c.ok ? c.parts : []; if (alive.current && c.ok) setParts(c.parts); }
       const r = await api<{ pieceId: string; version: Version; files: PieceFile[] }>(`/pieces/${det.piece.id}/command`, {
-        body: { text, versionId: det.version.id, parts: (parts ?? []).map((p) => ({ n: p.n, name: p.name, face: p.face, lines: p.lines })) },
+        body: { text, versionId: det.version.id, parts: ps.map((p) => ({ n: p.n, name: p.name, face: p.face, lines: p.lines })) },
       });
       if (!alive.current) return;
       setCmd('');
@@ -186,7 +192,7 @@ export default function Editor({ id }: { id: string }) {
 
   const errorLines = useMemo(() => new Set(diags.filter((x) => x.level === 'error' && x.line).map((x) => x.line!)), [diags]);
   const addPart = (n: number) => { setCmd((c) => (c.trim() ? c.trimEnd() + ' ' : '') + `p${n} `); cmdInput.current?.focus(); };
-  const isVideo = d?.piece.category === 'videos';
+  const exports = typeInfo(d?.piece.type).exports;
 
   if (loadError) return <div className="page editor-page"><p className="note">Could not open this piece: {loadError}. <a href="/" onClick={linkHandler('/')}>Back to the wall</a></p></div>;
 
@@ -200,16 +206,22 @@ export default function Editor({ id }: { id: string }) {
           <button aria-pressed={view === 'parts'} onClick={() => setView('parts')}><Pins size={14} /> Parts</button>
         </div>
         <button className="icon-btn" aria-label="Undo" title="Undo" disabled={!d?.version.parentId || busy} onClick={undo}><Undo /></button>
+        {d && d.piece.status === 'ready' && (
+          <PinMenu piece={{ id: d.piece.id, title: d.piece.title, src: d.piece.sm }} pinnedIn={d.piece.pinnedIn ?? []}
+            onChange={(ids) => setD((p) => (p ? { ...p, piece: { ...p.piece, pinnedIn: ids } } : p))} />
+        )}
         <div className="menu-wrap">
-          <button className="btn" aria-haspopup="menu" aria-expanded={menu} disabled={!d || busy} onClick={() => setMenu((m) => !m)}><Download size={16} /> Export</button>
+          <button className="btn" aria-haspopup="menu" aria-expanded={menu} disabled={!d || busy} onClick={() => setMenu((m) => !m)} aria-label="Export"><Download size={16} /><span className="btn-label">Export</span></button>
           {menu && (
             <div className="menu" role="menu" onMouseLeave={() => setMenu(false)}>
-              <button role="menuitem" onClick={() => doExport('png')}>Image (PNG)</button>
-              {isVideo && <button role="menuitem" onClick={() => doExport('mp4')}>Video (MP4)</button>}
-              <button role="menuitem" onClick={() => doExport('gt')}>Godtongue (.gt)</button>
+              {exports.map((k) => <button key={k} role="menuitem" onClick={() => doExport(k)}>{EXPORT_LABEL[k]}</button>)}
             </div>
           )}
         </div>
+        {d?.piece.mine && (
+          <button className="icon-btn" aria-label="Delete this piece" title="Delete" disabled={busy}
+            onClick={() => void deletePiece(d.piece, () => navigate('/mine'))}><Trash /></button>
+        )}
       </header>
 
       <div className="editor">

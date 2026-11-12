@@ -1,7 +1,7 @@
 // The composer: a bar that opens into a panel. Type, add references (drop a piece, upload or paste an image), Make.
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, type ClipboardEvent, type DragEvent, type KeyboardEvent } from 'react';
 import { useStore } from '../lib/store';
-import { addPieceRef, addUpload, composerStore, generate, removeRef, type Ref } from '../lib/wall';
+import { addPieceRef, addUpload, composerStore, generate, removeRef, wallStore, type Ref } from '../lib/wall';
 import { ArrowUp, ImageIcon, Sparkle, X } from './Icons';
 
 const RefChip = memo(function RefChip({ r }: { r: Ref }) {
@@ -19,6 +19,7 @@ export const Composer = memo(function Composer() {
   const text = useStore(composerStore, (c) => c.text);
   const refs = useStore(composerStore, (c) => c.refs);
   const busy = useStore(composerStore, (c) => c.busy);
+  const project = useStore(wallStore, (w) => (w.scope.kind === 'project' ? w.project?.name ?? null : null));
   const box = useRef<HTMLDivElement>(null);
   const ta = useRef<HTMLTextAreaElement>(null);
   const file = useRef<HTMLInputElement>(null);
@@ -67,7 +68,7 @@ export const Composer = memo(function Composer() {
       <div className="composer-row">
         <span className="composer-mark" aria-hidden="true"><Sparkle size={16} /></span>
         <label className="sr-only" htmlFor="prompt">Describe a piece</label>
-        <textarea id="prompt" ref={ta} rows={1} value={text} placeholder={busy ? 'Making…' : 'Describe what to make'}
+        <textarea id="prompt" ref={ta} rows={1} value={text} placeholder={busy ? 'Making…' : project ? `Make something for ${project}` : 'Describe what to make'}
           onFocus={() => setOpen(true)} onKeyDown={onKey}
           onChange={(e) => composerStore.set((c) => ({ ...c, text: e.target.value }))} />
         <button className="icon-btn" aria-label="Add a reference image" onClick={() => file.current?.click()}><ImageIcon /></button>

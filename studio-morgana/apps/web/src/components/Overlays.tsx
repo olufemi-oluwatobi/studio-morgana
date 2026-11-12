@@ -1,15 +1,18 @@
-// While a piece is dragged: a tray with Remove, New card (use it as a reference) and Edit. And the toasts.
+// While a piece is dragged: a tray with Delete / Hide / Unpin, New piece (use it as a reference) and Edit
+// (projects in the sidebar take drops too). And the toasts.
 import { memo, useEffect, useState, type DragEvent } from 'react';
 import { useStore } from '../lib/store';
-import { addPieceRef, dragStore, removeTile, type Tile } from '../lib/wall';
+import { addPieceRef, dragStore, removeTile, wallStore, type Tile } from '../lib/wall';
 import { dismissToast, toastStore } from '../lib/session';
 import { navigate } from '../lib/router';
 import { Pencil, Sparkle, Trash } from './Icons';
 
 type Zone = 'remove' | 'new' | 'edit';
 const ZONES: { id: Zone; label: string; Icon: typeof Trash }[] = [
-  { id: 'remove', label: 'Remove', Icon: Trash }, { id: 'new', label: 'New card', Icon: Sparkle }, { id: 'edit', label: 'Edit', Icon: Pencil },
+  { id: 'remove', label: 'Remove', Icon: Trash }, { id: 'new', label: 'New piece', Icon: Sparkle }, { id: 'edit', label: 'Edit', Icon: Pencil },
 ];
+// what Remove means here: unpin on a project's wall, delete your own piece, hide someone else's
+const removeLabel = (t: Tile) => (wallStore.get().scope.kind === 'project' ? 'Unpin' : t.mine ? 'Delete' : 'Hide');
 
 function act(zone: Zone, t: Tile) {
   if (!t.id) return;
@@ -47,7 +50,7 @@ export const DragTray = memo(function DragTray() {
   return (
     <div className="tray" role="group" aria-label="Drop the piece on an action">
       {ZONES.map(({ id, label, Icon }) => (
-        <div key={id} className={'zone' + (hot === id ? ' hot' : '')} {...zoneProps(id)}><Icon size={22} /><span>{label}</span></div>
+        <div key={id} className={'zone' + (hot === id ? ' hot' : '')} {...zoneProps(id)}><Icon size={22} /><span>{id === 'remove' ? removeLabel(t) : label}</span></div>
       ))}
     </div>
   );

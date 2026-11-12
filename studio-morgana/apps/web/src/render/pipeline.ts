@@ -4,6 +4,7 @@ import { api, type PieceCard, type PieceFile, type Version } from '../lib/api';
 import { compile, type Compiled, type Diagnostic, type Part } from './compiler';
 import { Aborted, PRIORITY, schedule } from './host';
 import { ENGINE_VERSION } from './engine-version.gen';
+import { typeOfCompiled } from '../lib/types';
 
 export type Ok = Extract<Compiled, { ok: true }>;
 export interface Pin { n: number; name: string; face: string; x: number; y: number }
@@ -85,7 +86,7 @@ export async function commit(pieceId: string, version: Version, r: Rendered): Pr
     put('poster-1200', r.lgBlob, r.w, r.h),
   ]);
   const res = await api<{ piece: PieceCard }>(`/pieces/${pieceId}/commit`, {
-    body: { versionId: version.id, category: r.compiled.category, fingerprint: r.fingerprint, w: r.w, h: r.h },
+    body: { versionId: version.id, category: r.compiled.category, type: typeOfCompiled(r.compiled), fingerprint: r.fingerprint, w: r.w, h: r.h },
   });
   return res.piece;
 }

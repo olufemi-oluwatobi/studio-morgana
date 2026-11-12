@@ -1,5 +1,5 @@
 // End to end, in a real browser, against a running Worker (npm run dev + npm run seed first):
-// the wall, generating, references, the drag tray, tabs, the editor (parts, command, hand edit, undo, export),
+// the wall, generating, references, the drag tray, type tabs, projects and pins, deleting, the editor (parts, command, hand edit, undo, export),
 // light and dark, phone layout, sign-in, and memory over repeated navigation.
 //   node scripts/e2e.mjs [--base http://127.0.0.1:8787]
 import fs from 'node:fs';
@@ -88,11 +88,47 @@ async function dragToZone(tile, zone) {
   await page.mouse.up(); await page.waitForTimeout(500); return true;
 }
 const n0 = await page.locator('a.tile').count();
-const trayOk = await dragToZone(page.locator('a.tile').first(), 'Remove');
+const trayOk = await dragToZone(page.locator('a.tile').first(), 'Delete');
 const n1 = await page.locator('a.tile').count();
-check('dragging to Remove takes the piece off the wall', trayOk && n1 === n0 - 1, `${n0} → ${n1}`);
+check('dragging your piece to Delete takes it off the wall', trayOk && n1 === n0 - 1, `${n0} → ${n1}`);
 await page.locator('.toast button', { hasText: 'Undo' }).click(); await page.waitForTimeout(800);
 check('Undo brings it back', (await page.locator('a.tile').count()) === n0);
+
+// ── piece types: the tabs go by type; slides are coming
+check('the Slides tab is shown as coming soon', await page.locator('.tab.soon', { hasText: 'Slides' }).isDisabled());
+
+// ── projects: make one, pin a featured piece by dropping it on the project, make pieces on its wall, unpin
+const PROJECT = 'Moodboard ' + Date.now().toString(36).slice(-4);
+await page.locator('button[aria-label="New project"]').click();
+await page.locator('.new-project input').fill(PROJECT);
+await page.keyboard.press('Enter');
+await page.waitForURL(/\/projects\/[a-z0-9]+$/);
+const projectUrl = page.url();
+await page.waitForSelector('.project-name');
+check('a new project opens its own (empty) wall', (await page.locator('.project-name').innerText()) === PROJECT && (await page.locator('a.tile').count()) === 0, projectUrl.replace(BASE, ''));
+await shot(page, 'project-empty');
+await page.locator('.side-link', { hasText: 'Wall' }).click();
+await page.waitForSelector('a.tile img.loaded');
+const link = page.locator('.side-link.project', { hasText: PROJECT });
+const pinTitle = await page.locator('a.tile').nth(6).getAttribute('aria-label');
+await page.locator('a.tile').nth(6).dragTo(link);
+await page.waitForSelector('.toast', { hasText: 'Pinned to ' + PROJECT });
+check('dropping a piece on a project pins it', (await link.locator('.project-n').innerText()) === '1', pinTitle);
+await link.click();
+await page.waitForSelector('a.tile img.loaded');
+check("the project's wall shows its pins", (await page.locator('a.tile').count()) === 1 && (await page.locator('a.tile').first().getAttribute('aria-label')) === pinTitle);
+await page.locator('.composer textarea').fill('a navy post with a gold star');
+await page.keyboard.press('Enter');
+await page.waitForTimeout(500);
+await page.waitForFunction(() => !document.querySelector('.tile .tile-state'), null, { timeout: 180000 });
+await page.waitForTimeout(500);
+const inProject = await page.locator('a.tile').count();
+check('pieces made on a project wall are pinned to it', inProject === 5 && (await link.locator('.project-n').innerText()) === '5', `${inProject} pieces`);
+await shot(page, 'project-wall');
+const unpinOk = await dragToZone(page.locator('a.tile').last(), 'Unpin');
+check('dragging to Unpin takes it off the project only', unpinOk && (await page.locator('a.tile').count()) === 4 && (await link.locator('.project-n').innerText()) === '4');
+await page.locator('.side-link', { hasText: 'Wall' }).click();
+await page.waitForSelector('a.tile img.loaded');
 
 // ── editor (one of the new pieces: ours, so edits stay on it)
 await page.locator('a.tile').first().click();
@@ -107,9 +143,20 @@ check('Parts shows numbered pins', pins >= 2, `${pins} pins`);
 await shot(page, 'editor-parts');
 await page.locator('.seg button', { hasText: 'Image' }).click();
 
+// pin from the editor
+await page.locator('.editor-bar .btn', { hasText: 'Pin' }).click();
+// (this piece was made on the project's wall, so it starts pinned there: unpin, then pin again)
+const item = page.locator('.pin-menu button', { hasText: PROJECT });
+const startsPinned = (await item.getAttribute('aria-checked')) === 'true';
+await item.click(); await page.waitForFunction((on) => document.querySelector('.pin-menu [aria-checked]')?.getAttribute('aria-checked') === String(!on), startsPinned);
+if (startsPinned) { await item.click(); await page.waitForSelector('.pin-menu [aria-checked="true"]'); }
+await shot(page, 'editor-pin-menu');
+await page.keyboard.press('Escape');
+check('Pin in the editor pins and unpins the piece', startsPinned && /Pinned/.test(await page.locator('.btn.pinned').innerText()) && (await link.locator('.project-n').innerText()) === '4');
+
 const v1 = await page.locator('.panel-meta').innerText();
 const src1 = await page.locator('.art img').getAttribute('src');
-await page.locator('#cmd').fill('make p1 navy');
+await page.locator('#cmd').fill('make p1 crimson');
 const tc = Date.now();
 await page.locator('.command .make').click();
 await page.waitForFunction((s) => { const i = document.querySelector('.art img'); return i && i.getAttribute('src') !== s && !document.querySelector('.working'); }, src1, { timeout: 90000 });
@@ -145,6 +192,15 @@ const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 60000 }
 const pngPath = path.join(OUT, 'export.png'); await dl.saveAs(pngPath);
 check('Export saves a PNG', fs.statSync(pngPath).size > 10000, `${Math.round(fs.statSync(pngPath).size / 1024)} KB`);
 
+// delete from the editor: back to your pieces, gone from them, Undo available
+const doomed = page.url().split('/p/')[1];
+await page.goto(BASE + '/p/' + doomed); await page.waitForSelector('.art img');
+await page.locator('button[aria-label="Delete this piece"]').click();
+await page.waitForURL(/\/mine$/);
+await page.waitForTimeout(800);
+const stillThere = await page.locator(`a.tile[href="/p/${doomed}"]`).count();
+check('Delete in the editor deletes the piece (with Undo)', stillThere === 0 && (await page.locator('.toast button', { hasText: 'Undo' }).count()) === 1);
+
 // a featured piece: editing it makes your own copy
 await page.goto(BASE + '/');
 await page.waitForSelector('a.tile img.loaded');
@@ -154,7 +210,7 @@ await page.goto(BASE + '/p/' + featuredId);
 await page.waitForSelector('.art img');
 await page.locator('#cmd').fill('make p1 crimson');
 await page.locator('.command .make').click();
-await page.waitForFunction((id) => !location.pathname.includes(id) && !document.querySelector('.working'), featuredId, { timeout: 90000 });
+await page.waitForFunction((id) => !location.pathname.includes(id) && !document.querySelector('.working'), featuredId, { timeout: 90000 }).catch(async (e) => { await shot(page, 'remix-fail'); console.log(page.url(), await page.locator('.toast').allInnerTexts()); throw e; });
 check('editing a featured piece saves your own copy', !page.url().includes(featuredId), page.url().replace(BASE, ''));
 
 // ── memory: back and forth between the wall and the editor
