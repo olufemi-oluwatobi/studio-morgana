@@ -20,12 +20,16 @@
     { "binding": "BUCKET", "bucket_name": "morgana-files" }
   ],
   "ai": { "binding": "AI" },
+  // The domain. Once studiomorgana.xyz is a zone in this Cloudflare account (Websites → Add a domain, then switch
+  // the registrar's nameservers to Cloudflare's), remove the two slashes below and deploy: Cloudflare makes the
+  // DNS records and certificates for both names. studiomorgana.xyz redirects to www (src/index.ts).
+  // "routes": [{ "pattern": "www.studiomorgana.xyz", "custom_domain": true }, { "pattern": "studiomorgana.xyz", "custom_domain": true }],
   "observability": { "enabled": true },
   "vars": {
     "AI_MODE": "workers-ai",
     "AI_MODEL": "@cf/openai/gpt-oss-120b",
-    "APP_URL": "http://localhost:8787",
-    "EMAIL_FROM": "Studio Morgana <studio@example.com>",
+    "APP_URL": "https://www.studiomorgana.xyz",
+    "EMAIL_FROM": "Studio Morgana <studio@studiomorgana.xyz>",
     "ANON_DAILY_GENERATIONS": "12",
     "USER_DAILY_GENERATIONS": "200",
     "ANON_DAILY_COMMANDS": "40",

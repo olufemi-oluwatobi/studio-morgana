@@ -10,6 +10,13 @@ import { admin } from './admin';
 
 const app = new Hono<App>();
 
+// one address: the bare domain goes to www (keeps sign-in cookies and links on one host)
+app.use('*', async (c, next) => {
+  const u = new URL(c.req.url);
+  if (u.hostname === 'studiomorgana.xyz') { u.hostname = 'www.studiomorgana.xyz'; return c.redirect(u.toString(), 301); }
+  await next();
+});
+
 // writes must carry a header a cross-site form cannot send, so a session cookie alone can never change anything
 app.use('/api/*', async (c, next) => {
   if (c.req.method !== 'GET' && c.req.method !== 'HEAD' && c.req.header('x-morgana') !== '1') {

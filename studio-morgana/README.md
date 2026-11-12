@@ -89,6 +89,22 @@ Then set `APP_URL` in `wrangler.jsonc` to the live address. To switch email on:
 `npx wrangler secret put RESEND_API_KEY`, and set `EMAIL_FROM` to an address on a domain verified in Resend. Until
 then, confirmation and reset links are written to the Worker log.
 
+### Deploy from GitHub (Workers Builds)
+
+In the Cloudflare dashboard: Workers & Pages → Create → Import a repository, pick this repository, then:
+
+- Root directory: `studio-morgana` (the build reads `../godtongue` and `../fancard-complete`, so push the whole repository)
+- Build command: `npm ci && npm run build`
+- Deploy command: `npm -w @morgana/api run deploy` (applies new migrations, then deploys)
+
+The D1 database `morgana` and the R2 bucket `morgana-files` already exist and their ids are in `apps/api/wrangler.jsonc`.
+
+### The domain
+
+`APP_URL` is `https://www.studiomorgana.xyz` (used in emailed links). To serve the app there: add studiomorgana.xyz to
+Cloudflare (Websites → Add a domain, then point the registrar's nameservers at Cloudflare), uncomment `routes` in
+`apps/api/wrangler.jsonc` and deploy. The bare domain redirects to www. Until then the app runs on its workers.dev address.
+
 ## Featured
 
 Featured is the collection with the slug `featured`, which only admins can change:
