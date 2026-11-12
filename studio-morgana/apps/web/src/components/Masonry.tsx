@@ -6,7 +6,9 @@ import { watchPreview } from './previews';
 
 // gutters: room to breathe on wide screens, still tight on phones (matches --pad in the CSS)
 const gapFor = (w: number) => (w < 560 ? 8 : w < 1280 ? 14 : 16);
-const columnsFor = (w: number) => (w < 560 ? 2 : w < 900 ? 3 : w < 1280 ? 4 : w < 1700 ? 5 : 6);
+// columns, not card size, grow with the screen: as many as fit at 220px or more (two on phones)
+const MIN_COL = 220;
+const columnsFor = (w: number) => (w < 560 ? 2 : Math.max(3, Math.floor((w + gapFor(w)) / (MIN_COL + gapFor(w)))));
 const DEFAULT_RATIO = 914 / 592; // a card, until the real shape is known
 
 function useWidth(ref: React.RefObject<HTMLElement | null>) {
