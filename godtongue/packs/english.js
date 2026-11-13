@@ -38,7 +38,7 @@ const PRE = ['shadow', 'glow', 'frosted'], POST = ['adjust'], TOP = ['outline', 
 const SLOTS = [...PRE, 'fill', ...POST, ...TOP, ...FINISH];
 
 // ── things: what a sentence is about ─────────────────────────────────────────────────────────────────────────────
-function thing(ctx, raw) {
+export function thing(ctx, raw) {
   const d = ctx.doc, side = ctx.side || 'front';
   if (d.elements?.[raw]) return { name: raw, ref: 'card', side: raw, el: d.elements[raw] };
   if (['card', 'canvas', 'page', 'background', 'poster', 'stage'].includes(raw) && !d.layers[raw]) return { name: 'card', ref: 'card', side };
@@ -58,15 +58,22 @@ function readThing(ctx, toks, i) {
   if (isWord(toks[i], 'every') && isWord(toks[i + 1], 'other', 'second')) { every = true; i += 2; }
   for (let n = Math.min(4, toks.length - i); n >= 1; n--) {
     const ws = toks.slice(i, i + n); if (!ws.every(w => w.t === 'word')) continue;
-    const th = thing(ctx, ws.map(w => w.v.replace(/['’]s$/, '')).join('-'));
-    if (!th) continue;
+    const nm = ws.map(w => w.v.replace(/['’]s$/, '')).join('-');
+    let th = thing(ctx, nm);
+    if (!th) { const mem = members(ctx, ctx.resolve(nm)); if (mem) { if (every) return { things: mem.filter((_, k) => k % 2 === 0), i: i + n }; return { things: mem, i: i + n }; } continue; }
     if (every) { const set = ctx.sets?.get(th.name); if (!set) ctx.err(`"every other" needs several things; "${th.name}" is one`); return { things: set.filter((_, k) => k % 2 === 0).map(m => thing(ctx, m)), i: i + n }; }
     return { things: [th], i: i + n };
   }
   return null;
 }
+// a set's members as things, going into sets of sets ("the playlist-words" = every cell of every row)
+export function members(ctx, name) {
+  const set = ctx.sets?.get(name) ?? ctx.sets?.get(name.replace(/ies$/, 'y')) ?? ctx.sets?.get(name.replace(/es$/, '')) ?? ctx.sets?.get(name.replace(/s$/, ''));
+  if (!set) { const L = ctx.doc.layers[name]; return null; }
+  return set.flatMap(m => { const th = thing(ctx, m); return th ? [th] : (members(ctx, m) || []); });
+}
 // "the title", "the title and the body", "the one, the two and the three", "it", "the third orbit", "every other dot"
-function readThings(ctx, toks, i = 0) {
+export function readThings(ctx, toks, i = 0) {
   const out = [];
   for (;;) {
     while (isWord(toks[i], 'the', 'a', 'an', 'all', 'both')) i++;
@@ -84,12 +91,12 @@ const known = (ctx) => ['the card', ...Object.keys(ctx.doc.elements || {}), ...O
 
 // ── looks: what things have been made, kept per side and thing until the end ───────────────────────────────────────
 const sentence = (ref, sl) => `${sl.verb} the ${ref}${sl.head ? ' ' + sl.head : ''}${(sl.mods || []).filter(Boolean).map(m => ', ' + m).join('')}.`;
-function looksOf(ctx, th) {
+export function looksOf(ctx, th) {
   const bySide = (ctx.looks ||= new Map()), side = bySide.get(th.side) || bySide.set(th.side, new Map()).get(th.side);
   return side.get(th.ref) || side.set(th.ref, { slots: {}, fillMods: [] }).get(th.ref);
 }
 // run old-style sentences now, on a thing's own side
-function say(ctx, side, text) { const prev = ctx.side, it = ctx.it; ctx.side = side; try { ctx.run(text, 'make'); } finally { ctx.side = prev; ctx.it = it; } }
+export function say(ctx, side, text) { const prev = ctx.side, it = ctx.it; ctx.side = side; try { ctx.run(text, 'make'); } finally { ctx.side = prev; ctx.it = it; } }
 
 // a sentence gathers what it applies; at its end the looks are kept (a self-arranging piece) or painted at once
 function commit(ctx, pending) {
@@ -111,6 +118,7 @@ function commit(ctx, pending) {
 // after the last sentence: a self-arranging piece turns its looks into steps, thing by thing, bottom to top
 function arrange(ctx) {
   if (!ctx.english) return;
+  for (const f of ctx.reg.beforeArrange || []) f(ctx);
   const d = ctx.doc, order = ['card', ...Object.keys(d.zones).filter(z => z !== 'card' && !d.layers[z]), ...Object.keys(d.layers)];
   const sides = new Set([...Object.keys(d.sides), ...(ctx.looks?.keys() || [])]);
   for (const side of sides) {
@@ -255,7 +263,7 @@ function findWord(ctx, c) {
 }
 
 // "make" and "give": read the things, then apply each known word to them
-function applyWords(ctx, things, rest, verb) {
+export function applyWords(ctx, things, rest, verb) {
   // values named with "let" stand in for themselves: "Let gold be #ffb347." then "make the sun gold."
   rest = rest.flatMap(t => t.t === 'word' && ctx.lets?.has(t.v) ? ctx.vars.get(t.v).value : [t]);
   const apps = [];
@@ -265,6 +273,7 @@ function applyWords(ctx, things, rest, verb) {
     let hit = findWord(ctx, c);
     // "90 wide", "50% opacity", "multiply" after an effect or a motion are its details, not a new word
     if (hit?.entry.lone && apps.length && (['effect', 'motion'].includes(apps.at(-1).entry.kind) || apps.at(-1).entry.details)) hit = null;
+    if (apps.length && apps.at(-1).entry.greedy) hit = null;   // "readable, bone or ink": the colours are its choices
     if (hit) apps.push({ entry: hit.entry, word: hit.key, lead: c.slice(0, hit.at), rest: c.slice(hit.at + hit.n), mods: [] });
     else if (apps.length) apps.at(-1).mods.push(c);
     else {

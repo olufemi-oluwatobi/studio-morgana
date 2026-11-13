@@ -217,6 +217,21 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
       const pr = E(C + 'Let there be a circle called o, 100 big, at 200 200.\nMake the o hollow, 3 wide.\nGive the o an outline in #ffffff, 2 wide, 88% see-through.\nLet there be a line called r, from 10 10 to 300 10.\nMake the r dashed, 18 on 12 off.\nLet there be a rectangle called f, 400 by 100, at 200 350.\nMake the f a gradient from transparent to #0b0604.');
       ok('proof fixes: hollow keeps its width, see-through on an effect, dashed, transparent gradient stops', pr.ok && pr.doc.layers.o.shapes[0].width === 3 && pr.doc.layers.r.shapes[0].dash && Math.abs(pr.doc.sides.front.steps.find(x => x.area.terms[0].mod === 'halo').params.opacity - .12) < 1e-9 && pr.doc.sides.front.steps.find(x => x.params?.gradient).params.gradient.stops[0] === '#0b060400', JSON.stringify(pr.diagnostics));
       for (const f of ['brand-guide', 'album-cover', 'player-skin']) { const fp = path.join(ex, 'proof', f + '.gt'), r = E(fs.readFileSync(fp, 'utf8'), { baseDir: path.dirname(fp) }); ok(`proof piece compiles cleanly: ${f}`, r.ok && !r.diagnostics.length, JSON.stringify(r.diagnostics)); }
+      { const lp = path.join(ex, 'canvas', 'layout-en.gt'), r = E(fs.readFileSync(lp, 'utf8'), { baseDir: path.dirname(lp) }), L = r.doc?.layers || {}, st = r.doc?.sides.front.steps || [];
+        const bb = (n) => L[n].shapes ? (() => { const xs = L[n].shapes.flatMap(q => q.pts.map(p => p[0])), ys = L[n].shapes.flatMap(q => q.pts.map(p => p[1])); return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]; })() : L[n].box;
+        const hex = (n) => r.doc.materials[st.find(x => x.op === 'enamel' && x.area.terms[0].ref === n)?.material]?.hex;
+        ok('layout example compiles cleanly', r.ok && !r.diagnostics.length, JSON.stringify(r.diagnostics));
+        ok('page anchor uses the margin; a heading style applies its font and colour', r.ok && L['h-colour'].box[0] === 60 && L['h-colour'].font.family === 'Martian Mono' && hex('h-colour') === '#c19a4b');
+        ok('under a left-aligned heading: left edges line up, with the gap', r.ok && Math.abs(bb('swatch')[0] - 60) < .2 && Math.abs(bb('swatch')[1] - (L['h-colour'].box[3] + 30)) < .2);
+        ok('one label in each swatch, at the bottom left, inset', r.ok && [1, 2, 3, 4].every(k => Math.abs(L[`swatch-label-${k}`].box[0] - (bb(`swatch-${k}`)[0] + 14)) < .2 && Math.abs(L[`swatch-label-${k}`].box[3] - (bb(`swatch-${k}`)[3] - 14)) < .2));
+        ok('readable picks dark on light swatches, light on dark', r.ok && hex('swatch-label-1') === '#efe6d8' && hex('swatch-label-2') === '#0b0b10' && hex('swatch-label-4') === '#0b0b10');
+        const nb = L.new.box, sb = bb('sticker'), ib = bb('icon'), pb = bb('play');
+        ok('text centred in a circle', r.ok && Math.abs((nb[0] + nb[2]) / 2 - (sb[0] + sb[2]) / 2) < .5 && Math.abs((nb[1] + nb[3]) / 2 - (sb[1] + sb[3]) / 2) < .5);
+        ok('a triangle is centred by eye, not by its box', r.ok && (ib[0] + ib[2]) / 2 > (pb[0] + pb[2]) / 2 + 1 && Math.abs((ib[1] + ib[3]) / 2 - (pb[1] + pb[3]) / 2) < .5);
+        ok('beside: after the gap, on the middle', r.ok && Math.abs(L.side.box[0] - (pb[2] + 20)) < .2);
+        ok('table: cells in columns, right-aligned last column, rows and words as sets', r.ok && L['list-1-3'].align === 'right' && Math.abs(L['list-1-3'].at[0] - 1120) < .2 && L['list-3-2'].text === 'Ember Season' && hex('list-row-3') === '#2a6fc4' && hex('list-3-2') === createRegistry().colors.get('white') && hex('list-1-2') === '#efe6d8');
+      }
+      for (const f of ['brand-guide', 'player-skin']) { const fp = path.join(ex, 'proof', f + '.gt'), src = fs.readFileSync(fp, 'utf8'), nums = (src.match(/\bat \d+ \d+/g) || []).length; ok(`${f} places by words: ${nums} fixed positions`, nums <= 4); }
       const ref = createRegistry().reference();
       ok('known words are listed for the reference', ref.words.length > 30 && ref.words.some(w => w.words.includes('glow') && w.kind === 'effect'));
     }

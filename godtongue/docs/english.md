@@ -34,6 +34,30 @@ Arrangements: `in a row`, `in a column`, `in a grid C by R` (with `N apart`, `fr
 Differences: `each N bigger than the last`, `each N% smaller`, `each turned N more`.
 Afterwards `the orbits` is all of them; `the third orbit`, `the last orbit` and `every other orbit` pick some.
 
+## Layout in words (`packs/layout.js`)
+
+Things go in, under or beside other things, so nobody adds up coordinates.
+
+| Say | What happens |
+| --- | --- |
+| `Write "NEW!" in the sticker.` | centred inside it (a lone shape such as a triangle is centred by eye, not by its box) |
+| `… in the cover, at the bottom left, 120 in.` · `… at the top left of the cover` | at a corner or side of it, inset |
+| `Write "url" at the bottom right.` | the same, on the page, inside its margin |
+| `… under the heading, 40 apart.` · `… above …` | below or above it; lined up with a left- or right-aligned heading, else centred; `lined up on the right`, `centred` choose |
+| `… beside the play, 16 apart.` · `… left of …` | next to it, on its middle (words beside words share a baseline) |
+| `Let there be a triangle called icon, 22 big, pointing right, in the play.` | turned first, then placed (`pointing up/down/left/right`, or `turned 30`) |
+| `Move the badge under the title, 20 apart.` | the same words move a thing that exists |
+| `Let the margin be 120.` · `Let the gap be 24.` | the page margin, and the gap when none is said |
+| `Let text be in Jost, size 26, aligned left.` | every `Write` starts from this |
+| `Let a heading be Martian Mono, size 26, tracking 6, brass.` · `Write "01 COLOUR" as a heading.` | a named text style: its font, its settings and its looks (colour, shadow …) |
+| `Write "Oxblood", "Midnight", "Forest" in each swatch, at the bottom left, 20 in.` | one label per thing; they are `the swatch-labels` |
+| `Make the swatch-labels readable, bone or ink.` | whichever of the two reads best on what ends up under each |
+| `Let there be a table called playlist, 1436 by 448, at 800 650, 8 rows, columns at 28, 78, 818 and 1398 right, in Jost, size 24.` | a table: row backgrounds `the playlist-rows`; columns from its left edge, `right` aligns a column |
+| `Write "1", "Lanterns", "Vesper Lane", "4:07" in the next row of the playlist.` | a row (`the next row`, `the third row`, `row 3`); its words are `the third playlist-words`, every cell `the playlist-words`, a column `the playlist-column-4` |
+
+Examples: `examples/canvas/layout-en.gt`, and the proof pieces `examples/proof/brand-guide.gt` (one fixed position) and
+`examples/proof/player-skin.gt` (four).
+
 ## Adding a word
 
 `make` and `give` know a word because it is in the dictionary. One entry adds it everywhere (both verbs, the errors'
@@ -58,4 +82,5 @@ the last sentence. The whole layer is `packs/english.js`.
 - `When` knows times and what objects do. Taps and hovers are refused: a rendered video has no viewer input.
 - Moments resolve in sentence order: `When the ball arrives` must come after the sentence that moves the ball.
 - A converter from old sources to this style is not written. Old sources keep working unchanged.
+- Text on an arc covers half a circle at most; plurals cannot vary one dimension (bars of different heights).
 - A thing cannot be called `a`, `an`, `the` or `it` (they are read as articles), nor `ring`, `outline`, `edge`, `halo`.

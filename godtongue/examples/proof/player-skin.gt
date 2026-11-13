@@ -1,20 +1,23 @@
 -- A 2005 music player skin: brushed aluminium, a glowing green LCD, chrome transport buttons, an aqua play button,
 -- glossy window lights, a striped playlist. Lit, not flat: the metal catches the light as the piece tilts.
+-- Laid out with words: the panels are placed, everything inside them is put in, under or beside them.
 Let there be a canvas called player-skin, 1600 by 1000, from aluminium.
 Brush the card at 0 degrees.
+Let text be in Jost, size 24.
+Let an lcd-text be in Martian Mono, size 22, aligned left, #27331a.
 
 -- the window
 Let there be a rectangle called body, 1520 by 920, corners 34, at 800 500.
 Make the body #d9dce1.
 Give the body an outline in #8d939c, 3 wide.
-Let there be a rectangle called titlebar, 1520 by 70, corners 34, at 800 75.
+Let there be a rectangle called titlebar, 1520 by 70, corners 34, in the body, at the top.
 Make the titlebar a gradient from #f4f5f7 to #b9bec6, angled 90.
-Write "Morgana Player" called title in Jost bold, at 800 88, size 30.
+Write "Morgana Player" called title in Jost bold, size 30, in the titlebar.
 Make the title #3a3f47.
 Give the title a shadow, 1 down, blur 0, in #ffffff, 90% opacity.
 
 -- window lights
-Let there be 3 circles called light, 13 big, in a row, 36 apart, from 80 75.
+Let there be 3 circles called light, 13 big, in a row, 36 apart, from 0 0, in the titlebar, at the left, 30 in.
 Make the first light a radial gradient from #ff8a80 to #c62828.
 Make the second light a radial gradient from #ffe082 to #f9a825.
 Make the third light a radial gradient from #a5d6a7 to #2e7d32.
@@ -26,52 +29,46 @@ Let there be a rectangle called lcd, 760 by 210, corners 18, at 800 245.
 Make the lcd a gradient from #d8e8b8 to #a9c47f, angled 90.
 Give the lcd an inner shadow, 6 down, blur 14, 55% opacity.
 Give the lcd an outline in #6d7a5a, 2 wide.
-Write "LANTERNS" called song in Martian Mono, at 445 210, size 42, tracking 4, aligned left.
-Write "Vesper Lane — Ember Season" called artist in Martian Mono, at 447 255, size 22, aligned left.
-Write "2:41" called elapsed in Martian Mono, at 445 320, size 22, aligned left.
-Write "-1:26" called remaining in Martian Mono, at 1155 320, size 22, aligned right.
-Make the song, the artist, the elapsed and the remaining #27331a.
-Let there be a rectangle called track, 560 by 10, corners 5, at 800 313.
-Let there be a rectangle called played, 365 by 10, corners 5, at 702 313.
+Write "LANTERNS" called song as an lcd-text, size 42, tracking 4, in the lcd, at the top left, 30 in.
+Write "Vesper Lane — Ember Season" called artist as an lcd-text, under the song, 14 apart.
+Let there be a rectangle called track, 520 by 10, corners 5, in the lcd, at the bottom, 34 in.
+Let there be a rectangle called played, 340 by 10, corners 5, in the track, at the left.
+Write "2:41" called elapsed as an lcd-text, left of the track, 16 apart.
+Write "-1:26" called remaining as an lcd-text, beside the track, 16 apart.
 Make the track #27331a, 80% see-through.
 Make the played #27331a.
-Let there be 8 rectangles called eq, 10 by 44, in a row, 16 apart, from 1062 225.
+Let there be 8 rectangles called eq, 10 by 44, in a row, 16 apart, from 0 0, in the lcd, at the top right, 30 in.
 Make the eqs #27331a, 25% see-through.
 Make every other eq #27331a.
 
--- album art
-Let there be a rectangle called art, 200 by 200, corners 10, at 250 245.
+-- album art, to the left of the LCD
+Let there be a rectangle called art, 200 by 200, corners 10, left of the lcd, 80 apart.
 Print @hallows.jpg in the art, focused at 0.33 0.42.
 Give the art a shadow, 8 down, blur 18, 50% opacity.
 Give the art an outline in #ffffff, 3 wide.
 
--- transport: chrome buttons, aqua play
-Let there be a circle called prev, 46 big, at 1270 245.
-Let there be a circle called next, 46 big, at 1500 245.
-Let there be a circle called play, 62 big, at 1385 245.
-Make the prev mirror chrome.
-Make the next mirror chrome.
+-- transport: chrome buttons, aqua play, to the right of the LCD
+Let there be a circle called play, 62 big, beside the lcd, 105 apart.
+Let there be a circle called prev, 46 big, left of the play, 6 apart.
+Let there be a circle called next, 46 big, beside the play, 6 apart.
+Make the prev and the next mirror chrome.
 Emboss the prev, 0.25 mm high, soft 0.6.
 Emboss the next, 0.25 mm high, soft 0.6.
 Make the play a radial gradient from #a7dcff to #1565c0.
 Give the play an outline in #0d3c78, 2 wide.
 Emboss the play, 0.35 mm high, soft 0.5.
 Spray the play with gloss, 40 µm thick.
-Let there be a triangle called play-icon, 22 big, at 1389 245.
-Make the play-icon turned 90.
+Let there be a triangle called play-icon, 22 big, pointing right, in the play.
+Let there be a triangle called prev-icon, 13 big, pointing left, in the prev.
+Let there be a triangle called next-icon, 13 big, pointing right, in the next.
 Make the play-icon #ffffff.
-Let there be a triangle called prev-icon, 13 big, at 1264 245.
-Make the prev-icon turned -90.
-Make the prev-icon #3a3f47.
-Let there be a triangle called next-icon, 13 big, at 1506 245.
-Make the next-icon turned 90.
-Make the next-icon #3a3f47.
+Make the prev-icon and the next-icon #3a3f47.
 
--- volume
-Let there be a rectangle called groove, 300 by 10, corners 5, at 1385 340.
+-- volume, under the buttons
+Let there be a rectangle called groove, 300 by 10, corners 5, under the play, 34 apart.
 Deboss the groove, 0.06 mm deep.
 Make the groove #8d939c.
-Let there be a circle called knob, 17 big, at 1460 340.
+Let there be a circle called knob, 17 big, in the groove, at the right, 60 in.
 Make the knob mirror chrome.
 Emboss the knob, 0.3 mm high, soft 0.5.
 
@@ -79,22 +76,18 @@ Emboss the knob, 0.3 mm high, soft 0.5.
 Let there be a rectangle called list, 1440 by 470, corners 14, at 800 655.
 Make the list #ffffff.
 Give the list an inner shadow, 3 down, blur 8, 40% opacity.
-Let there be 8 rectangles called row, 1436 by 54, in a column, 56 apart, from 800 452.
-Make every other row #edf3fb.
-Let there be a rectangle called now, 1436 by 54, at 800 564.
-Make the now a gradient from #4a90e2 to #2a6fc4, angled 90.
-Write "1\n2\n\n4\n5\n6" called nums in Jost, at 110 599, size 24, leading 2.333, aligned left.
-Write "Lanterns\nHollow\n\nPaper Moon\nCandle Hour\nLate October" called names in Jost, at 160 599, size 24, leading 2.333, aligned left.
-Write "Vesper Lane\nVesper Lane\n\nVesper Lane\nVesper Lane\nVesper Lane" called artists in Jost, at 900 599, size 24, leading 2.333, aligned left.
-Write "4:07\n3:52\n\n3:38\n4:21\n2:59" called times in Jost, at 1480 599, size 24, leading 2.333, aligned right.
-Write "3" called now-num in Jost, at 110 574, size 24, aligned left.
-Write "Ember Season" called now-name in Jost bold, at 160 574, size 24, aligned left.
-Write "Vesper Lane" called now-artist in Jost, at 900 574, size 24, aligned left.
-Write "5:10" called now-time in Jost, at 1480 574, size 24, aligned right.
-Make the nums, the names, the artists and the times #2b3036.
-Make the now-num, the now-name, the now-artist and the now-time #ffffff.
+Let there be a table called playlist, 1436 by 448, at 800 650, 8 rows, columns at 28, 78, 818 and 1398 right, in Jost, size 24.
+Write "1", "Lanterns", "Vesper Lane", "4:07" in the next row of the playlist.
+Write "2", "Hollow", "Vesper Lane", "3:52" in the next row of the playlist.
+Write "3", "Ember Season", "Vesper Lane", "5:10" in the next row of the playlist.
+Write "4", "Paper Moon", "Vesper Lane", "3:38" in the next row of the playlist.
+Write "5", "Candle Hour", "Vesper Lane", "4:21" in the next row of the playlist.
+Write "6", "Late October", "Vesper Lane", "2:59" in the next row of the playlist.
+Make every other playlist-row #edf3fb.
+Make the third playlist-row a gradient from #4a90e2 to #2a6fc4, angled 90.
+Make the playlist-words #2b3036.
+Make the third playlist-words white.
 
 -- status bar
-Write "6 songs · 24.1 minutes · 58.3 MB" called status in Jost, at 800 948, size 22.
+Write "6 songs · 24.1 minutes · 58.3 MB" called status, size 22, under the list, 20 apart.
 Make the status #5b616a.
-Engrave the status, 0.02 mm deep.

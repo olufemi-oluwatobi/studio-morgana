@@ -112,4 +112,5 @@ function wrap(line, max, size, track, font) {
   if (cur) out.push(cur);
   return out.length ? out : [''];
 }
-const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24) || 'text';
+// a name from the words; a name cannot start with a digit ("01 COLOUR" is called "text-01-colour")
+const slug = (s) => { const n = s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24) || 'text'; return /^[0-9]/.test(n) ? 'text-' + n : n; };

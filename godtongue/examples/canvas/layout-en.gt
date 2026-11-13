@@ -1,0 +1,41 @@
+-- Layout in plain words: a margin, a default text style, a heading style, things placed in, under and beside
+-- other things, one label per swatch, readable colour, centred-by-eye icons and a table.
+Let there be a flat canvas called layout, 1200 by 900.
+Let the margin be 60.
+Let text be in Jost, size 28, aligned left.
+Let a heading be Martian Mono, size 22, tracking 6, #c19a4b.
+Let bone be #efe6d8.
+Let ink be #0b0b10.
+Make the card ink.
+
+Write "01  COLOUR" called h-colour as a heading, at the top left.
+Let there be 4 rectangles called swatch, 160 by 200, corners 16, in a row, 180 apart, from 0 0, under the h-colour, 30 apart.
+Make the first swatch #4a0e1c.
+Make the second swatch bone.
+Make the third swatch #0f3b2e.
+Make the fourth swatch #c19a4b.
+Write "Oxblood", "Bone", "Forest", "Brass" in each swatch, at the bottom left, 14 in.
+Make the swatch-labels readable, bone or ink.
+
+Let there be a circle called sticker, 90 big, at 1000 200.
+Make the sticker #ff7a2f.
+Write "NEW!" called new in Lilita One, size 48, aligned center, in the sticker.
+Make the new ink.
+Let there be a circle called play, 50 big, at 1000 420.
+Make the play #1565c0.
+Let there be a triangle called icon, 20 big, pointing right, in the play.
+Make the icon white.
+Write "Play" called side, beside the play, 20 apart.
+Make the side bone.
+
+Let there be a table called list, 1080 by 280, at 600 700, 5 rows, columns at 20, 70 and 1060 right, in Jost, size 24.
+Make every other list-row #15161c.
+Write "1", "Lanterns", "4:07" in the next row of the list.
+Write "2", "Hollow", "3:52" in the next row of the list.
+Write "3", "Ember Season", "5:10" in the next row of the list.
+Make the list-words bone.
+Make the third list-row #2a6fc4.
+Make the third list-words white.
+Make the list-column-3 #8a8f99.
+Write "studiomorgana.xyz" called url at the bottom right.
+Make the url #c19a4b.

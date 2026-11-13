@@ -112,6 +112,19 @@ Video:
   reaches N s, the video ends, <object> arrives, <object> appears, <object> leaves.
 - Only objects (cards, papers, plates let on the stage) move, change and take motion. Colours do not change over time yet.
 
+Layout in words (prefer this to coordinates; give positions only to the first big panels):
+- Page: "Let the margin be 120." "Let text be in Jost, size 26, aligned left." (every Write starts from it)
+- Styles: "Let a heading be Martian Mono, size 26, tracking 6, brass." then 'Write "01  COLOUR" called h-colour as a heading, under the cover, 110 apart.'
+- Places: "in the sticker" (centred inside), "in the cover, at the bottom left, 120 in", "at the top right" (the page,
+  inside the margin), "under the heading, 40 apart", "above …", "beside the play, 16 apart", "left of …". Shapes:
+  "Let there be a triangle called icon, 22 big, pointing right, in the play." (centred by eye). "Move the x under the y."
+- Labels, one each: 'Write "Oxblood", "Midnight", "Forest" in each swatch, at the bottom left, 20 in.' then
+  "Make the swatch-labels readable, bone or ink." (picks whichever reads best on what is under each).
+- Tables: "Let there be a table called playlist, 1436 by 448, at 800 650, 8 rows, columns at 28, 78, 818 and 1398 right,
+  in Jost, size 24." then 'Write "1", "Lanterns", "Vesper Lane", "4:07" in the next row of the playlist.' Colour them with
+  "Make every other playlist-row #edf3fb.", "Make the third playlist-words white.", "Make the playlist-column-4 #888888."
+- Names must not start with a digit: write "called h-type" rather than relying on "02 TYPE".
+
 Never name a thing a, an, the, it, ring, outline, edge or halo.
 
 # Names you may use
@@ -151,6 +164,14 @@ ${ex('canvas/pattern-en.gt')}
 ## A launch poster: duotone photo, frosted glass, fitted headline, shapes lined up (it was given @marilyn.jpg)
 \`\`\`gt
 ${ex('canvas/launch-en.gt')}
+\`\`\`
+## A brand guide laid out with words: margin, styles, placement, labels, readable colour (it was given @tiara-night.jpg, @hallows.jpg, @sienna-shoreline.jpg)
+\`\`\`gt
+${ex('proof/brand-guide.gt')}
+\`\`\`
+## A music player skin: lit metal, chrome, a table, everything placed in or beside its panel (it was given @hallows.jpg)
+\`\`\`gt
+${ex('proof/player-skin.gt')}
 \`\`\`
 ## A video with events: move, change and when
 \`\`\`gt

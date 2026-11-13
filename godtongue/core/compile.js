@@ -83,7 +83,8 @@ function makeContext(doc, reg, diagnostics, baseDir, assetDirs) {
       // one of several: "third-orbit" finds "orbit-3", "last-ray" the last of the rays
       const o = name.match(/^(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|last)-(.+)$/);
       if (o) {
-        const base = ctx.resolve(o[2]), set = ctx.sets?.get(base);
+        const base = ctx.resolve(o[2]);
+        const set = ctx.sets?.get(base) ?? ctx.sets?.get(o[2]) ?? ctx.sets?.get(o[2].replace(/s$/, ''));
         if (set) { const k = o[1] === 'last' ? set.length - 1 : ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth'].indexOf(o[1]); if (set[k]) return set[k]; ctx.err(`there are only ${set.length} of "${base}"`); }
       }
       return name;

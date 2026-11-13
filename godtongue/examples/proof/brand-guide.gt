@@ -1,5 +1,11 @@
 -- Studio Morgana brand guide: one page. Deep colours, three typefaces, imagery, the wordmark on dark and light.
+-- Laid out with words: a margin, text styles, things placed under other things. Only the cover and the swatches
+-- are given positions; everything else follows them.
 Let there be a flat canvas called brand-guide, 1600 by 2400.
+Let the margin be 120.
+Let text be in Jost, size 26, aligned left.
+Let a heading be Martian Mono, size 26, tracking 6, brass.
+Let a note be leading 1.4, bone, 40% see-through.
 Let ink be #0b0b10.
 Let bone be #efe6d8.
 Let brass be #c19a4b.
@@ -9,18 +15,16 @@ Make the card ink, grainy 0.12.
 Let there be a rectangle called cover, 1600 by 760, at 800 380.
 Print @tiara-night.jpg in the cover, duotone #0b0b10 and #6e1a2e, focused at 0.5 0.3.
 Give the cover a vignette of 0.6, in #0b0b10.
-Write "Morgana" called wordmark in Bodoni Moda italic, at 120 520, fit 900, aligned left.
-Write "BRAND GUIDE · EDITION ONE · 2026" called kicker in Martian Mono, at 124 610, size 26, tracking 6, aligned left.
-Write "Deep colour, sharp type, real light." called promise in Jost light, at 124 670, size 40, aligned left.
-Make the wordmark bone.
-Give the wordmark a shadow, 12 down, blur 30, 50% opacity.
+Write "Deep colour, sharp type, real light." called promise in Jost light, size 40, in the cover, at the bottom left, 120 in.
+Write "BRAND GUIDE · EDITION ONE · 2026" called kicker in Martian Mono, tracking 6, above the promise, 24 apart.
+Write "Morgana" called wordmark in Bodoni Moda italic, fit 900, above the kicker, 30 apart.
+Make the wordmark bone, shadowed, 12 down, blur 30, 50% opacity.
 Make the kicker brass.
 Make the promise bone, 25% see-through.
 
 -- 01 colour
-Write "01  COLOUR" called h-colour in Martian Mono, at 120 880, size 26, tracking 6, aligned left.
-Make the h-colour brass.
-Let there be 6 rectangles called swatch, 210 by 300, corners 24, in a row, 236 apart, from 225 1060.
+Write "01  COLOUR" called h-colour as a heading, under the cover, 110 apart.
+Let there be 6 rectangles called swatch, 210 by 300, corners 24, in a row, 236 apart, from 0 0, under the h-colour, 40 apart.
 Make the first swatch #4a0e1c.
 Make the second swatch #0d1033.
 Make the third swatch #0f3b2e.
@@ -28,40 +32,27 @@ Make the fourth swatch #2b0f2e.
 Make the fifth swatch brass.
 Make the sixth swatch bone.
 Give the swatches an outline in #ffffff, 1 wide, 88% see-through.
-Write "Oxblood\n#4A0E1C" called c1 in Jost, at 140 1270, size 24, leading 1.4, aligned left.
-Write "Midnight\n#0D1033" called c2 in Jost, at 376 1270, size 24, leading 1.4, aligned left.
-Write "Forest\n#0F3B2E" called c3 in Jost, at 612 1270, size 24, leading 1.4, aligned left.
-Write "Aubergine\n#2B0F2E" called c4 in Jost, at 848 1270, size 24, leading 1.4, aligned left.
-Write "Brass\n#C19A4B" called c5 in Jost, at 1084 1270, size 24, leading 1.4, aligned left.
-Write "Bone\n#EFE6D8" called c6 in Jost, at 1320 1270, size 24, leading 1.4, aligned left.
-Make the c1, the c2, the c3, the c4, the c5 and the c6 bone.
+Write "Oxblood\n#4A0E1C", "Midnight\n#0D1033", "Forest\n#0F3B2E", "Aubergine\n#2B0F2E", "Brass\n#C19A4B", "Bone\n#EFE6D8" in each swatch, at the bottom left, 20 in.
+Make the swatch-labels readable, bone or ink.
 
 -- 02 type
-Write "02  TYPE" called h-type in Martian Mono, at 120 1420, size 26, tracking 6, aligned left.
-Make the h-type brass.
-Write "Aa" called aa-display in Bodoni Moda italic, at 120 1600, size 190, aligned left.
-Write "Aa" called aa-body in Jost, at 640 1600, size 190, aligned left.
-Write "Aa" called aa-mono in Martian Mono, at 1120 1600, size 150, aligned left.
-Write "Bodoni Moda\nDisplay · headlines" called t1 in Jost, at 124 1680, size 26, leading 1.4, aligned left.
-Write "Jost\nBody · interface" called t2 in Jost, at 644 1680, size 26, leading 1.4, aligned left.
-Write "Martian Mono\nCode · labels · data" called t3 in Jost, at 1124 1680, size 26, leading 1.4, aligned left.
-Make the aa-display bone.
-Make the aa-body bone.
+Write "02  TYPE" called h-type as a heading, under the swatches, 110 apart.
+Write "Aa" called aa-display in Bodoni Moda italic, size 190, under the h-type, 40 apart.
+Write "Aa" called aa-body in Jost, size 190, beside the aa-display, 300 apart.
+Write "Aa" called aa-mono in Martian Mono, size 150, beside the aa-body, 300 apart.
+Make the aa-display and the aa-body bone.
 Make the aa-mono brass.
-Make the t1, the t2 and the t3 bone, 40% see-through.
+Write "Bodoni Moda\nDisplay · headlines", "Jost\nBody · interface", "Martian Mono\nCode · labels · data" as a note, called type-note, under the aa-display, the aa-body and the aa-mono, 30 apart.
 
 -- 03 imagery
-Write "03  IMAGERY" called h-image in Martian Mono, at 120 1830, size 26, tracking 6, aligned left.
-Make the h-image brass.
-Let there be a rectangle called img1, 440 by 380, corners 28, at 340 2070.
-Let there be a rectangle called img2, 440 by 380, corners 28, at 800 2070.
-Let there be a rectangle called img3, 440 by 380, corners 28, at 1260 2070.
-Print @hallows.jpg in the img1, focused at 0.3 0.4.
-Print @sienna-shoreline.jpg in the img2, duotone #0d1033 and #efe6d8, focused at 0.5 0.45.
-Print @tiara-night.jpg in the img3, grayscale, contrast 1.2, focused at 0.5 0.25.
-Give the img1, the img2 and the img3 a shadow, 18 down, blur 40, 60% opacity.
+Write "03  IMAGERY" called h-image as a heading, under the type-notes, 100 apart.
+Let there be 3 rectangles called img, 440 by 380, corners 28, in a row, 460 apart, from 0 0, under the h-image, 40 apart.
+Print @hallows.jpg in the first img, focused at 0.3 0.4.
+Print @sienna-shoreline.jpg in the second img, duotone #0d1033 and #efe6d8, focused at 0.5 0.45.
+Print @tiara-night.jpg in the third img, grayscale, contrast 1.2, focused at 0.5 0.25.
+Give the imgs a shadow, 18 down, blur 40, 60% opacity.
 
-Write "Low light. Warm skin. One colour leads." called rule in Jost, at 120 2330, size 30, aligned left.
-Write "studiomorgana.xyz" called url in Martian Mono, at 1480 2330, size 24, aligned right.
+Write "Low light. Warm skin. One colour leads." called rule, size 30, under the imgs, 50 apart.
+Write "studiomorgana.xyz" called url in Martian Mono, size 24, under the third img, 50 apart, lined up on the right.
 Make the rule bone.
 Make the url brass.
