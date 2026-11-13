@@ -28,9 +28,9 @@ projects.get('/projects', async (c) => {
   const who = c.get('who');
   const { results } = await c.env.DB.prepare(`
     SELECT pr.id, pr.name, pr.updated,
-      (SELECT COUNT(*) FROM project_pins pp JOIN pieces p ON p.id = pp.piece_id WHERE pp.project_id = pr.id AND p.deleted = 0) AS count,
+      (SELECT COUNT(*) FROM project_pins pp JOIN pieces p ON p.id = pp.piece_id WHERE pp.project_id = pr.id AND p.deleted = 0 AND (p.owner = pr.owner OR p.visibility = 'public')) AS count,
       (SELECT o.key FROM project_pins pp JOIN pieces p ON p.id = pp.piece_id JOIN outputs o ON o.version_id = p.version_id AND o.name = 'poster-480'
-        WHERE pp.project_id = pr.id AND p.deleted = 0 ORDER BY pp.pinned DESC LIMIT 1) AS cover
+        WHERE pp.project_id = pr.id AND p.deleted = 0 AND (p.owner = pr.owner OR p.visibility = 'public') ORDER BY pp.pinned DESC LIMIT 1) AS cover
     FROM projects pr WHERE pr.owner = ? AND pr.deleted = 0 ORDER BY pr.updated DESC LIMIT ?`,
   ).bind(who.owner, MAX_PROJECTS).all<{ id: string; name: string; updated: number; count: number; cover: string | null }>();
   return c.json({ projects: results.map((r) => ({ ...r, cover: r.cover ? '/files/' + r.cover : null })) }, 200, { 'cache-control': 'no-store' });
@@ -46,7 +46,7 @@ projects.post('/projects', async (c) => {
   const stmts = [c.env.DB.prepare('INSERT INTO projects (id, owner, name, created, updated) VALUES (?, ?, ?, ?, ?)').bind(pid, who.owner, name, t, t)];
   // "New project" from a piece's pin menu: make it and pin the piece in one go
   if (typeof b.pieceId === 'string') {
-    stmts.push(c.env.DB.prepare('INSERT OR IGNORE INTO project_pins (project_id, piece_id, pinned) SELECT ?, id, ? FROM pieces WHERE id = ? AND deleted = 0').bind(pid, t, b.pieceId));
+    stmts.push(c.env.DB.prepare('INSERT OR IGNORE INTO project_pins (project_id, piece_id, pinned) SELECT ?, id, ? FROM pieces WHERE id = ? AND deleted = 0 AND (owner = ? OR visibility = \'public\')').bind(pid, t, b.pieceId, who.owner));
   }
   await c.env.DB.batch(stmts);
   return c.json({ project: { id: pid, name, updated: t, count: stmts.length - 1, cover: null } });
@@ -83,8 +83,8 @@ projects.get('/projects/:id/wall', async (c) => {
   const typeSql = isPieceType(type) ? ' AND p.type = ?' : '';
   const { results } = await c.env.DB.prepare(
     `${CARD_SELECT} JOIN project_pins pp ON pp.piece_id = p.id AND pp.project_id = ?
-     WHERE p.deleted = 0 AND p.status = 'ready'${typeSql} ORDER BY pp.pinned DESC LIMIT ? OFFSET ?`,
-  ).bind(p.id, ...(typeSql ? [type] : []), limit + 1, offset).all<CardRow>();
+     WHERE p.deleted = 0 AND p.status = 'ready' AND (p.owner = ? OR p.visibility = 'public')${typeSql} ORDER BY pp.pinned DESC LIMIT ? OFFSET ?`,
+  ).bind(p.id, who.owner, ...(typeSql ? [type] : []), limit + 1, offset).all<CardRow>();
   return c.json({
     project: { id: p.id, name: p.name },
     pieces: results.slice(0, limit).map((r) => card(r, who)),
@@ -97,10 +97,11 @@ projects.put('/projects/:id/pins/:piece', async (c) => {
   const who = c.get('who');
   const p = await own(c.env, who, c.req.param('id'));
   const t = now();
-  const r = await c.env.DB.prepare('INSERT OR IGNORE INTO project_pins (project_id, piece_id, pinned) SELECT ?, id, ? FROM pieces WHERE id = ? AND deleted = 0')
-    .bind(p.id, t, c.req.param('piece')).run();
+  const seen = "deleted = 0 AND (owner = ? OR visibility = 'public')";
+  const r = await c.env.DB.prepare(`INSERT OR IGNORE INTO project_pins (project_id, piece_id, pinned) SELECT ?, id, ? FROM pieces WHERE id = ? AND ${seen}`)
+    .bind(p.id, t, c.req.param('piece'), who.owner).run();
   if (!r.meta.changes) {
-    const exists = await c.env.DB.prepare('SELECT 1 FROM pieces WHERE id = ? AND deleted = 0').bind(c.req.param('piece')).first();
+    const exists = await c.env.DB.prepare(`SELECT 1 FROM pieces WHERE id = ? AND ${seen}`).bind(c.req.param('piece'), who.owner).first();
     if (!exists) fail(404, 'that piece does not exist');
   }
   await c.env.DB.prepare('UPDATE projects SET updated = ? WHERE id = ?').bind(t, p.id).run();

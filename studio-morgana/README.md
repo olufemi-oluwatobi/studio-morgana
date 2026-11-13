@@ -126,6 +126,20 @@ PUT /api/admin/collections/featured   { "pieceIds": ["…", "…"] }
   `slides` next. The wall's tabs, the editor's viewer and the export menu come from `apps/web/src/lib/types.ts`;
   the server's list is `apps/api/src/types.ts`. A new type goes in both, with a viewer.
 
+## Public, private and the showcase
+
+Every piece is **private** until its owner makes it **public** (the Public / Private button in the editor; you need to be signed in). A private piece is a 404 for everyone else, including its id, references, remixes and pins. Public pieces can be opened, pinned and remixed by anyone.
+
+The wall's top section is the featured pieces (hand-picked, always first), then the **showcase**: chosen by a scheduled job from the public pieces.
+
+```
+score = (1 + 3·people who pinned it + 2·people who remixed it) × freshness × 0.5^(age / 10 days)
+```
+
+People are other accounts, counted once each. Freshness is 1.5× in the first day. Picks go best first, at most 24, at most 2 per owner, at most 70% of one type. See `apps/api/src/showcase.ts` (pure, checked by `node scripts/check-showcase.mjs`).
+
+The job runs from a Cron Trigger every six hours (`triggers.crons` in `wrangler.jsonc`) together with housekeeping (expired sessions, tokens, old usage counters). To fire it by hand: **Refresh showcase** in the sidebar (admins), or `POST /api/admin/jobs/run {"job":"showcase"}`. `GET /api/admin/jobs` shows the last runs.
+
 ## API
 
 All writes need the header `x-morgana: 1`.
@@ -139,6 +153,7 @@ GET  /api/pieces/:id[?version=]
 POST /api/pieces/:id/command  {text, versionId, parts}
 POST /api/pieces/:id/versions {source, parentId}
 POST /api/pieces/:id/repair   {versionId, diagnostics}
+POST /api/pieces/:id/visibility {visibility: public|private}
 POST /api/pieces/:id/commit   {versionId, category, type, fingerprint, w, h}
 PUT  /api/versions/:vid/outputs/poster-480 | poster-1200 | video
 DELETE /api/pieces/:id · POST /api/pieces/:id/restore

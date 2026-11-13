@@ -2,7 +2,7 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useSyncExternalStore, type ClipboardEvent, type DragEvent, type KeyboardEvent } from 'react';
 import { useStore } from '../lib/store';
 import { addPieceRef, addUpload, composerStore, generate, removeRef, wallStore, type Ref } from '../lib/wall';
-import { ArrowUp, ImageIcon, Sparkle, X } from './Icons';
+import { ArrowUp, Plus, X } from './Icons';
 
 // phones get a shorter placeholder, so it never wraps
 const narrowQ = typeof window === 'undefined' ? null : matchMedia('(max-width: 560px)');
@@ -71,13 +71,18 @@ export const Composer = memo(function Composer() {
 
   return (
     <div ref={box} className={'composer' + (open ? ' open' : '') + (busy ? ' busy' : '')} onDragOver={onDragOver} onDrop={onDrop} onPaste={onPaste}>
+      {refs.length > 0 && (
+        <div className="refs in-input">
+          {refs.map((r) => <RefChip key={r.kind === 'piece' ? r.id : r.key} r={r} />)}
+          <span className="refs-hint">{refs.length} of 4</span>
+        </div>
+      )}
       <div className="composer-row">
-        <span className="composer-mark" aria-hidden="true"><Sparkle size={16} /></span>
+        <button className="add" aria-label="Add a reference image" title="Add an image, or drop a piece here" disabled={refs.length >= 4} onClick={() => file.current?.click()}><Plus size={18} /></button>
         <label className="sr-only" htmlFor="prompt">Describe a piece</label>
         <textarea id="prompt" ref={ta} rows={1} value={text} placeholder={busy ? 'Making…' : project ? (narrow ? `Make for ${project}` : `Make something for ${project}`) : narrow ? 'Describe a piece' : 'Describe what to make'}
           onFocus={() => setOpen(true)} onKeyDown={onKey}
           onChange={(e) => composerStore.set((c) => ({ ...c, text: e.target.value }))} />
-        <button className="icon-btn" aria-label="Add a reference image" onClick={() => file.current?.click()}><ImageIcon size={18} /></button>
         <button className="make" onClick={() => void generate()} disabled={busy || !text.trim()} aria-label="Make">
           {busy ? <span className="spin" aria-hidden="true" /> : <ArrowUp size={14} />}
           <span className="make-label">Make</span>
@@ -88,8 +93,7 @@ export const Composer = memo(function Composer() {
       <div className="composer-more" aria-hidden={!open}>
         <div className="composer-more-inner">
           <div className="refs">
-            {refs.map((r) => <RefChip key={r.kind === 'piece' ? r.id : r.key} r={r} />)}
-            <span className="refs-hint">{refs.length ? `${refs.length} of 4 references` : 'Drag a piece here, or add an image, to use it as a reference'}</span>
+            <span className="refs-hint">{refs.length ? 'Drag more pieces here, or press + to add an image' : 'Press + to add an image, or drag a piece here to use it as a reference'}</span>
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@
 // only yours, or one project's pins.
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useStore } from '../lib/store';
-import { TABS, draftsStore, hiddenStore, loadWall, wallStore, type Tab, type Tile } from '../lib/wall';
+import { TABS, draftsStore, hiddenStore, loadWall, visFilterStore, wallStore, type Tab, type Tile, type VisFilter } from '../lib/wall';
 import { deleteProject, projectsStore, renameProject } from '../lib/projects';
 import { linkHandler, type Scope } from '../lib/router';
 import { Composer } from '../components/Composer';
@@ -21,6 +21,23 @@ const Tabs = memo(function Tabs() {
           {t.label}{t.soon && <span className="soon-tag">Soon</span>}
         </button>
       ))}
+    </div>
+  );
+});
+
+// Your pieces: all, only the public ones, or only the private ones
+const VisFilter_ = memo(function VisFilter_() {
+  const f = useStore(visFilterStore, (v) => v);
+  const pieces = useStore(wallStore, (w) => w.pieces);
+  const n = (v: VisFilter) => pieces.filter((p) => p.mine && p.id && (v === 'all' || p.visibility === v)).length;
+  return (
+    <div className="mine-head">
+      <h1 className="project-name"><span>Your pieces</span></h1>
+      <div className="seg" role="group" aria-label="Show">
+        {(['all', 'public', 'private'] as const).map((v) => (
+          <button key={v} aria-pressed={f === v} onClick={() => visFilterStore.set(v)}>{v === 'all' ? 'All' : v === 'public' ? 'Public' : 'Private'}<span className="seg-n">{n(v)}</span></button>
+        ))}
+      </div>
     </div>
   );
 });
@@ -59,6 +76,7 @@ export default function Wall({ scope }: { scope: Scope }) {
   const hasMore = useStore(wallStore, (w) => w.next != null);
   const drafts = useStore(draftsStore, (d) => d);
   const hidden = useStore(hiddenStore, (h) => h);
+  const vis = useStore(visFilterStore, (v) => v);
 
   // follow the address: /, /mine, /projects/:id
   const key = scope.kind === 'project' ? 'p:' + scope.id : scope.kind;
@@ -68,12 +86,12 @@ export default function Wall({ scope }: { scope: Scope }) {
     const fits = (t: Tile) => tab === 'all' || t.type === tab || (t.type == null && t.state !== 'ready');
     const seen = new Set<string>();
     const out: Tile[] = [];
-    const add = (t: Tile) => { const k = t.id ?? t.key; if (seen.has(k) || (t.id && hidden.has(t.id)) || !fits(t)) return; seen.add(k); out.push(t); };
+    const add = (t: Tile) => { const k = t.id ?? t.key; if (seen.has(k) || (t.id && hidden.has(t.id)) || !fits(t) || (scope.kind === 'mine' && vis !== 'all' && t.id && t.visibility !== vis)) return; seen.add(k); out.push(t); };
     drafts.forEach(add);
     pieces.forEach(add);
     featured.forEach(add);
     return out;
-  }, [drafts, pieces, featured, tab, hidden]);
+  }, [drafts, pieces, featured, tab, hidden, vis, scope.kind]);
 
   const more = useCallback(() => { void loadWall({ more: true }); }, []);
   const empty = scope.kind === 'project' ? 'Nothing pinned yet. Drag a piece onto this project in the sidebar, use Pin in the editor, or make one here.'
@@ -91,6 +109,7 @@ export default function Wall({ scope }: { scope: Scope }) {
       </header>
       <main className="wall">
         {scope.kind === 'project' && <ProjectHead id={scope.id} />}
+        {scope.kind === 'mine' && <VisFilter_ />}
         {error && <p className="note">Could not load the wall: {error}</p>}
         {!items.length && !loading && !error && <p className="note">{empty}</p>}
         <Masonry items={items} onEnd={hasMore ? more : undefined} />

@@ -7,7 +7,7 @@ import { linkHandler, navigate, parse, useLocation } from '../lib/router';
 import { dragStore, loadWall } from '../lib/wall';
 import { createProject, loadProjects, pin, projectsStore } from '../lib/projects';
 import { api, type Project } from '../lib/api';
-import { Folder, Grid, Mine, Moon, Plus, Sun, User, X } from './Icons';
+import { Folder, Grid, Mine, Moon, Plus, Refresh, Sun, User, X } from './Icons';
 
 export const drawerStore = createStore(false);
 
@@ -75,6 +75,17 @@ export const Sidebar = memo(function Sidebar() {
   const who = me?.user?.id ?? (me ? 'visitor' : null);
   useEffect(() => { if (who) void loadProjects(); }, [who]);
 
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshShowcase = async () => {
+    setRefreshing(true);
+    try {
+      const r = await api<{ results: { job: string; picked?: number; eligible?: number; error?: string }[] }>('/admin/jobs/run', { body: { job: 'showcase' } });
+      const s = r.results[0];
+      toast(s?.error ? `Showcase failed: ${s.error}` : `Showcase refreshed: ${s?.picked ?? 0} picked from ${s?.eligible ?? 0} public pieces`);
+      void loadWall();
+    } catch (e) { toast((e as Error).message); }
+    setRefreshing(false);
+  };
   const signOut = async () => { await api('/auth/logout', { body: {} }); await loadMe(); void loadWall(); toast('Signed out'); };
 
   return (
@@ -106,6 +117,9 @@ export const Sidebar = memo(function Sidebar() {
           <button className="side-link" onClick={toggleTheme} aria-label={theme === 'light' ? 'Switch to dark' : 'Switch to light'}>
             {theme === 'light' ? <Moon /> : <Sun />} {theme === 'light' ? 'Dark' : 'Light'}
           </button>
+          {me?.user?.role === 'admin' && (
+            <button className="side-link" onClick={() => void refreshShowcase()} disabled={refreshing}><Refresh /> {refreshing ? 'Refreshing…' : 'Refresh showcase'}</button>
+          )}
           {me?.user ? (
             <div className="account">
               <span className="account-email" title={me.user.email}><User /> {me.user.email}</span>

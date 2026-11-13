@@ -265,6 +265,90 @@ await a.locator('button.primary').click();
 await a.waitForSelector('.account-email', { timeout: 15000 });
 check('the demo account signs in', /demo@example.com/.test(await a.locator('.account-email').innerText()));
 
+
+// ── the input: "+", files and content
+await a.goto(BASE + '/');
+await a.waitForSelector('a.tile img.loaded', { timeout: 30000 });
+check('the input has a + button and no sparkle or image icon', (await a.locator('.composer .add').count()) === 1 && (await a.locator('.composer-mark').count()) === 0 && (await a.locator('.composer-row .icon-btn').count()) === 0);
+await shot(a, 'input-1-empty');
+await a.locator('.composer textarea').click(); await a.waitForTimeout(400);
+await shot(a, 'input-2-focused');
+await a.locator('.composer textarea').fill('a chrome-trimmed navy card called "Aurora", with the face from the photo');
+await shot(a, 'input-3-with-text');
+const EX = path.resolve(ROOT, '..', 'godtongue', 'examples');
+const photos = ['marilyn.jpg', 'back-art.jpg'].map((f) => path.join(EX, f)).filter((f) => fs.existsSync(f));
+await a.locator('.composer input[type=file]').setInputFiles(photos);
+await a.waitForFunction((n) => document.querySelectorAll('.composer .ref').length === n && !document.querySelector('.composer .ref.busy'), photos.length, { timeout: 30000 });
+check('uploaded files appear as chips inside the input', (await a.locator('.composer .refs.in-input .ref').count()) === photos.length);
+await a.locator('.composer textarea').fill('a chrome-trimmed navy card called "Aurora", with the face from the photo, soft light, a long second line to show how the input grows when there is a lot to say about the piece');
+await a.waitForTimeout(300);
+await shot(a, 'input-4-files-and-content');
+await a.locator('.composer .ref-x').first().click();
+check('a chip can be removed', (await a.locator('.composer .ref').count()) === photos.length - 1);
+const [at, bt] = [await a.locator('.composer').boundingBox(), await a.locator('.tabs').boundingBox()];
+check('the input stays above the tabs and full width', at.y + at.height <= bt.y + 1 && at.width > 900, `${Math.round(at.width)}px wide`);
+
+// ── public and private
+await a.locator('.composer textarea').fill('minimal ivory piece called "Quiet"');
+await a.keyboard.press('Enter');
+await a.waitForFunction(() => !document.querySelector('.tile .tile-state') && document.querySelectorAll('a.tile').length > 0, null, { timeout: 180000 });
+await a.goto(BASE + '/mine'); await a.waitForSelector('.mine-head'); await a.waitForSelector('a.tile img.loaded', { timeout: 30000 });
+const mineIds = await a.evaluate(async () => (await (await fetch('/api/wall')).json()).mine.map((p) => p.id));
+check('Your pieces has a piece to make public', mineIds.length >= 2, `${mineIds.length} pieces`);
+const [pubId, privId] = mineIds;
+const visitor = await (await browser.newContext()).newPage();
+await visitor.goto(BASE + '/');
+const vget = (id) => visitor.evaluate(async (i) => (await fetch('/api/pieces/' + i)).status, id);
+check('a new piece is private by default: a visitor gets 404', (await vget(pubId)) === 404);
+await a.goto(BASE + '/p/' + pubId); await a.waitForSelector('.art img');
+await a.locator('.editor-bar button[aria-label="Private"]').click(); await a.waitForTimeout(250);
+await shot(a, 'visibility-menu');
+await a.locator('.vis-menu button', { hasText: 'Public' }).click();
+await a.waitForSelector('.editor-bar button[aria-label="Public"]');
+check('making it public works, and the button says so', true);
+check('a visitor can now open the public piece, not the private one', (await vget(pubId)) === 200 && (await vget(privId)) === 404);
+const vjson = await visitor.evaluate(async () => (await (await fetch('/api/wall')).json()).featured.map((p) => p.id));
+check('before the scheduler runs, a public piece is not yet on the visitors wall', !vjson.includes(pubId));
+const anon = await visitor.evaluate(async (i) => (await fetch('/api/pieces/' + i + '/visibility', { method: 'POST', headers: { 'content-type': 'application/json', 'x-morgana': '1' }, body: '{"visibility":"public"}' })).status, privId);
+check('a visitor cannot change visibility', anon === 403 || anon === 401 || anon === 404, String(anon));
+
+// ── the scheduler
+const run = await a.evaluate(async () => (await (await fetch('/api/admin/jobs/run', { method: 'POST', headers: { 'content-type': 'application/json', 'x-morgana': '1' }, body: '{}' })).json()));
+const sc = run.results?.find((r) => r.job === 'showcase');
+check('the showcase job runs and picks the public piece', sc && !sc.error && sc.picked >= 1 && sc.eligible >= 1, JSON.stringify(sc));
+const after = await visitor.evaluate(async () => (await (await fetch('/api/wall')).json()).featured.map((p) => p.id));
+check('now the public piece is on everyones wall, the private one is not', after.includes(pubId) && !after.includes(privId));
+check('the featured pieces stay first', after[0] === (await visitor.evaluate(async () => (await (await fetch('/api/wall')).json()).featured[0].id)) && after.indexOf(pubId) > 0);
+const jobs = await a.evaluate(async () => (await (await fetch('/api/admin/jobs')).json()).jobs.map((j) => j.name));
+check('last runs are recorded', jobs.includes('showcase') && jobs.includes('housekeeping'), jobs.join(', '));
+const vis403 = await visitor.evaluate(async () => (await fetch('/api/admin/jobs/run', { method: 'POST', headers: { 'content-type': 'application/json', 'x-morgana': '1' }, body: '{}' })).status);
+check('visitors cannot run jobs', vis403 === 401 || vis403 === 403, String(vis403));
+await a.goto(BASE + '/p/' + pubId); await a.waitForSelector('.art img');
+await a.locator('.editor-bar button[aria-label="Public"]').click();
+await a.locator('.vis-menu button', { hasText: 'Private' }).click();
+await a.waitForSelector('.editor-bar button[aria-label="Private"]');
+const back = await visitor.evaluate(async () => (await (await fetch('/api/wall')).json()).featured.map((p) => p.id));
+check('making it private again takes it off the showcase at once', !back.includes(pubId));
+await a.locator('.vis-menu').count();
+await a.locator('.editor-bar button[aria-label="Private"]').click();
+await a.locator('.vis-menu button', { hasText: 'Public' }).click();
+await a.waitForSelector('.editor-bar button[aria-label="Public"]');
+
+await a.goto(BASE + '/mine'); await a.waitForSelector('.mine-head'); await a.waitForSelector('a.tile img.loaded', { timeout: 30000 });
+const total = await a.locator('a.tile').count();
+await a.locator('.mine-head .seg button', { hasText: 'Public' }).click(); await a.waitForTimeout(400);
+const nPub = await a.locator('a.tile').count();
+await shot(a, 'your-pieces-public');
+await a.locator('.mine-head .seg button', { hasText: 'Private' }).click(); await a.waitForTimeout(400);
+const nPriv = await a.locator('a.tile').count();
+await shot(a, 'your-pieces-private');
+await a.locator('.mine-head .seg button', { hasText: 'All' }).click(); await a.waitForTimeout(300);
+check('the filter splits Your pieces into public and private', nPub >= 1 && nPriv >= 1 && nPub + nPriv === total, `${nPub} public + ${nPriv} private = ${total}`);
+await a.goto(BASE + '/'); await a.waitForSelector('a.tile img.loaded', { timeout: 30000 });
+await a.locator('.side-link', { hasText: 'Refresh showcase' }).click();
+await a.waitForSelector('.toast', { timeout: 15000 });
+check('admins get a Refresh showcase button', /Showcase refreshed/.test(await a.locator('.toast').first().innerText()));
+
 check('no errors in the console', errors.length === 0, errors.slice(0, 5).join(' || '));
 await browser.close();
 const failed = results.filter((r) => !r.ok).length;

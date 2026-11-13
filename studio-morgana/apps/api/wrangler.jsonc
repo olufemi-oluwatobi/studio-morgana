@@ -24,6 +24,8 @@
   // the registrar's nameservers to Cloudflare's), remove the two slashes below and deploy: Cloudflare makes the
   // DNS records and certificates for both names. studiomorgana.xyz redirects to www (src/index.ts).
   // "routes": [{ "pattern": "www.studiomorgana.xyz", "custom_domain": true }, { "pattern": "studiomorgana.xyz", "custom_domain": true }],
+  // every six hours: pick the showcase from the public pieces, tidy expired rows (src/jobs.ts)
+  "triggers": { "crons": ["17 */6 * * *"] },
   "observability": { "enabled": true },
   "vars": {
     "AI_MODE": "workers-ai",

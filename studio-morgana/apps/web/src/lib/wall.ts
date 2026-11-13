@@ -1,5 +1,5 @@
 // The wall's state and actions: scope (all, yours, a project), type tabs, generating (skeletons → renders), references, removing.
-import { api, ApiError, streamLines, type Category, type PieceCard, type PieceFile, type Version } from './api';
+import { api, ApiError, streamLines, type Category, type PieceCard, type PieceFile, type Version, type Visibility } from './api';
 import { PIECE_TYPES, typeOfCompiled, type PieceType } from './types';
 import { sameScope, type Scope } from './router';
 import { bumpProject, pin } from './projects';
@@ -14,12 +14,12 @@ export const TABS: { id: Tab; label: string; soon?: boolean }[] = [
 ];
 
 export interface Tile {
-  key: string; id: string | null; title: string; category: Category | null; type: PieceType | null; mine: boolean;
+  key: string; id: string | null; title: string; category: Category | null; type: PieceType | null; mine: boolean; visibility?: Visibility;
   state: 'writing' | 'rendering' | 'ready' | 'failed';
   src: string | null; w: number | null; h: number | null; video: string | null;
 }
 export const fromCard = (p: PieceCard): Tile => ({
-  key: p.id, id: p.id, title: p.title, category: p.category, type: p.type, mine: p.mine, state: 'ready', src: p.sm, w: p.w, h: p.h, video: p.video,
+  key: p.id, id: p.id, title: p.title, category: p.category, type: p.type, mine: p.mine, visibility: p.visibility, state: 'ready', src: p.sm, w: p.w, h: p.h, video: p.video,
 });
 
 // what the wall shows: everything (yours, then featured), only yours, or one project's pins.
@@ -29,6 +29,8 @@ interface WallState {
   pieces: Tile[]; featured: Tile[]; next: number | null; loading: boolean; error: string | null;
 }
 export const wallStore = createStore<WallState>({ tab: 'all', scope: { kind: 'all' }, project: null, pieces: [], featured: [], next: 0, loading: false, error: null });
+export type VisFilter = 'all' | Visibility;
+export const visFilterStore = createStore<VisFilter>('all');
 export const draftsStore = createStore<Tile[]>([]);
 
 // a piece was saved (made, edited, remixed): put it first where it belongs

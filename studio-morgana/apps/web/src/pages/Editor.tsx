@@ -7,6 +7,7 @@ import { linkHandler, navigate } from '../lib/router';
 import { changedLines } from '../lib/diff';
 import { deletePiece, patchPiece, upsertPiece } from '../lib/wall';
 import { PinMenu } from '../components/PinMenu';
+import { VisibilityMenu } from '../components/VisibilityMenu';
 import { typeInfo } from '../lib/types';
 import { compile, warmCompiler, type Diagnostic, type Part } from '../render/compiler';
 import { PRIORITY } from '../render/host';
@@ -206,6 +207,10 @@ export default function Editor({ id }: { id: string }) {
           <button aria-pressed={view === 'parts'} onClick={() => setView('parts')}><Pins size={14} /> Parts</button>
         </div>
         <button className="icon-btn" aria-label="Undo" title="Undo" disabled={!d?.version.parentId || busy} onClick={undo}><Undo /></button>
+        {d?.piece.mine && (
+          <VisibilityMenu id={d.piece.id} value={d.piece.visibility ?? 'private'} ready={d.piece.status === 'ready'}
+            onChange={(v) => setD((p) => (p ? { ...p, piece: { ...p.piece, visibility: v } } : p))} />
+        )}
         {d && d.piece.status === 'ready' && (
           <PinMenu piece={{ id: d.piece.id, title: d.piece.title, src: d.piece.sm }} pinnedIn={d.piece.pinnedIn ?? []}
             onChange={(ids) => setD((p) => (p ? { ...p, piece: { ...p.piece, pinnedIn: ids } } : p))} />

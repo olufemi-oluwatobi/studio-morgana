@@ -2,8 +2,8 @@
 // Navigation uses the duotone weight; small actions use bold so they hold up at 14–16px.
 import { memo, type ComponentType } from 'react';
 import {
-  ArrowCounterClockwise, ArrowLeft as PArrowLeft, Check as PCheck, FolderSimple, PushPin, ArrowUp as PArrowUp, BoundingBox, DownloadSimple, ImageSquare,
-  List, MoonStars, Pause as PPause, PencilSimpleLine, Play as PPlay, Plus as PPlus, ShootingStar, Sparkle as PSparkle,
+  ArrowClockwise, ArrowCounterClockwise, ArrowLeft as PArrowLeft, Check as PCheck, FolderSimple, PushPin, ArrowUp as PArrowUp, BoundingBox, DownloadSimple, ImageSquare,
+  Globe as PGlobe, List, LockSimple, MoonStars, Pause as PPause, PencilSimpleLine, Play as PPlay, Plus as PPlus, ShootingStar, Sparkle as PSparkle,
   SquaresFour, SunDim, TrashSimple, UserCircle, X as PX, type IconProps, type IconWeight,
 } from '@phosphor-icons/react';
 
@@ -32,4 +32,7 @@ export const User = I(UserCircle, 'duotone');
 export const Send = I(PArrowUp, 'bold');
 export const Folder = I(FolderSimple, 'duotone');
 export const Pin = I(PushPin, 'duotone');
+export const Globe = I(PGlobe, 'duotone');
+export const Lock = I(LockSimple, 'duotone');
+export const Refresh = I(ArrowClockwise, 'bold');
 export const Check = I(PCheck, 'bold');

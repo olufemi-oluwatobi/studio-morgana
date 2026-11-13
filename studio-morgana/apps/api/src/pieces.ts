@@ -20,7 +20,7 @@ const IMAGE_TYPES: Record<string, string> = { 'image/png': 'png', 'image/jpeg': 
 const fileUrl = (key: string | null | undefined) => (key ? '/files/' + key : null);
 
 interface PieceRow {
-  id: string; owner: string; title: string; category: string; type: string; status: string; version_id: string | null;
+  id: string; owner: string; title: string; category: string; type: string; status: string; visibility: 'public' | 'private'; published: number | null; version_id: string | null;
   poster_w: number | null; poster_h: number | null; prompt: string | null; parent_id: string | null; deleted: number; created: number; updated: number;
 }
 interface CardRow extends PieceRow { sm: string | null; lg: string | null; video: string | null }
@@ -33,14 +33,16 @@ const CARD_SELECT = `SELECT p.*, o1.key AS sm, o2.key AS lg, o3.key AS video FRO
 
 function card(r: CardRow, who: Who) {
   return {
-    id: r.id, title: r.title, category: r.category, type: r.type, status: r.status, mine: r.owner === who.owner,
+    id: r.id, title: r.title, category: r.category, type: r.type, status: r.status, visibility: r.visibility, mine: r.owner === who.owner,
     w: r.poster_w, h: r.poster_h, sm: fileUrl(r.sm), lg: fileUrl(r.lg), video: fileUrl(r.video), updated: r.updated,
   };
 }
 
-async function getPiece(env: Env, pid: string): Promise<PieceRow> {
+// a piece is seen by its owner, and by anyone once it is public. Anything else is "not found", so a private id tells nothing.
+const canSee = (p: { owner: string; visibility: string }, who: Who) => p.owner === who.owner || p.visibility === 'public';
+async function getPiece(env: Env, pid: string, who?: Who): Promise<PieceRow> {
   const p = await env.DB.prepare('SELECT * FROM pieces WHERE id = ? AND deleted = 0').bind(pid).first<PieceRow>();
-  if (!p) fail(404, 'that piece does not exist');
+  if (!p || (who && !canSee(p, who))) fail(404, 'that piece does not exist');
   return p;
 }
 async function getVersion(env: Env, pid: string, vid?: string | null): Promise<VersionRow> {
@@ -65,6 +67,7 @@ async function addVersion(env: Env, pid: string, source: string, by: string, com
 // editing someone else's piece (a featured one, say) makes your own copy first: a remix
 async function editable(env: Env, who: Who, p: PieceRow): Promise<PieceRow> {
   if (p.owner === who.owner) return p;
+  if (!canSee(p, who)) fail(404, 'that piece does not exist');
   const nid = id(), t = now();
   const v = await getVersion(env, p.id);
   await env.DB.batch([
@@ -92,7 +95,7 @@ function versionOut(v: VersionRow) {
 
 const json = async <T>(c: Context<App>): Promise<T> => { try { return await c.req.json<T>(); } catch { fail(400, 'expected a JSON body'); } };
 
-// ── the wall: your pieces first (newest first), then the featured collection
+// ── the wall: your pieces first (newest first), then the featured and showcase pieces (public ones only)
 pieces.get('/wall', async (c) => {
   const who = c.get('who');
   const type = c.req.query('type'), cat = c.req.query('cat');
@@ -101,8 +104,10 @@ pieces.get('/wall', async (c) => {
   const offset = Math.max(0, Number(c.req.query('cursor') || 0) | 0);
   const limit = Math.min(60, Math.max(6, Number(c.req.query('limit') || 30) | 0));
   const featured = await c.env.DB.prepare(
-    `${CARD_SELECT} JOIN collection_items ci ON ci.piece_id = p.id AND ci.slug = 'featured'
-     WHERE p.deleted = 0 AND p.status = 'ready'${catSql} ORDER BY ci.position LIMIT ? OFFSET ?`,
+    // hand-picked first (in their order), then what the scheduled job chose from the public pieces
+    `${CARD_SELECT} JOIN collection_items ci ON ci.piece_id = p.id AND ci.slug IN ('featured', 'showcase')
+     WHERE p.deleted = 0 AND p.status = 'ready' AND p.visibility = 'public'${catSql}
+     GROUP BY p.id ORDER BY MIN(CASE ci.slug WHEN 'featured' THEN 0 ELSE 1 END), MIN(ci.position) LIMIT ? OFFSET ?`,
   ).bind(...binds, limit + 1, offset).all<CardRow>();
   const more = featured.results.length > limit;
   let mine: CardRow[] = [];
@@ -128,7 +133,7 @@ pieces.post('/generate', async (c) => {
   const refIds = (Array.isArray(body.refs) ? body.refs : []).filter((x) => typeof x === 'string').slice(0, 4);
   const refs: string[] = [];
   for (const rid of refIds) {
-    const v = await c.env.DB.prepare('SELECT v.source FROM pieces p JOIN versions v ON v.id = p.version_id WHERE p.id = ? AND p.deleted = 0').bind(rid).first<{ source: string }>();
+    const v = await c.env.DB.prepare("SELECT v.source FROM pieces p JOIN versions v ON v.id = p.version_id WHERE p.id = ? AND p.deleted = 0 AND (p.owner = ? OR p.visibility = 'public')").bind(rid, who.owner).first<{ source: string }>();
     if (v) refs.push(v.source);
   }
   // made from a project's wall: the new pieces are pinned to it
@@ -170,7 +175,7 @@ pieces.post('/generate', async (c) => {
 pieces.get('/pieces/:id', async (c) => {
   const who = c.get('who');
   const p = await c.env.DB.prepare(`${CARD_SELECT} WHERE p.id = ? AND p.deleted = 0`).bind(c.req.param('id')).first<CardRow>();
-  if (!p) fail(404, 'that piece does not exist');
+  if (!p || !canSee(p, who)) fail(404, 'that piece does not exist');
   const v = await getVersion(c.env, p.id, c.req.query('version'));
   const { results: vs } = await c.env.DB.prepare('SELECT id, n, by, command, created, fingerprint FROM versions WHERE piece_id = ? ORDER BY n DESC LIMIT 100').bind(p.id).all();
   const { results: pins } = await c.env.DB.prepare(
@@ -280,6 +285,26 @@ pieces.delete('/pieces/:id', async (c) => {
   await c.env.DB.prepare('UPDATE pieces SET deleted = 1, updated = ? WHERE id = ?').bind(now(), p.id).run();
   return c.json({ ok: true });
 });
+// ── public or private. Public: anyone with the link can open it, and the showcase job may pick it. Private: only you.
+pieces.post('/pieces/:id/visibility', async (c) => {
+  const who = c.get('who');
+  const body = await json<{ visibility?: string }>(c);
+  if (body.visibility !== 'public' && body.visibility !== 'private') fail(400, 'visibility is public or private');
+  const p = await getPiece(c.env, c.req.param('id'));
+  if (p.owner !== who.owner) fail(403, 'not your piece');
+  if (body.visibility === 'public') {
+    if (!who.userId) fail(403, 'sign in to make a piece public');
+    if (p.status !== 'ready') fail(409, 'let the piece finish rendering first');
+    if (p.visibility !== 'public') await c.env.DB.prepare("UPDATE pieces SET visibility = 'public', published = ? WHERE id = ?").bind(now(), p.id).run();
+  } else if (p.visibility !== 'private') {
+    await c.env.DB.batch([
+      c.env.DB.prepare("UPDATE pieces SET visibility = 'private', published = NULL WHERE id = ?").bind(p.id),
+      c.env.DB.prepare("DELETE FROM collection_items WHERE piece_id = ? AND slug = 'showcase'").bind(p.id),
+    ]);
+  }
+  return c.json({ visibility: body.visibility });
+});
+
 pieces.post('/pieces/:id/restore', async (c) => {
   const who = c.get('who');
   const r = await c.env.DB.prepare('UPDATE pieces SET deleted = 0, updated = ? WHERE id = ? AND owner = ?').bind(now(), c.req.param('id'), who.owner).run();

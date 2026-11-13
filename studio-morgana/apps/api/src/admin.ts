@@ -2,6 +2,7 @@
 import { Hono } from 'hono';
 import type { App } from './env';
 import { requireAdmin } from './auth';
+import { runJobs, type JobName } from './jobs';
 import { fail, id, now, str, titleOf } from './util';
 
 export const admin = new Hono<App>();
@@ -19,6 +20,10 @@ admin.put('/collections/:slug', async (c) => {
     c.env.DB.prepare('DELETE FROM collection_items WHERE slug = ?').bind(slug),
     ...ids.map((pid, i) => c.env.DB.prepare('INSERT OR IGNORE INTO collection_items (slug, piece_id, position) SELECT ?, id, ? FROM pieces WHERE id = ?').bind(slug, i, pid)),
   ]);
+  // hand-picked means public: they are shown to everyone
+  if (slug === 'featured' && ids.length) {
+    await c.env.DB.prepare(`UPDATE pieces SET visibility = 'public', published = COALESCE(published, ?) WHERE id IN (${ids.map(() => '?').join(',')})`).bind(now(), ...ids).run();
+  }
   const n = await c.env.DB.prepare('SELECT COUNT(*) AS n FROM collection_items WHERE slug = ?').bind(slug).first<{ n: number }>();
   return c.json({ slug, count: n?.n ?? 0 });
 });
@@ -52,4 +57,15 @@ admin.get('/drafts', async (c) => {
   const who = c.get('who');
   const { results } = await c.env.DB.prepare(`SELECT id, title FROM pieces WHERE owner = ? AND status = 'draft' AND deleted = 0 ORDER BY created`).bind(who.owner).all();
   return c.json({ drafts: results });
+});
+
+// the scheduler: run the jobs now (the cron does the same every six hours), and see when they last ran
+admin.post('/jobs/run', async (c) => {
+  const b = await c.req.json<{ job?: string }>().catch(() => ({} as { job?: string }));
+  const only = b.job === 'showcase' || b.job === 'housekeeping' ? (b.job as JobName) : 'all';
+  return c.json({ results: await runJobs(c.env, only) });
+});
+admin.get('/jobs', async (c) => {
+  const { results } = await c.env.DB.prepare('SELECT name, ran, ms, result FROM job_runs ORDER BY name').all<{ name: string; ran: number; ms: number; result: string }>();
+  return c.json({ jobs: results.map((r) => ({ ...r, result: JSON.parse(r.result) })) });
 });

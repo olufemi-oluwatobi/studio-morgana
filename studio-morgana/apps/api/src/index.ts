@@ -1,7 +1,8 @@
 // Studio Morgana Worker: /api (JSON), /files (R2, immutable), everything else is the web app (static assets).
+import { runJobs } from './jobs';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import type { App } from './env';
+import type { App, Env } from './env';
 import { identify } from './auth';
 import { account } from './account';
 import { pieces } from './pieces';
@@ -60,4 +61,8 @@ app.onError((err, c) => {
   return c.json({ error: 'something went wrong on our side' }, 500);
 });
 
-export default app;
+export default {
+  fetch: app.fetch,
+  // the cron trigger in wrangler.jsonc: refresh the showcase, tidy expired rows
+  scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext) { ctx.waitUntil(runJobs(env)); },
+};
