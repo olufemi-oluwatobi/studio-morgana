@@ -128,7 +128,7 @@ PUT /api/admin/collections/featured   { "pieceIds": ["…", "…"] }
 
 ## Seeding a deployed wall
 
-A new deployment has an empty database, so the wall is empty (the showcase only picks pieces people have made public). Seed the featured pieces once, from your computer (it renders them in a real browser, exactly like the app does):
+A new deployment has an empty database, so the wall is empty (the showcase only picks pieces people have made public). The simple way: sign up on the site, make your account an admin (`UPDATE users SET role = 'admin', verified = 1 WHERE email = '…'` in the D1 console), and press **Seed the wall** in the sidebar. It makes four starter pieces' worth of options in your browser and features them. Or, from your computer, seed the featured pieces once, from your computer (it renders them in a real browser, exactly like the app does):
 
 ```
 npx playwright install chromium

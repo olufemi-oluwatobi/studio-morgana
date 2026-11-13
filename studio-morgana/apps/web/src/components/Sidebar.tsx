@@ -4,7 +4,7 @@ import { memo, useEffect, useRef, useState, type DragEvent, type FormEvent } fro
 import { useStore, createStore } from '../lib/store';
 import { meStore, themeStore, toggleTheme, loadMe, toast } from '../lib/session';
 import { linkHandler, navigate, parse, useLocation } from '../lib/router';
-import { dragStore, loadWall } from '../lib/wall';
+import { dragStore, loadWall, seedWall } from '../lib/wall';
 import { createProject, loadProjects, pin, projectsStore } from '../lib/projects';
 import { api, type Project } from '../lib/api';
 import { Folder, Grid, Mine, Moon, Plus, Refresh, Sun, User, X } from './Icons';
@@ -86,6 +86,13 @@ export const Sidebar = memo(function Sidebar() {
     } catch (e) { toast((e as Error).message); }
     setRefreshing(false);
   };
+  const [seeding, setSeeding] = useState('');
+  const seed = async () => {
+    setSeeding('Seeding…');
+    try { const n = await seedWall((d, t) => setSeeding(`Making ${Math.min(d + 1, t)} of ${t}…`)); toast(`Seeded the wall with ${n} featured pieces`); }
+    catch (e) { toast((e as Error).message); }
+    setSeeding('');
+  };
   const signOut = async () => { await api('/auth/logout', { body: {} }); await loadMe(); void loadWall(); toast('Signed out'); };
 
   return (
@@ -119,6 +126,9 @@ export const Sidebar = memo(function Sidebar() {
           </button>
           {me?.user?.role === 'admin' && (
             <button className="side-link" onClick={() => void refreshShowcase()} disabled={refreshing}><Refresh /> {refreshing ? 'Refreshing…' : 'Refresh showcase'}</button>
+          )}
+          {me?.user?.role === 'admin' && (
+            <button className="side-link" onClick={() => void seed()} disabled={!!seeding}><Plus /> {seeding || 'Seed the wall'}</button>
           )}
           {me?.user ? (
             <div className="account">

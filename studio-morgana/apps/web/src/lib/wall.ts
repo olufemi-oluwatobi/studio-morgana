@@ -232,3 +232,29 @@ export async function deletePiece(t: { id: string | null; title: string }, after
 
 // ── dragging a tile
 export const dragStore = createStore<Tile | null>(null);
+
+// ── seeding an empty wall (admins): make a few starter pieces here in the browser, then feature them.
+// Featured pieces are public and sit first on everyone's wall; the showcase fills in behind them as people publish.
+const STARTERS = [
+  'a navy collectible card with chrome trim called "Aurora"',
+  'sale poster for the weekend, red and gold',
+  'minimal ivory piece called "Quiet"',
+  'rose gold collectible for a jazz club',
+];
+export async function seedWall(onStep: (done: number, total: number) => void) {
+  const before = new Set(wallStore.get().pieces.map((p) => p.id));
+  for (let i = 0; i < STARTERS.length; i++) {
+    onStep(i, STARTERS.length);
+    composerStore.set((c) => ({ ...c, text: STARTERS[i], refs: [] }));
+    await generate();
+  }
+  const ids = wallStore.get().pieces.filter((p) => p.mine && p.id && !before.has(p.id) && p.state === 'ready').map((p) => p.id as string);
+  if (!ids.length) throw new Error('nothing was made, so there is nothing to feature');
+  // keep what is already featured, put the new ones after
+  const cur = await api<{ pieces?: { id: string }[]; pieceIds?: string[] }>('/admin/collections/featured').catch(() => ({} as { pieces?: { id: string }[]; pieceIds?: string[] }));
+  const had = cur.pieceIds ?? cur.pieces?.map((p) => p.id) ?? [];
+  await api('/admin/collections/featured', { method: 'PUT', body: { title: 'Featured', pieceIds: [...had, ...ids] } });
+  onStep(STARTERS.length, STARTERS.length);
+  await loadWall();
+  return ids.length;
+}

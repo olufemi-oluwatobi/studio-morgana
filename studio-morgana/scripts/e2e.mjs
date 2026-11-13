@@ -351,6 +351,14 @@ await a.locator('.side-link', { hasText: 'Refresh showcase' }).click();
 await a.waitForSelector('.toast', { timeout: 15000 });
 check('admins get a Refresh showcase button', /Showcase refreshed/.test(await a.locator('.toast').first().innerText()));
 
+// ── seeding an empty wall from the browser (admin)
+await a.goto(BASE + '/'); await a.waitForSelector('a.tile img.loaded', { timeout: 30000 });
+const fBefore = await a.evaluate(async () => (await (await fetch('/api/admin/collections/featured')).json()).pieceIds.length);
+await a.locator('.side-link', { hasText: 'Seed the wall' }).click();
+await a.waitForFunction(() => [...document.querySelectorAll('.toast')].some((t) => /Seeded the wall/.test(t.textContent)), null, { timeout: 240000 });
+const fAfter = await a.evaluate(async () => (await (await fetch('/api/admin/collections/featured')).json()).pieceIds.length);
+check('Seed the wall makes pieces in the browser and features them', fAfter > fBefore, `${fBefore} → ${fAfter} featured`);
+
 check('no errors in the console', errors.length === 0, errors.slice(0, 5).join(' || '));
 await browser.close();
 const failed = results.filter((r) => !r.ok).length;
