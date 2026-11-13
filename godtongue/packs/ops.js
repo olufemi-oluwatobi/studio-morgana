@@ -96,17 +96,61 @@ export default function ops(reg) {
       step(ctx, 'enamel', area, { material: matRef(ctx, mat, 'enamel'), ...(Object.keys(lk).length ? { params: lk } : {}) });
     },
   });
+  // photo-editor adjustments as one filter: blurred 6, brightness 1.2, contrast 1.1, saturation 0.5, hue 40, grayscale, sepia, inverted
+  const filterOf = (ctx, mods) => {
+    const fs = [], f = (k, css, d) => { if (mods[k] != null) fs.push(`${css}(${d(num(mods[k]))})`); };
+    f('blurred', 'blur', () => ctx.px(mods.blurred) + 'px'); f('blur', 'blur', () => ctx.px(mods.blur) + 'px');
+    f('brightness', 'brightness', v => v); f('contrast', 'contrast', v => v); f('saturation', 'saturate', v => v); f('hue', 'hue-rotate', v => v + 'deg');
+    if (flag(mods, 'grayscale', 'greyscale', 'monochrome') || (flag(mods, 'black') && flag(mods, 'white'))) fs.push('grayscale(1)');
+    if (flag(mods, 'sepia')) fs.push('sepia(1)');
+    if (flag(mods, 'inverted', 'negative')) fs.push('invert(1)');
+    return fs.join(' ');
+  };
+  reg.verb({
+    words: ['adjust', 'filter'],
+    help: 'An adjustment layer: changes everything already painted under an area. blurred 12 (frosted glass), brightness 1.1, contrast 1.2, saturation 0.6, hue 40, grayscale, sepia, inverted. Write it after the things it should change.',
+    examples: ['adjust the panel, blurred 14, brightness 1.1.', 'adjust the card, grayscale, contrast 1.2.'],
+    run(ctx, toks) {
+      const { area, mods } = head(ctx, toks), filter = filterOf(ctx, mods);
+      if (!filter) ctx.err('adjust it how?', 'e.g. "adjust the panel, blurred 14, brightness 1.1."');
+      step(ctx, 'adjust', area, { params: { filter, ...look(mods) } });
+    },
+  });
+  reg.verb({
+    words: ['grain', 'noise'],
+    help: 'Film grain over an area, for texture: an amount from 0 to 1 (default 0.25). "coarse" makes bigger grains.',
+    examples: ['grain the card, 0.3.', 'grain the card, 0.2, coarse.'],
+    run(ctx, toks) {
+      const { area, mods } = head(ctx, toks);
+      step(ctx, 'grain', area, { params: { amount: Math.max(0, Math.min(1, num((mods._nums || [])[0] ?? mods.amount, .25))), size: flag(mods, 'coarse') ? 2 : 1 } });
+    },
+  });
+  reg.verb({
+    words: ['stroke'],
+    help: 'A flat outline round an area, outside its edge: "stroke the title in #ffffff, 6 wide." (Without a colour, "stroke the petal, 3 wide" draws a shape as a line, like "hollow".)',
+    examples: ['stroke the title in #ffffff, 6 wide.', 'stroke the badge in gold, 10 wide, 80% opacity.'],
+    run(ctx, toks, s) {
+      if (!toks.some(t => isWord(t, 'in', 'with', 'using'))) return ctx.reg.verbs.get('hollow').run(ctx, toks, s);
+      const { area, mat, mods } = head(ctx, toks, { material: true });
+      if (!mat) ctx.err('stroke it in what colour?', 'e.g. "stroke the title in #ffffff, 6 wide."');
+      const w = mods.wide != null ? ctx.px(mods.wide) : 4, lk = look(mods);
+      const ring = { ...area, terms: area.terms.map(t => ({ ...t, mod: 'halo', r: w })) };
+      const key = mat.type === 'color' || mat.type === 'enamel' ? matRef(ctx, mat, 'enamel') : matRef(ctx, mat, 'metal');
+      step(ctx, mat.type === 'color' || mat.type === 'enamel' ? 'enamel' : 'plate', ring, { material: key, ...(Object.keys(lk).length ? { params: lk } : {}) });
+    },
+  });
   // ── effects that sit in the colour only: a soft shadow under an area, a glow round it
   const offsets = (ctx, m) => [(m.right != null ? ctx.px(m.right) : 0) - (m.left != null ? ctx.px(m.left) : 0), (m.down != null ? ctx.px(m.down) : 0) - (m.up != null ? ctx.px(m.up) : 0)];
   reg.verb({
     words: ['shadow'],
-    help: 'A soft drop shadow under an area. Write it before the steps that colour the area, so the area sits on its shadow. Defaults: 10 down, blur 18, black, 45% opacity.',
-    examples: ['shadow the headline, 14 down, 6 right, blur 24, in #000000, 50% opacity.'],
+    help: 'A soft drop shadow under an area. Write it before the steps that colour the area, so the area sits on its shadow. Defaults: 10 down, blur 18, black, 45% opacity. Add "inside" for an inner shadow (written after the colour), which makes the area look cut in.',
+    examples: ['shadow the headline, 14 down, 6 right, blur 24, in #000000, 50% opacity.', 'shadow the panel, inside, 6 down, blur 16, 50% opacity.'],
     run(ctx, toks) {
       const { area, mods } = head(ctx, toks);
       const col = [mods.in, mods.with].find(t => t?.t === 'color')?.v || '#000000';
       const has = ['down', 'up', 'left', 'right'].some(k => mods[k] != null), [dx, dy] = has ? offsets(ctx, mods) : [0, 10];
-      step(ctx, 'shadow', area, { params: { dx, dy, blur: mods.blur != null ? ctx.px(mods.blur) : mods.soft != null ? ctx.px(mods.soft) : 18, color: col, opacity: look(mods).opacity ?? .45 } });
+      const inner = flag(mods, 'inside', 'inner', 'inset') || mods.inside !== undefined;   // an inner shadow falls inside the area, from its edge
+      step(ctx, inner ? 'inshadow' : 'shadow', area, { params: { dx, dy, blur: mods.blur != null ? ctx.px(mods.blur) : mods.soft != null ? ctx.px(mods.soft) : 18, color: col, opacity: look(mods).opacity ?? .45 } });
     },
   });
   reg.verb({
@@ -212,7 +256,7 @@ export default function ops(reg) {
 
   reg.verb({
     words: ['print'],
-    help: 'Print a photo or illustration into an area (default: the window); printed in a shape, the photo fills that shape. Adjust it: blurred 6, brightness 1.2, contrast 1.1, saturation 0.5, hue 40, grayscale, sepia, inverted, 70% opacity, multiply. "on foil" prints see-through onto metal.',
+    help: 'Print a photo or illustration into an area (default: the window); printed in a shape, the photo fills that shape. Adjust it: duotone #1b1145 and #ffb347, blurred 6, brightness 1.2, contrast 1.1, saturation 0.5, hue 40, grayscale, sepia, inverted, 70% opacity, multiply. "on foil" prints see-through onto metal.',
     examples: ['print @photo.jpg in the badge, grayscale, contrast 1.2.', 'print @marilyn.jpg in the window, focused at 0.5 0.2.', 'print @star.png on foil, white under the figure.'],
     run(ctx, toks) {
       const a = toks.find(t => t.t === 'asset');
@@ -233,13 +277,9 @@ export default function ops(reg) {
         image.rect = [x0, y0, Math.max(...xs) - x0, Math.max(...ys) - y0].map(v => Math.round(v * 10) / 10);
       }
       // adjustments, as in a photo editor
-      const fs = [], f = (k, css, d) => { if (mods[k] != null) fs.push(`${css}(${d(num(mods[k]))})`); };
-      f('blurred', 'blur', v => ctx.px(mods.blurred) + 'px'); f('blur', 'blur', v => ctx.px(mods.blur) + 'px');
-      f('brightness', 'brightness', v => v); f('contrast', 'contrast', v => v); f('saturation', 'saturate', v => v); f('hue', 'hue-rotate', v => v + 'deg');
-      if (flag(mods, 'grayscale', 'greyscale', 'monochrome') || (flag(mods, 'black') && flag(mods, 'white'))) fs.push('grayscale(1)');
-      if (flag(mods, 'sepia')) fs.push('sepia(1)');
-      if (flag(mods, 'inverted', 'negative')) fs.push('invert(1)');
-      if (fs.length) image.filter = fs.join(' ');
+      const filter = filterOf(ctx, mods); if (filter) image.filter = filter;
+      // duotone: shadows take the first colour, highlights the second
+      if (mods.duotone != null) { const cols = [].concat(mods.duotone).filter(t => t?.t === 'color').map(t => t.v); if (cols.length < 2) ctx.err('duotone needs two colours', 'e.g. "duotone #1b1145 and #ffb347"'); image.duotone = cols.slice(0, 2); }
       const lk = look(mods);
       const extra = Object.keys(lk).length ? { params: lk } : {};
       if (flag(mods, 'foil') || mods.on === 'foil') {

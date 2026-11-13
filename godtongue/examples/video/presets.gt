@@ -1,0 +1,23 @@
+-- Motion presets: entrances (popping, rising, zooming), exits in place, and motion that keeps going.
+create a video called presets, 1080 by 1080, on #14121a, 5 s long.
+make a card called badge from cardstock, 240 by 240, at 250 300.
+make a card called wheel from cardstock, 240 by 240, at 540 300.
+make a card called tag from cardstock, 240 by 240, at 830 300.
+make a card called banner from cardstock, 820 by 240, at 540 760.
+on the badge.
+enamel the card in a radial gradient from #fff6c9 to #ff7a3d.
+on the wheel.
+enamel the card in a gradient from #5ad1c9 to #8f7bff, angled 45.
+on the tag.
+enamel the card in #ff5d8f.
+on the banner.
+enamel the card in a gradient from #3a1c71 to #d76d77 to #ffaf7b, angled 0.
+bring in the badge at 0.2 s, popping.
+bring in the wheel at 0.5 s, rising.
+bring in the tag at 0.8 s, zooming.
+bring in the banner at 1.1 s, fading.
+float the badge, 16 high, every 2 s.
+turn the wheel, every 3 s.
+sway the tag, 8 degrees, every 1.5 s.
+pulse the banner, by 0.04, every 1.2 s.
+remove the banner at 4.3 s, shrinking.

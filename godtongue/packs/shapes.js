@@ -4,7 +4,8 @@
 // Objects:       "define a rose with $size 60 as: … end." then "place a rose at 620 900, size 90."
 // An element is a layer whose geometry is kept as points, so every manipulation works on every element.
 import { readMods, readName, isWord, dropArticles, num, flag, PREPS } from '../core/phrases.js';
-import { placeCard, flipElement } from './elements.js';
+import { placeCard, flipElement, loopElement } from './elements.js';
+import { textBox } from './text.js';
 
 const TAU = Math.PI * 2;
 const r1 = (v) => Math.round(v * 10) / 10;
@@ -32,6 +33,16 @@ function smooth(P, closed, k = 14) {              // Catmull-Rom through every p
     }
   }
   if (!closed) o.push(P.at(-1));
+  return o;
+}
+// round the corners of a polygon by r
+function roundPoly(P, r, k = 8) {
+  const o = [], n = P.length;
+  for (let i = 0; i < n; i++) {
+    const a = P[(i + n - 1) % n], b = P[i], c = P[(i + 1) % n], la = Math.hypot(a[0] - b[0], a[1] - b[1]), lc = Math.hypot(c[0] - b[0], c[1] - b[1]), d = Math.min(r, la / 2, lc / 2);
+    const p0 = [b[0] + (a[0] - b[0]) / la * d, b[1] + (a[1] - b[1]) / la * d], p1 = [b[0] + (c[0] - b[0]) / lc * d, b[1] + (c[1] - b[1]) / lc * d];
+    for (let j = 0; j <= k; j++) { const t = j / k, u = 1 - t; o.push([u * u * p0[0] + 2 * u * t * b[0] + t * t * p1[0], u * u * p0[1] + 2 * u * t * b[1] + t * t * p1[1]]); }
+  }
   return o;
 }
 export function bbox(shapes) {
@@ -119,6 +130,24 @@ export default function shapes(reg) {
     (ctx, m) => { const [x, y] = at(ctx, m), [w, h] = m.size ? m.size.map(ctx.px) : [100, m.big ? ctx.px(m.big) : 60]; return [{ pts: rectangle(x, y, w, h, m.corners != null ? ctx.px(m.corners) : 0), closed: true, ...paintOf(ctx, m) }]; });
   el('star', ['stars', 'sparkle', 'sparkles'], 'A star: "5 points, 40 big, 16 inner".', { points: 5, big: 40, inner: 16, at: '0 0' },
     (ctx, m) => { const [x, y] = at(ctx, m), R = m.big != null ? ctx.px(m.big) : 40; return [{ pts: star(x, y, num(m.points, 5), R, m.inner != null ? ctx.px(m.inner) : R * .4), closed: true, ...paintOf(ctx, m) }]; });
+  const ngon = (name, words, n, rot, help) => el(name, words, help, { big: 40, at: '0 0' },
+    (ctx, m) => { const [x, y] = at(ctx, m), R = m.big != null ? ctx.px(m.big) : 40, [w, h] = m.size ? m.size.map(ctx.px) : [R * 2, R * 2];
+      const pts = Array.from({ length: n }, (_, i) => { const a = rot + i / n * TAU; return [x + Math.cos(a) * w / 2, y + Math.sin(a) * h / 2]; });
+      return [{ pts: m.corners != null ? roundPoly(pts, ctx.px(m.corners)) : pts, closed: true, ...paintOf(ctx, m) }]; });
+  ngon('triangle', ['triangles'], 3, -Math.PI / 2, 'A triangle pointing up: "60 big" or "W by H". "corners 8" rounds it.');
+  ngon('diamond', ['diamonds', 'rhombus'], 4, -Math.PI / 2, 'A diamond: "60 big" or "W by H".');
+  ngon('pentagon', ['pentagons'], 5, -Math.PI / 2, 'A pentagon: "60 big".');
+  ngon('hexagon', ['hexagons'], 6, 0, 'A hexagon: "60 big". "corners 8" rounds it.');
+  ngon('octagon', ['octagons'], 8, Math.PI / 8, 'An octagon: "60 big".');
+  el('heart', ['hearts'], 'A heart: "60 big".', { big: 40, at: '0 0' },
+    (ctx, m) => { const [x, y] = at(ctx, m), R = (m.big != null ? ctx.px(m.big) : 40) / 16;
+      return [{ pts: Array.from({ length: 80 }, (_, i) => { const t = i / 80 * TAU; return [x + 16 * Math.sin(t) ** 3 * R, y - (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * R - 2.5 * R]; }), closed: true, ...paintOf(ctx, m) }]; });
+  el('arrow', ['arrows'], 'A block arrow pointing right, "W by H" (turn it to point elsewhere): "draw an arrow called go, 240 by 90, at 540 800."', { size: '200 by 80', at: '0 0' },
+    (ctx, m) => { const [x, y] = at(ctx, m), [w, h] = m.size ? m.size.map(ctx.px) : [200, 80], hd = Math.min(w * .5, h * .9), s = h * .22;
+      return [{ pts: [[-w / 2, -s], [w / 2 - hd, -s], [w / 2 - hd, -h / 2], [w / 2, 0], [w / 2 - hd, h / 2], [w / 2 - hd, s], [-w / 2, s]].map(([a, b]) => [x + a, y + b]), closed: true, ...paintOf(ctx, m) }]; });
+  el('bubble', ['speech bubble', 'bubbles', 'callout'], 'A speech bubble, "W by H", with its tail at the bottom left: "draw a bubble called quote, 500 by 260, corners 40, at 540 400."', { size: '300 by 180', corners: 30, at: '0 0' },
+    (ctx, m) => { const [x, y] = at(ctx, m), [w, h] = m.size ? m.size.map(ctx.px) : [300, 180], body = rectangle(x, y, w, h, m.corners != null ? ctx.px(m.corners) : 30), t = Math.min(w, h) * .22;
+      return [{ pts: body, closed: true, ...paintOf(ctx, m) }, { pts: [[x - w * .28, y + h / 2 - 2], [x - w * .34, y + h / 2 + t], [x - w * .12, y + h / 2 - 2]], closed: true, ...paintOf(ctx, m) }]; });
   el('spiral', ['spirals', 'curl', 'swirl'], 'A spiral: "20 big, 1.5 turns". Drawn as a line.', { big: 20, turns: 1.5, wide: 3 },
     (ctx, m) => { const [x, y] = at(ctx, m); return [{ pts: spiral(x, y, m.big != null ? ctx.px(m.big) : 20, num(m.turns, 1.5)), closed: false, paint: 'stroke', width: m.wide != null ? ctx.px(m.wide) : 3 }]; });
   el('shape', ['polygon', 'outline shape'], 'A closed shape with straight sides: "from 0 0 to 100 0 to 50 80". Use "through" for smooth corners.', { from: 'points' },
@@ -158,6 +187,7 @@ export default function shapes(reg) {
     words: ['turn', 'rotate', 'spin', 'tilt'], help: 'Turn elements by degrees, round their centre (inside a definition: round 0 0) or "around x y".',
     examples: ['turn the plane 35 degrees.', 'turn the petal 72 degrees around 0 0.'],
     run(ctx, toks) {
+      if (loopElement(ctx, toks, 'spin')) return;   // "turn the wheel, every 4 s": a stage element that keeps spinning
       each(ctx, toks, (L, m, rest) => {
         const a = deg(rest.find(t => t.t === 'num')); if (a == null) ctx.err('turn it how far?', 'e.g. "turn it 30 degrees"');
         L.shapes = mapShapes(L.shapes, T.turn(a, pivot(ctx, m, L.shapes)));
@@ -197,8 +227,8 @@ export default function shapes(reg) {
     },
   });
   reg.verb({
-    words: ['copy', 'repeat', 'duplicate'], help: 'Copy elements: "5 times around 0 0" (a ring), "4 times, 120 apart" (a row), or once with changes ("scale 0.6, turn 36, called inner").',
-    examples: ['copy the petal 5 times around 0 0.', 'copy the petals, scale 0.6, turn 36, called inner-petals.', 'copy the star 4 times, 90 apart.'],
+    words: ['copy', 'repeat', 'duplicate'], help: 'Copy elements: "5 times around 0 0" (a ring), "4 times, 120 apart" (a row), "6 times, 60 apart, 4 rows" (a grid), or once with changes ("scale 0.6, turn 36, called inner").',
+    examples: ['copy the petal 5 times around 0 0.', 'copy the petals, scale 0.6, turn 36, called inner-petals.', 'copy the star 4 times, 90 apart.', 'copy the dot 8 times, 50 apart, 5 rows.'],
     run(ctx, toks) {
       const t = dropArticles(toks), { names, i } = targets(ctx, t);
       let rest = t.slice(i), times = null;
@@ -213,7 +243,9 @@ export default function shapes(reg) {
         }
         if (times) {                                // row
           const step = m.apart != null ? ctx.px(m.apart) : (bbox(base)[2] - bbox(base)[0]) * 1.2, down = flag(m, 'down', 'downwards', 'vertically');
-          L.shapes = []; for (let k = 0; k < times; k++) L.shapes.push(...mapShapes(base, T.move(down ? 0 : k * step, down ? k * step : 0)));
+          // "6 times, 60 apart, 4 rows" makes a grid; the rows are as far apart as the copies unless "50 down" says otherwise
+          const rows = m.rows != null ? Math.max(1, num(m.rows)) : m.row != null ? Math.max(1, num(m.row)) : 1, rstep = m.down?.t === 'num' ? ctx.px(m.down) : step;
+          L.shapes = []; for (let r = 0; r < rows; r++) for (let k = 0; k < times; k++) L.shapes.push(...mapShapes(base, rows > 1 ? T.move(k * step, r * rstep) : T.move(down ? 0 : k * step, down ? k * step : 0)));
           refresh(L); ctx.it = n; continue;
         }
         let s = base.map(x => ({ ...x }));           // one changed copy, a new element
@@ -228,7 +260,7 @@ export default function shapes(reg) {
     },
   });
   reg.verb({
-    words: ['hollow', 'stroke'], help: 'Draw elements as lines instead of solid: "4 wide".',
+    words: ['hollow'], help: 'Draw elements as lines instead of solid: "4 wide".',
     examples: ['hollow the petals, 3 wide.'],
     run(ctx, toks) { each(ctx, toks, (L, m) => { L.shapes = L.shapes.map(s => ({ ...s, paint: 'stroke', width: m.wide != null ? ctx.px(m.wide) : 3 })); }); },
   });
@@ -248,6 +280,55 @@ export default function shapes(reg) {
       const t = dropArticles(toks), { names, i } = targets(ctx, t, 0, new Set([...PREPS, 'as', 'called', 'into']));
       const nm = readName(t, i + 1, new Set()).name || 'group';
       ctx.addLayer(nm, element(names.flatMap(n => layerOf(ctx, n).shapes.map(s => ({ ...s })))));
+    },
+  });
+
+  // ── align and distribute: shapes and text alike, by their boxes
+  const boxOf = (L) => L.shapes ? bbox(L.shapes) : L.box || null;
+  const nudge = (L, dx, dy) => {
+    if (L.shapes) { L.shapes = mapShapes(L.shapes, T.move(dx, dy)); refresh(L); }
+    else if (L.at) { L.at = [L.at[0] + dx, L.at[1] + dy]; if (L.box) L.box = [L.box[0] + dx, L.box[1] + dy, L.box[2] + dx, L.box[3] + dy]; }
+  };
+  const SIDES = ['left', 'right', 'top', 'bottom', 'centre', 'center', 'middle', 'horizontally', 'vertically'];
+  const picked = (ctx, toks) => {
+    // commas between names are part of the list ("the one, the two and the three")
+    const all = dropArticles(toks), stops = new Set([...TARGET_STOPS, ...SIDES, 'and']);
+    const t = all.map((x, k) => { if (x.t !== ',') return x; const n = k + 1 + (isWord(all[k + 1], 'and') ? 1 : 0);
+      return all[n]?.t === 'word' && !stops.has(all[n].v) && ctx.doc.layers[ctx.resolve(readName(all, n, stops).name)] ? { t: 'word', v: 'and', raw: 'and' } : x; });
+    const { names, i } = targets(ctx, t, 0, new Set([...TARGET_STOPS, ...SIDES, 'evenly']));
+    const Ls = names.map(n => ctx.doc.layers[n]).filter(L => boxOf(L));
+    if (!Ls.length) ctx.err('nothing here can be moved', 'name shapes or text, e.g. "align the title and the badge to the left."');
+    ctx.it = names.length > 1 ? names : names[0];
+    return { Ls, words: new Set(t.slice(i).filter(x => x.t === 'word').map(x => x.v)), mods: readMods(t.slice(i)) };
+  };
+  reg.verb({
+    words: ['align', 'line-up'],
+    help: 'Line shapes and text up by their edges or centres: left, right, top, bottom, centre (left to right) or middle (top to bottom). Several things align to the group they make; one thing aligns to the canvas. "20 in" keeps a margin from the canvas edge.',
+    examples: ['align the title and the body to the left.', 'align the badge to the centre.', 'align the logo to the right, 60 in.'],
+    run(ctx, toks) {
+      const { Ls, words, mods } = picked(ctx, toks), card = ctx.doc.card.rect, one = Ls.length === 1, inset = mods.in?.t === 'num' ? ctx.px(mods.in) : 0;
+      const boxes = Ls.map(boxOf), g = one ? [card[0] + inset, card[1] + inset, card[0] + card[2] - inset, card[1] + card[3] - inset] : [Math.min(...boxes.map(b => b[0])), Math.min(...boxes.map(b => b[1])), Math.max(...boxes.map(b => b[2])), Math.max(...boxes.map(b => b[3]))];
+      const how = SIDES.filter(s => words.has(s)); if (!how.length) ctx.err('align them how?', 'left, right, top, bottom, centre or middle');
+      Ls.forEach((L, k) => { const b = boxes[k]; let dx = 0, dy = 0;
+        for (const h of how) {
+          if (h === 'left') dx = g[0] - b[0]; else if (h === 'right') dx = g[2] - b[2]; else if (h === 'top') dy = g[1] - b[1]; else if (h === 'bottom') dy = g[3] - b[3];
+          else if (h === 'centre' || h === 'center' || h === 'horizontally') dx = (g[0] + g[2]) / 2 - (b[0] + b[2]) / 2; else dy = (g[1] + g[3]) / 2 - (b[1] + b[3]) / 2;
+        }
+        nudge(L, dx, dy); });
+    },
+  });
+  reg.verb({
+    words: ['distribute', 'space'],
+    help: 'Space three or more shapes or texts evenly between the first and the last: "horizontally" (default) or "vertically". "40 apart" sets the gap instead.',
+    examples: ['distribute the one, the two and the three horizontally.', 'distribute the rows vertically, 24 apart.'],
+    run(ctx, toks) {
+      const { Ls, words, mods } = picked(ctx, toks), v = words.has('vertically') || words.has('down'), a = v ? 1 : 0;
+      if (Ls.length < 2) ctx.err('distribute needs at least two things');
+      const items = Ls.map(L => ({ L, b: boxOf(L) })).sort((p, q) => p.b[a] - q.b[a]);
+      const total = items.reduce((s, it) => s + it.b[a + 2] - it.b[a], 0), span = items.at(-1).b[a + 2] - items[0].b[a];
+      const gap = mods.apart?.t === 'num' ? ctx.px(mods.apart) : (span - total) / (items.length - 1);
+      let pos = items[0].b[a];
+      for (const it of items) { const d = pos - it.b[a]; nudge(it.L, v ? 0 : d, v ? d : 0); pos += it.b[a + 2] - it.b[a] + gap; }
     },
   });
 
@@ -302,7 +383,7 @@ function place(ctx, obj, m, name, [x, y]) {
   for (const n of fresh) {
     const L = ctx.doc.layers[n]; delete ctx.doc.layers[n];
     if (L.shapes) { L.shapes = mapShapes(L.shapes, fx, k); refresh(L); all.push(...L.shapes.map(s => ({ ...s }))); }
-    else if (L.kind === 'text' || L.kind === 'signature') { const key = L.at ? 'at' : 'center'; L[key] = fx(L[key]); }
+    else if (L.kind === 'text' || L.kind === 'signature') { const key = L.at ? 'at' : 'center'; L[key] = fx(L[key]); if (L.kind === 'text') L.box = textBox(L); }
     ctx.doc.layers[`${name}-${n}`] = L;
   }
   ctx.addLayer(name, element(all, { object: obj.name, parts: fresh.map(n => `${name}-${n}`) }));

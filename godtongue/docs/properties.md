@@ -30,3 +30,16 @@ once order 5.1 lands; until then the timed words are the ones marked "timed".
 | placed paths | `draw a path called leaf, "M0 0 C40 -70 …Z", at 720 640, scale 1.6, turned -24.` | layer | no | done |
 | `fade in`, `fade out` | `fade in the title at 0.4 s, over 0.8 s.` | element | timed | done |
 | easing | `glide the ball to 880 300, at 0.5 s, over 1.4 s, bounce.` (linear, ease-in, ease-out, overshoot, bounce, elastic) | element, camera | timed | done |
+| measured text | wrapping (`880 wide`) uses each font's real widths (`core/font-metrics.js`, rebuilt by `node tools/font-metrics.cjs`) | layer | no | done |
+| `fit` | `write "LAUNCH DAY" …, fit 780.` (the size that makes the longest line that wide) | layer | no | done |
+| text `turned` | `write "NEW!" …, turned -6.` | layer | no | done |
+| `stroke … in` | `stroke the title in #1b1145, 8 wide.` (a flat outline outside the edge) | step | not yet | done |
+| inner shadow | `shadow the panel, inside, 6 down, blur 10, 45% opacity.` | step (after the colour) | not yet | done |
+| `adjust` | `adjust the glass, blurred 18, brightness 1.15.` (an adjustment layer over what is beneath) | step | not yet | done |
+| `duotone` | `print @photo.jpg in the photo, duotone #1b1145 and #ff9a5a.` | step | no | done |
+| `grain` | `grain the card, 0.22.` | step | not yet | done |
+| more shapes | triangle, diamond, pentagon, hexagon, octagon, heart, arrow, bubble | layer | no | done |
+| `align`, `distribute` | `align the title and the when to the left.` `distribute the one, the two and the three horizontally.` | layers | no | done |
+| grid of copies | `copy the dot 8 times, 46 apart, 5 rows.` | layer | no | done |
+| entrances and exits | `bring in the badge at 0.2 s, popping.` (popping, rising, zooming, fading) · `remove the banner at 4.3 s, shrinking.` (shrinking, fading, sinking) | element | timed | done |
+| looping motion | `float the badge, 16 high, every 2 s.` `pulse …, by 0.04, every 1.2 s.` `sway …, 8 degrees, every 1.5 s.` `turn the wheel, every 3 s.` | element | timed | done |

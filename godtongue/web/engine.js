@@ -92,6 +92,18 @@
         if (x1 >= 0) P.boxes[i] = [x0 * sc, y0 * sc, (x1 - x0 + 1) * sc, (y1 - y0 + 1) * sc];
       }
       if (s.image) P.photos[i] = await load(s.image.src);
+      if (s.image?.duotone) {              // shadows take the first colour, highlights the second
+        const ph = P.photos[i], k = Math.min(1, 2000 / Math.max(ph.width, ph.height)), dc = mk(Math.round(ph.width * k), Math.round(ph.height * k)), dx = dc.getContext('2d');
+        dx.drawImage(ph, 0, 0, dc.width, dc.height); const im = dx.getImageData(0, 0, dc.width, dc.height), d = im.data;
+        const [A, B] = s.image.duotone.map(hx => [1, 3, 5].map(j => parseInt(hx.slice(j, j + 2), 16)));
+        for (let q = 0; q < d.length; q += 4) { const l = (d[q] * .299 + d[q + 1] * .587 + d[q + 2] * .114) / 255; d[q] = A[0] + (B[0] - A[0]) * l; d[q + 1] = A[1] + (B[1] - A[1]) * l; d[q + 2] = A[2] + (B[2] - A[2]) * l; }
+        dx.putImageData(im, 0, 0); P.photos[i] = dc;
+      }
+      if (s.op === 'grain' && !P.grain) {  // one seeded tile of noise per face
+        const gc = mk(256, 256), gx = gc.getContext('2d'), gi = gx.createImageData(256, 256), gr = rng(seed + 4242);
+        for (let q = 0; q < gi.data.length; q += 4) { const v = gr() * 255; gi.data[q] = gi.data[q + 1] = gi.data[q + 2] = v; gi.data[q + 3] = 255; }
+        gx.putImageData(gi, 0, 0); P.grain = gc;
+      }
       if (s.op === 'spray' && s.kind === 'paint') {
         const p = s.params, sten = mk(w, h), sx = sten.getContext('2d');
         sx.filter = p.soft ? `blur(${Math.max(2, p.away_cm * .8)}px)` : 'none'; sx.drawImage(P.masks[i], 0, 0);
@@ -207,6 +219,24 @@
           c.globalCompositeOperation = paper ? 'multiply' : 'source-over'; c.globalAlpha = p.opacity ?? .45; c.drawImage(sc, 0, 0); c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
           break;
         }
+        case 'inshadow': {
+          // everything outside the area, blurred and shifted, shows only inside it: the area looks cut into the surface
+          const sc = mk(w, h), sx = sc.getContext('2d'), inv = mk(w + 400, h + 400), ix = inv.getContext('2d');
+          ix.fillStyle = p.color || '#000'; ix.fillRect(0, 0, w + 400, h + 400); ix.globalCompositeOperation = 'destination-out'; ix.drawImage(mask, 200, 200);
+          sx.filter = `blur(${p.blur ?? 18}px)`; sx.drawImage(inv, (p.dx || 0) - 200, (p.dy ?? 10) - 200); sx.filter = 'none';
+          sx.globalCompositeOperation = 'destination-in'; sx.drawImage(mask, 0, 0);
+          c.globalAlpha = p.opacity ?? .45; c.drawImage(sc, 0, 0); c.globalAlpha = 1;
+          break;
+        }
+        case 'adjust': {
+          // an adjustment layer: what is already painted, filtered, put back inside the area
+          const sc = mk(w, h), sx = sc.getContext('2d'); sx.filter = p.filter; sx.drawImage(col, 0, 0); sx.filter = 'none';
+          if (/blur/.test(p.filter)) { sx.globalCompositeOperation = 'destination-over'; sx.drawImage(col, 0, 0); sx.globalCompositeOperation = 'source-over'; }   // no see-through rim at the canvas edge
+          sx.globalCompositeOperation = 'destination-in'; sx.drawImage(mask, 0, 0);
+          c.globalAlpha = p.opacity ?? 1; c.globalCompositeOperation = p.blend || 'source-over'; c.drawImage(sc, 0, 0); c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
+          break;
+        }
+        case 'grain': put(c, mask, (g) => { g.save(); g.scale(p.size || 1, p.size || 1); g.fillStyle = g.createPattern(P.grain, 'repeat'); g.fillRect(0, 0, w, h); g.restore(); }, 'overlay', 0, p.amount ?? .25); break;
         case 'glow': for (let k = 0; k < (p.strength || 1); k++) put(c, mask, p.color || '#fff', p.blend || 'screen', p.blur ?? 30, p.opacity ?? 1); break;
         case 'plate': case 'foil': case 'inlay': put(c, mask, s.mat.color); put(m, mask, rgb(s.mat.metal * 255, s.mat.rough * 255, 0)); break;
         case 'emboss': put(u, mask, grey(p.height_mm ?? .1), 'lighter', 1 + (p.soft ?? .5) * 4); break;
@@ -386,14 +416,24 @@ void main(){
     if (e.fades?.length) { const fs = e.fades.slice().sort((a, b) => a.t0 - b.t0); let al = fs[0].to === 1 ? 0 : 1;
       for (const f of fs) { if (t <= f.t0) break; al += (f.to - al) * clamp((t - f.t0) / (f.dur || .001)); }
       q.alpha = al; if (al <= 0) return null; }
+    // motion that keeps going: float, pulse, sway, spin
+    for (const lp of e.loops || []) { const ph = Math.max(0, t - (lp.t0 || 0)) / lp.period * 6.2832;
+      if (lp.kind === 'float') q.y -= Math.sin(ph) * lp.amp; else if (lp.kind === 'pulse') q.scale *= 1 + Math.sin(ph) * lp.amp;
+      else if (lp.kind === 'sway') q.turn += Math.sin(ph) * lp.amp; else if (lp.kind === 'spin') q.turn += ph / 6.2832 * 360 * lp.amp; }
     const en = e.enter, ex = e.exit;
     if (en) {
       if (t < en.t0) return null;
       if (en.style === 'slam') { const k = clamp((t - en.t0) / .2); q.scale *= 1 + 1.3 * (1 - easeIn(k)); q.alpha *= clamp(k * 4); const after = t - en.t0 - .2; if (after > 0) q.scale *= 1 + .05 * Math.sin(after * 40) * Math.exp(-after * 14); q.lift = 10 * (1 - k); }
+      else if (en.style === 'pop') { const k = clamp((t - en.t0) / .45); q.scale *= Math.max(.001, easeOutBack(k)); q.alpha *= clamp(k * 5); }
+      else if (en.style === 'rise') { const k = clamp((t - en.t0) / .6), o = 1 - Math.pow(1 - k, 3); q.y += 70 * (1 - o); q.alpha *= o; }
+      else if (en.style === 'zoom') { const k = clamp((t - en.t0) / .55), o = 1 - Math.pow(1 - k, 3); q.scale *= 1.5 - .5 * o; q.alpha *= o; }
+      else if (en.style === 'fade') { q.alpha *= clamp((t - en.t0) / .5); }
       else { const k = clamp((t - en.t0) / .75), d = DIRS[en.from] || DIRS.bottom, dist = (d[0] ? W : H) * .9, back = 1 - easeOutBack(k);
         q.x += d[0] * dist * back; q.y += d[1] * dist * back; q.turn += back * 7 * (d[0] || 1); q.lift = Math.max(q.lift, 8 * (1 - k)); }
     }
-    if (ex && t >= ex.t0) { const k = easeIn(clamp((t - ex.t0) / .55)); if (k >= 1) return null; const d = DIRS[ex.to] || DIRS.left, dist = (d[0] ? W : H) * 1.05;
+    if (ex && t >= ex.t0 && ex.style) { const k = clamp((t - ex.t0) / .45); if (k >= 1) return null;
+      if (ex.style === 'shrink') { q.scale *= 1 - easeIn(k); q.alpha *= 1 - k * k; } else if (ex.style === 'sink') { q.y += 70 * easeIn(k); q.alpha *= 1 - k; } else q.alpha *= 1 - k; }
+    else if (ex && t >= ex.t0) { const k = easeIn(clamp((t - ex.t0) / .55)); if (k >= 1) return null; const d = DIRS[ex.to] || DIRS.left, dist = (d[0] ? W : H) * 1.05;
       q.x += d[0] * dist * k; q.y += d[1] * dist * k; q.turn -= k * 6 * (d[0] || 1); q.lift = Math.max(q.lift, 8 * k); }
     return q;
   }

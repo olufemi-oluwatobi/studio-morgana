@@ -135,6 +135,28 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
       const bad = compile('create a canvas called x, 100 by 100.\non the front.\nenamel the card in a gradient from #ffffff.', {});
       ok('a gradient with one colour is explained', !bad.ok && bad.diagnostics.some(d => /two colours/.test(d.msg)));
     }
+    // the second ten: measured text, fit, turn, stroke, inner shadow, adjust, duotone, grain, shapes, align, distribute, grid, motion presets
+    { const fp = path.join(ex, 'canvas', 'launch.gt'); const fr = compile(fs.readFileSync(fp, 'utf8'), { baseDir: path.dirname(fp) });
+      ok('launch poster compiles', fr.ok, JSON.stringify(fr.diagnostics));
+      const L = fr.ok ? fr.doc.layers : {}, st = fr.ok ? fr.doc.sides.front.steps : [], by = (op, n = 0) => st.filter(x => x.op === op)[n];
+      const { textWidth } = await import('../packs/text.js');
+      const jost = { family: 'Jost', weight: 400, style: 'normal' };
+      ok('text is measured in its font', Math.abs(textWidth('Hello', 1000, 0, jost) - textWidth('Hello', 1000, 0, null)) > 1 && textWidth('iiii', 100, 0, jost) < textWidth('MMMM', 100, 0, jost));
+      ok('wrapped lines fit the width', fr.ok && L.body.lines.length === 2 && L.body.lines.every(l => textWidth(l, 30, 0, jost) <= 880));
+      ok('fit: the longest line is as wide as asked', fr.ok && Math.abs(textWidth('LAUNCH DAY', L.title.size, 0, L.title.font) - 780) < 2);
+      ok('text can be turned', fr.ok && L.new.turn === -6);
+      ok('align left: both boxes share an edge', fr.ok && Math.abs(L.title.box[0] - L.when.box[0]) < .2);
+      const mid = (n) => { const ys = L[n].shapes.flatMap(sh => sh.pts.map(q => q[1])); return (Math.min(...ys) + Math.max(...ys)) / 2; }, bx = (n) => { const xs = L[n].shapes.flatMap(sh => sh.pts.map(q => q[0])); return [Math.min(...xs), Math.max(...xs)]; };
+      ok('align middle', fr.ok && ['two', 'three', 'four'].every(n => Math.abs(mid(n) - mid('one')) < .2));
+      ok('distribute: equal gaps', fr.ok && Math.abs((bx('two')[0] - bx('one')[1]) - (bx('four')[0] - bx('three')[1])) < .2 && Math.abs((bx('three')[0] - bx('two')[1]) - (bx('two')[0] - bx('one')[1])) < .2);
+      ok('grid of copies', fr.ok && L.dot.shapes.length === 40);
+      ok('new shapes', fr.ok && L.one.shapes[0].pts.length > 6 && L.tag.shapes.length === 2 && L.four.shapes[0].pts.length === 7);
+      ok('flat stroke is a ring outside the area', fr.ok && st.some(x => x.op === 'enamel' && x.area.terms[0].ref === 'title' && x.area.terms[0].mod === 'halo' && x.area.terms[0].r === 8));
+      ok('inner shadow, adjust, grain, duotone', fr.ok && by('inshadow').params.blur === 10 && by('adjust').params.filter === 'blur(18px) brightness(1.15)' && by('grain').params.amount === .22 && by('print').image.duotone.join() === '#1b1145,#ff9a5a');
+      ok('"stroke the petal, 3 wide" still hollows a shape', compile('create a canvas called x, 100 by 100.\ndraw a circle called c, 20 big, at 50 50.\nstroke the c, 3 wide.', {}).doc.layers.c.shapes[0].paint === 'stroke');
+      const vp = path.join(ex, 'video', 'presets.gt'); const vr = compile(fs.readFileSync(vp, 'utf8'), { baseDir: path.dirname(vp) }), E = vr.doc.elements;
+      ok('motion presets: entrances, exits, loops', vr.ok && E.badge.enter.style === 'pop' && E.wheel.enter.style === 'rise' && E.tag.enter.style === 'zoom' && E.banner.exit.style === 'shrink' && E.wheel.loops[0].kind === 'spin' && E.wheel.loops[0].period === 3 && E.badge.loops[0].amp === 16 && E.tag.loops[0].amp === 8, JSON.stringify(vr.diagnostics));
+    }
     // element model: bodies, layering, paint
     const sp = path.join(ex, 'stage', 'three-bodies.gt'); const st = compile(fs.readFileSync(sp, 'utf8'), { baseDir: path.dirname(sp) });
     ok('stage compiles with four elements', st.ok && st.doc.kind === 'stage' && Object.keys(st.doc.elements).join() === 'memo,ticket,plaque,swatch', JSON.stringify(st.diagnostics));

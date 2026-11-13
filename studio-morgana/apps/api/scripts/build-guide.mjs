@@ -66,7 +66,18 @@ On a canvas, colour is "enamel": it also takes gradients, opacity and blend mode
   "print @photo.jpg in the portrait, grayscale, contrast 1.2." Adjustments: blurred N, brightness N, contrast N, saturation N,
   hue N, grayscale, sepia, inverted.
 - Any outline as an SVG path: "draw a path called leaf, "M0 0 C40 -70 130 -70 170 0 C130 70 40 70 0 0 Z", at 720 640, scale 1.6, turned -24."
+- Text fitting: "fit 780" sizes a headline so its longest line is 780 wide; "880 wide" wraps a paragraph exactly; "turned -6" tilts it.
+- Outline: "stroke the title in #1b1145, 8 wide." Inner shadow (after the colour): "shadow the panel, inside, 6 down, blur 10."
+- Frosted glass: draw a rounded rectangle over a photo, then "adjust the glass, blurred 18, brightness 1.15." and
+  "enamel the glass in #ffffff, 14% opacity." The adjust verb changes everything already painted under the area.
+- Photo looks: "print @photo.jpg in the photo, duotone #1b1145 and #ff9a5a." Texture: "grain the card, 0.2." as the last step.
+- More shapes: triangle, diamond, pentagon, hexagon, octagon, heart, arrow ("240 by 90"), bubble ("300 by 130, corners 36").
+- Layout: "align the title and the body to the left." (left, right, top, bottom, centre, middle; one thing aligns to the canvas),
+  "distribute the one, the two and the three horizontally.", and a grid: "copy the dot 8 times, 46 apart, 5 rows."
 - Steps paint in order, like layers from the bottom up: background first, then shadows, then the shapes, then text on top.
+- Video entrances and exits in place: "bring in the badge at 0.2 s, popping." (popping, rising, zooming, fading),
+  "remove the banner at 4.3 s, shrinking." (shrinking, fading, sinking). Motion that keeps going: "float the badge, 16 high,
+  every 2 s.", "pulse the button, by 0.04, every 1.2 s.", "sway the tag, 8 degrees, every 1.5 s.", "turn the wheel, every 3 s."
 - In a video: "fade in the title at 1 s, over 0.5 s.", "fade out the title at 4 s, over 0.4 s." and easing on a glide
   ("…, over 1.2 s, bounce": linear, ease-in, ease-out, overshoot, bounce, elastic).
 

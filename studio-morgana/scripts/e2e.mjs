@@ -296,6 +296,8 @@ await a.goto(BASE + '/mine'); await a.waitForSelector('.mine-head'); await a.wai
 const mineIds = await a.evaluate(async () => (await (await fetch('/api/wall')).json()).mine.map((p) => p.id));
 check('Your pieces has a piece to make public', mineIds.length >= 2, `${mineIds.length} pieces`);
 const [pubId, privId] = mineIds;
+// every page of the featured + showcase section, in order
+const ALL_FEATURED = async () => { const ids = []; let cur = 0; for (let k = 0; k < 20 && cur != null; k++) { const r = await (await fetch('/api/wall?limit=60&cursor=' + cur)).json(); ids.push(...r.featured.map((p) => p.id)); cur = r.next; } return ids; };
 const visitor = await (await browser.newContext()).newPage();
 await visitor.goto(BASE + '/');
 const vget = (id) => visitor.evaluate(async (i) => (await fetch('/api/pieces/' + i)).status, id);
@@ -307,9 +309,9 @@ await a.locator('.vis-menu button', { hasText: 'Public' }).click();
 await a.waitForSelector('.editor-bar button[aria-label="Public"]');
 check('making it public works, and the button says so', true);
 check('a visitor can now open the public piece, not the private one', (await vget(pubId)) === 200 && (await vget(privId)) === 404);
-const vjson = await visitor.evaluate(async () => (await (await fetch('/api/wall')).json()).featured.map((p) => p.id));
+const vjson = await visitor.evaluate(ALL_FEATURED);
 let seeded = vjson.includes(pubId);
-for (let i = 0; i < 20 && !seeded; i++) { await a.waitForTimeout(250); seeded = (await visitor.evaluate(async () => (await (await fetch('/api/wall')).json()).featured.map((p) => p.id))).includes(pubId); }
+for (let i = 0; i < 20 && !seeded; i++) { await a.waitForTimeout(250); seeded = (await visitor.evaluate(ALL_FEATURED)).includes(pubId); }
 check('going public fires the showcase job at once, no waiting for the cron', seeded);
 const anon = await visitor.evaluate(async (i) => (await fetch('/api/pieces/' + i + '/visibility', { method: 'POST', headers: { 'content-type': 'application/json', 'x-morgana': '1' }, body: '{"visibility":"public"}' })).status, privId);
 check('a visitor cannot change visibility', anon === 403 || anon === 401 || anon === 404, String(anon));
@@ -318,7 +320,7 @@ check('a visitor cannot change visibility', anon === 403 || anon === 401 || anon
 const run = await a.evaluate(async () => (await (await fetch('/api/admin/jobs/run', { method: 'POST', headers: { 'content-type': 'application/json', 'x-morgana': '1' }, body: '{}' })).json()));
 const sc = run.results?.find((r) => r.job === 'showcase');
 check('the showcase job runs and picks the public piece', sc && !sc.error && sc.picked >= 1 && sc.eligible >= 1, JSON.stringify(sc));
-const after = await visitor.evaluate(async () => (await (await fetch('/api/wall')).json()).featured.map((p) => p.id));
+const after = await visitor.evaluate(ALL_FEATURED);
 check('now the public piece is on everyones wall, the private one is not', after.includes(pubId) && !after.includes(privId));
 check('the featured pieces stay first', after[0] === (await visitor.evaluate(async () => (await (await fetch('/api/wall')).json()).featured[0].id)) && after.indexOf(pubId) > 0);
 const jobs = await a.evaluate(async () => (await (await fetch('/api/admin/jobs')).json()).jobs.map((j) => j.name));
@@ -329,7 +331,7 @@ await a.goto(BASE + '/p/' + pubId); await a.waitForSelector('.art img');
 await a.locator('.editor-bar button[aria-label="Public"]').click();
 await a.locator('.vis-menu button', { hasText: 'Private' }).click();
 await a.waitForSelector('.editor-bar button[aria-label="Private"]');
-const back = await visitor.evaluate(async () => (await (await fetch('/api/wall')).json()).featured.map((p) => p.id));
+const back = await visitor.evaluate(ALL_FEATURED);
 check('making it private again takes it off the showcase at once', !back.includes(pubId));
 await a.locator('.vis-menu').count();
 await a.locator('.editor-bar button[aria-label="Private"]').click();

@@ -108,11 +108,14 @@ export default function elements(reg) {
   });
   reg.verb({
     words: ['remove'],
-    help: 'Take an element off the stage at a time: "remove the title at 4 s, to the left."',
+    help: 'Take an element off the stage at a time: "remove the title at 4 s, to the left." Or in place: shrinking, fading or sinking.',
     examples: ['remove the title at 4 s, to the left.'],
     run(ctx, toks) { let t = dropArticles(toks); if (isWord(t[0], 'away', 'off', 'out')) t = t.slice(1); const n = element(ctx, t, ['away', 'off']);
-      const { t0, dir } = timing(t.slice(t.findIndex(x => isWord(x, 'at')))); ctx.doc.elements[n].exit = { t0: t0 ?? 0, to: (dir || 'left').replace(/-/g, ' ') }; },
+      const { t0, dir } = timing(t.slice(t.findIndex(x => isWord(x, 'at'))));
+      const style = t.some(x => isWord(x, 'shrinking', 'shrink', 'popping')) ? 'shrink' : t.some(x => isWord(x, 'fading', 'fade')) ? 'fade' : t.some(x => isWord(x, 'sinking', 'sink', 'dropping')) ? 'sink' : null;
+      ctx.doc.elements[n].exit = { t0: t0 ?? 0, to: (dir || 'left').replace(/-/g, ' '), ...(style ? { style } : {}) }; },
   });
+  const ENTER = [[['popping', 'pop', 'pops'], 'pop'], [['rising', 'rise', 'rises'], 'rise'], [['zooming', 'zoom', 'zooms'], 'zoom'], [['fading', 'fade', 'fades'], 'fade']];
   const EASES = ['linear', 'ease-in', 'ease-out', 'bounce', 'elastic', 'overshoot'];
   reg.verb({
     words: ['fade'],
@@ -124,6 +127,13 @@ export default function elements(reg) {
       const o = out || t.some(x => isWord(x, 'out'));
       (ctx.doc.elements[n].fades ||= []).push({ t0: t0 ?? 0, dur: dur ?? .5, to: o ? 0 : 1 });
     },
+  });
+  // motion that keeps going: float (bob up and down), pulse (breathe in size), sway (rock), and spin (through "turn … every N s")
+  reg.verb({
+    words: ['float', 'pulse', 'sway', 'bob', 'breathe', 'rock'],
+    help: 'Motion that keeps going for the whole video: "float the badge, 14 high, every 3 s." "pulse the button, by 0.06, every 1.2 s." "sway the tag, 5 degrees, every 2 s." A wheel that keeps turning: "turn the wheel, every 4 s."',
+    examples: ['float the badge, 14 high, every 3 s.', 'pulse the button, by 0.06, every 1.2 s.', 'sway the tag, 5 degrees, every 2 s.'],
+    run(ctx, toks, s) { const w = (s?.text || '').trim().split(/\s+/)[0].toLowerCase(), kind = { bob: 'float', breathe: 'pulse', rock: 'sway' }[w] || w; if (!loopElement(ctx, toks, kind)) ctx.err('which element should move?', `elements: ${Object.keys(ctx.doc.elements || {}).join(', ') || 'none'}`); },
   });
   // move the chart to 540 700 at 9 s, over 0.6 s · move the camera to 700 600, zoom 1.2, at 9 s, over 0.5 s
   reg.verb({
@@ -183,13 +193,15 @@ export default function elements(reg) {
   // layering: bring the memo to the front · send the seal to the back · send the seal behind the memo
   reg.verb({
     words: ['bring', 'send'],
-    help: 'Change stacking: "bring the memo to the front", "send the seal to the back", "send the seal behind the memo".',
-    examples: ['bring the memo to the front.', 'send the seal behind the memo.'],
+    help: 'Change stacking: "bring the memo to the front", "send the seal to the back", "send the seal behind the memo". In a video, "bring in the memo at 1 s, from the left" makes an entrance; instead of a side it can arrive popping, rising, zooming or fading.',
+    examples: ['bring the memo to the front.', 'send the seal behind the memo.', 'bring in the badge at 1.2 s, popping.'],
     run(ctx, toks) {
       const els = ctx.doc.elements || {}; let t = dropArticles(toks);
       if (isWord(t[0], 'in')) {                         // bring in the memo at 1 s, from the bottom
         t = dropArticles(t.slice(1)); const n = element(ctx, t, []); const { t0, dir } = timing(t.slice(t.findIndex(x => isWord(x, 'at'))));
-        els[n].enter = { t0: t0 ?? 0, style: 'slide', from: (dir || 'bottom').replace(/-/g, ' ') }; return;
+        // how it arrives: sliding from a side (default), or popping, rising, zooming or fading in place
+        const style = ENTER.find(([w]) => t.some(x => isWord(x, ...w)))?.[1] || 'slide';
+        els[n].enter = { t0: t0 ?? 0, style, from: (dir || 'bottom').replace(/-/g, ' ') }; return;
       }
       const { name } = readName(t, 0, new Set(['to', 'behind', 'in', 'above', 'over', 'under', 'below']));
       if (!els[name]) ctx.err(`no element "${name}"`, `elements: ${Object.keys(els).join(', ') || 'none yet'}`);
@@ -289,5 +301,18 @@ export function flipElement(ctx, toks) {
   if (!e || !e.faces || e.faces.length < 2) return false;
   const m = readMods(t.slice(i));
   (e.flips ||= []).push({ t0: secsOf(m.at) ?? 0, dur: secsOf(m.over) ?? secsOf(m.for) ?? .8 });
+  return true;
+}
+
+// float, pulse, sway and spin: a stage element with a motion that repeats every N seconds
+export function loopElement(ctx, toks, kind) {
+  const t = dropArticles(toks), els = ctx.doc.elements || {};
+  const { name, i } = readName(t, 0, new Set(['at', 'over', 'for', 'by', 'every']));
+  const e = els[name]; if (!e) return false;
+  const m = readMods(t.slice(i)), every = m.every ?? m.Every;
+  const ev = t.findIndex(x => isWord(x, 'every')), period = ev >= 0 && t[ev + 1]?.t === 'num' ? t[ev + 1].v : null;
+  if (kind === 'spin' && period == null) return false;      // a plain "turn the plate 30 degrees" is not a loop
+  const amp = kind === 'float' ? num(m.high ?? m.by, 12) : kind === 'pulse' ? num(m.by, .05) : kind === 'sway' ? num(m.degrees ?? m.by ?? (m._nums || [])[0], 4) : (t.some(x => isWord(x, 'backwards', 'anticlockwise', 'counterclockwise')) ? -1 : 1);
+  (e.loops ||= []).push({ kind, amp, period: period ?? (kind === 'pulse' ? 1.4 : 3), t0: secsOf(m.at) ?? 0 });
   return true;
 }
