@@ -126,6 +126,18 @@ PUT /api/admin/collections/featured   { "pieceIds": ["…", "…"] }
   `slides` next. The wall's tabs, the editor's viewer and the export menu come from `apps/web/src/lib/types.ts`;
   the server's list is `apps/api/src/types.ts`. A new type goes in both, with a viewer.
 
+## Seeding a deployed wall
+
+A new deployment has an empty database, so the wall is empty (the showcase only picks pieces people have made public). Seed the featured pieces once, from your computer (it renders them in a real browser, exactly like the app does):
+
+```
+npx playwright install chromium
+npx wrangler login
+node scripts/seed.mjs --base https://<your-worker>.workers.dev --remote --email you@example.com --password '<a new password>'
+```
+
+It signs up that account, makes it an admin, renders and uploads the featured pieces, and sets them public. Do not use the default demo account on a deployed site: its password is in this repository.
+
 ## Public, private and the showcase
 
 Every piece is **private** until its owner makes it **public** (the Public / Private button in the editor; you need to be signed in). A private piece is a 404 for everyone else, including its id, references, remixes and pins. Public pieces can be opened, pinned and remixed by anyone.

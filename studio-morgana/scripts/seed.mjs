@@ -13,7 +13,8 @@ const GT = path.resolve(ROOT, '..', 'godtongue');
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 const BASE = arg('--base', 'http://127.0.0.1:8787').replace(/\/$/, '');
 const REMOTE = process.argv.includes('--remote');
-export const DEMO = { email: 'demo@example.com', password: 'morgana-demo-2026' };
+// the demo account is for local use only (its password is in this repo); for a deployed Worker pass your own: --email you@x.com --password '…'
+export const DEMO = { email: arg('--email', 'demo@example.com'), password: arg('--password', 'morgana-demo-2026') };
 
 // in wall order: a mix of kinds, so every tab has something
 const FEATURED = [
