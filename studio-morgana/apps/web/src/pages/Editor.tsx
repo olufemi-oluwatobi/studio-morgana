@@ -9,7 +9,7 @@ import { deletePiece, patchPiece, upsertPiece } from '../lib/wall';
 import { PinMenu } from '../components/PinMenu';
 import { VisibilityMenu } from '../components/VisibilityMenu';
 import { typeInfo } from '../lib/types';
-import { compile, warmCompiler, type Diagnostic, type Part } from '../render/compiler';
+import { compile, compileSvg, warmCompiler, type Diagnostic, type Part } from '../render/compiler';
 import { PRIORITY } from '../render/host';
 import { commit, download, encodePreview, exportImage, exportVideo, render, type Pin } from '../render/pipeline';
 import { CodeBox, type CodeBoxHandle } from '../components/CodeBox';
@@ -19,7 +19,7 @@ import { ArrowLeft, Download, Pins, Send, Trash, Undo } from '../components/Icon
 type Phase = 'idle' | 'writing' | 'repairing' | 'rendering' | 'saving' | 'exporting';
 const PHASE_TEXT: Record<Phase, string> = { idle: '', writing: 'Writing the change', repairing: 'Fixing the source', rendering: 'Rendering', saving: 'Saving', exporting: 'Exporting' };
 const NONE: ReadonlySet<number> = new Set();
-const EXPORT_LABEL = { png: 'Image (PNG)', mp4: 'Video (MP4)', gt: 'Godtongue (.gt)' } as const;
+const EXPORT_LABEL = { png: 'Image (PNG)', svg: 'Vector (SVG)', mp4: 'Video (MP4)', gt: 'Godtongue (.gt)' } as const;
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'piece';
 
 export default function Editor({ id }: { id: string }) {
@@ -177,7 +177,7 @@ export default function Editor({ id }: { id: string }) {
     } catch (err) { toast((err as Error).message); if (alive.current) setPhase('idle'); }
   };
 
-  const doExport = async (kind: 'png' | 'mp4' | 'gt') => {
+  const doExport = async (kind: 'png' | 'svg' | 'mp4' | 'gt') => {
     const det = dRef.current; setMenu(false);
     if (!det) return;
     const name = slug(det.piece.title);
@@ -185,7 +185,8 @@ export default function Editor({ id }: { id: string }) {
     const g = good.current ?? { pieceId: det.piece.id, version: det.version, files: det.files };
     setPhase('exporting'); setProgress(kind === 'mp4' ? 0 : null);
     try {
-      if (kind === 'png') download(await exportImage(g.pieceId, g.version.source, g.files), name + '.png');
+      if (kind === 'svg') download(await compileSvg('/p/' + g.pieceId, g.version.source, g.files), name + '.svg');
+      else if (kind === 'png') download(await exportImage(g.pieceId, g.version.source, g.files), name + '.png');
       else download(await exportVideo(g.pieceId, g.version.source, g.files, (k) => alive.current && setProgress(k)), name + '.mp4');
     } catch (err) { toast('Export failed: ' + (err as Error).message); }
     finally { if (alive.current) { setPhase('idle'); setProgress(null); } }

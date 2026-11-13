@@ -157,6 +157,22 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
       const vp = path.join(ex, 'video', 'presets.gt'); const vr = compile(fs.readFileSync(vp, 'utf8'), { baseDir: path.dirname(vp) }), E = vr.doc.elements;
       ok('motion presets: entrances, exits, loops', vr.ok && E.badge.enter.style === 'pop' && E.wheel.enter.style === 'rise' && E.tag.enter.style === 'zoom' && E.banner.exit.style === 'shrink' && E.wheel.loops[0].kind === 'spin' && E.wheel.loops[0].period === 3 && E.badge.loops[0].amp === 16 && E.tag.loops[0].amp === 8, JSON.stringify(vr.diagnostics));
     }
+    // close-out: flat mode, loops, feather, vignette, vector export
+    { const fp = path.join(ex, 'canvas', 'pattern.gt'); const fr = compile(fs.readFileSync(fp, 'utf8'), { baseDir: path.dirname(fp) });
+      ok('flat loop poster compiles', fr.ok, JSON.stringify(fr.diagnostics));
+      const L = fr.ok ? fr.doc.layers : {}, st = fr.ok ? fr.doc.sides.front.steps : [];
+      ok('repeat: numbered layers and one name for all', fr.ok && !!L['orbit-9'] && !L['orbit-10'] && L.orbit.shapes.length === 9 && L.ray.shapes.length === 12);
+      ok('repeat: $n and $i feed sums', fr.ok && Math.abs(Math.max(...L['orbit-3'].shapes[0].pts.map(q => q[0])) - (540 + 210)) < .5 && L['orbit-3'].shapes[0].width === 5);
+      ok('repeat: $n does not leak', !compile('create a canvas called x, 100 by 100.\nrepeat 2 times as:\n draw a circle called c, 10 big.\nend.\ndraw a circle called d, $n big.', {}).ok);
+      const { toScene } = await import('../engines/web.js'), sc = toScene(fr.doc);
+      ok('flat: the scene says so, on a white unlit body', fr.ok && fr.doc.canvas.flat === true && sc.elements[0].flat === true && sc.elements[0].body.color === '#ffffff');
+      ok('lit canvases are unchanged', !toScene(compile(fs.readFileSync(path.join(ex, 'canvas', 'post.gt'), 'utf8'), { baseDir: path.join(ex, 'canvas') }).doc).elements[0].flat);
+      ok('feather and vignette', fr.ok && st.find(x => x.params?.feather)?.params.feather === 6 && st.find(x => x.op === 'vignette').params.amount === .35 && st.find(x => x.op === 'vignette').params.color === '#1f3a5f');
+      const { toSvg } = await import('../engines/svg.js'), svg = fr.ok ? toSvg(fr.doc) : '';
+      ok('vector export: one svg, gradients, text as text, unique ids', /^<svg /.test(svg) && /<radialGradient/.test(svg) && /RADIAL<\/text>/.test(svg) && new Set(svg.match(/ id="[^"]+"/g)).size === svg.match(/ id="[^"]+"/g).length);
+      const l2 = compile(fs.readFileSync(path.join(ex, 'canvas', 'launch.gt'), 'utf8'), { baseDir: path.join(ex, 'canvas') }), s2 = toSvg(l2.doc);
+      ok('vector export: photo embedded, what is left out is listed', /<image href="data:image\/jpeg/.test(s2) && /left out[^>]*adjust/.test(s2) && /left out[^>]*grain/.test(s2));
+    }
     // element model: bodies, layering, paint
     const sp = path.join(ex, 'stage', 'three-bodies.gt'); const st = compile(fs.readFileSync(sp, 'utf8'), { baseDir: path.dirname(sp) });
     ok('stage compiles with four elements', st.ok && st.doc.kind === 'stage' && Object.keys(st.doc.elements).join() === 'memo,ticket,plaque,swatch', JSON.stringify(st.diagnostics));

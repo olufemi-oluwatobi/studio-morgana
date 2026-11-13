@@ -39,6 +39,7 @@ export default function ops(reg) {
   const look = (mods) => {
     const o = {}, op = frac(mods.opacity ?? mods.opaque), bl = BLENDS.find(b => flag(mods, b) || mods.blended === b || mods.blend === b);
     if (op != null) o.opacity = op; if (bl) o.blend = bl;
+    const fe = mods.feathered ?? mods.feather; if (fe?.t === 'num') o.feather = fe.v;   // soft edges, like a feathered mask
     return o;
   };
 
@@ -114,6 +115,15 @@ export default function ops(reg) {
       const { area, mods } = head(ctx, toks), filter = filterOf(ctx, mods);
       if (!filter) ctx.err('adjust it how?', 'e.g. "adjust the panel, blurred 14, brightness 1.1."');
       step(ctx, 'adjust', area, { params: { filter, ...look(mods) } });
+    },
+  });
+  reg.verb({
+    words: ['vignette'],
+    help: 'Darken (or tint) the edges of an area, leaving its middle clear: an amount from 0 to 1 (default 0.5), optionally "in #colour".',
+    examples: ['vignette the card, 0.6.', 'vignette the photo, 0.5, in #1b1145.'],
+    run(ctx, toks) {
+      const { area, mods } = head(ctx, toks);
+      step(ctx, 'vignette', area, { params: { amount: Math.max(0, Math.min(1, num((mods._nums || [])[0] ?? mods.amount, .5))), color: [mods.in, mods.with].find(t => t?.t === 'color')?.v || '#000000' } });
     },
   });
   reg.verb({

@@ -43,3 +43,10 @@ once order 5.1 lands; until then the timed words are the ones marked "timed".
 | grid of copies | `copy the dot 8 times, 46 apart, 5 rows.` | layer | no | done |
 | entrances and exits | `bring in the badge at 0.2 s, popping.` (popping, rising, zooming, fading) · `remove the banner at 4.3 s, shrinking.` (shrinking, fading, sinking) | element | timed | done |
 | looping motion | `float the badge, 16 high, every 2 s.` `pulse …, by 0.04, every 1.2 s.` `sway …, 8 degrees, every 1.5 s.` `turn the wheel, every 3 s.` | element | timed | done |
+| `flat` | `create a canvas called poster, 1080 by 1350, flat.` (exact colours, no studio light; also on a stage or video) | document | no | done |
+| `repeat … as:` | `repeat 9 times as: draw a circle called orbit, (70 * $n) big, at 540 560, hollow 3. end.` ($n counts from 1, $i from 0) | block | no | done |
+| `feathered` | `enamel the core in #ffd166, feathered 6.` (also on `print`) | step | not yet | done |
+| `vignette` | `vignette the card, 0.35, in #1f3a5f.` | step | not yet | done |
+| vector export | `node bin/gt.js build poster.gt --engine svg` (cards and canvases; relief, sprays, grain, adjust and inner shadow are left out) | engine | no | done |
+
+A layer cannot be called `ring`, `outline`, `edge` or `halo`: in an area those words mean "the outline of".

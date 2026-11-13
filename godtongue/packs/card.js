@@ -5,8 +5,8 @@ import { show } from '../core/read.js';
 export default function card(reg) {
   reg.verb({
     words: ['create', 'start'],
-    help: 'Start a card, or a canvas of any size. Everything after "called" names it; modifiers set the blank.',
-    examples: ['create a card called marilyn from stainless, 0.8 mm thick, seed 19260601.', 'create a canvas called post, 1080 by 1350.'],
+    help: 'Start a card, or a canvas of any size. Everything after "called" names it; modifiers set the blank. Add "flat" to a canvas, stage or video for exact, unlit colours (graphic design); without it the piece is a lit physical surface.',
+    examples: ['create a canvas called poster, 1080 by 1350, flat.', 'create a card called marilyn from stainless, 0.8 mm thick, seed 19260601.', 'create a canvas called post, 1080 by 1350.'],
     run(ctx, toks) {
       const t = dropArticles(toks);
       const isVideo = isWord(t[0], 'video'), isStage = isWord(t[0], 'stage') || isVideo, isCanvas = isWord(t[0], 'canvas') || isStage;
@@ -30,7 +30,8 @@ export default function card(reg) {
         if (!mods.size) ctx.err('a canvas needs a size', 'e.g. "create a canvas called post, 1080 by 1350."');
         const [w, h] = mods.size.map(num);
         ctx.doc.kind = isStage ? 'stage' : 'canvas';
-        ctx.doc.canvas = { size_px: [w, h] };
+        // "flat": colours are shown exactly as written, with no studio light (graphic design, not a lit object)
+        ctx.doc.canvas = { size_px: [w, h], ...(flag(mods, 'flat', 'unlit') ? { flat: true } : {}) };
         if (isStage) { ctx.doc.stage = { size: [w, h], background: mods.on?.t === 'color' ? mods.on.v : (typeof mods.on === 'string' ? mods.on : '#d9d2c4') }; ctx.doc.elements = {}; }
         if (isVideo) ctx.doc.video = { seconds: mods.long ? num(mods.long) : 10, fps: mods.fps != null ? num(mods.fps) : 30 };
         c.grid = [w, h]; c.rect = [0, 0, w, h]; c.r = 0;

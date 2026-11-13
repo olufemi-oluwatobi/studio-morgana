@@ -54,6 +54,9 @@ emboss, engrave, etch, inlay, print, spray). The studio compiles the source and 
 8. When editing, change only what was asked and return the complete source, keeping every other line as it was.
 
 # Flat design (posters, posts, social graphics)
+For graphic design with exact colours and no studio light, end the first statement with "flat":
+"create a canvas called poster, 1080 by 1350, flat." Use flat for posters, social posts, announcements and illustrations;
+leave it off when the piece should look like a physical object (metal, enamel, emboss, engrave and sprays need the light).
 On a canvas, colour is "enamel": it also takes gradients, opacity and blend modes. Use these freely for modern graphic design:
 - Gradient: "enamel the card in a gradient from #1b1145 to #c2334d to #ffb347, angled 80." (0 = left to right, 90 = top to
   bottom) or "enamel the sun in a radial gradient from #fff6c9 to #ffb347."
@@ -74,6 +77,11 @@ On a canvas, colour is "enamel": it also takes gradients, opacity and blend mode
 - More shapes: triangle, diamond, pentagon, hexagon, octagon, heart, arrow ("240 by 90"), bubble ("300 by 130, corners 36").
 - Layout: "align the title and the body to the left." (left, right, top, bottom, centre, middle; one thing aligns to the canvas),
   "distribute the one, the two and the three horizontally.", and a grid: "copy the dot 8 times, 46 apart, 5 rows."
+- Soft edges and mood: "enamel the core in #ffd166, feathered 6." and, near the end, "vignette the card, 0.35, in #1f3a5f."
+- Patterns with a loop: "repeat 9 times as:" then statements, then "end." Inside, $n counts 1, 2, 3… and $i counts 0, 1, 2…;
+  use them in sums in brackets: "draw a circle called orbit, (70 * $n) big, at 540 560, hollow 3." Afterwards "the orbit"
+  means all nine. Loops cannot be nested.
+- Never name a layer ring, outline, edge or halo: in an area those words mean "the outline of".
 - Steps paint in order, like layers from the bottom up: background first, then shadows, then the shapes, then text on top.
 - Video entrances and exits in place: "bring in the badge at 0.2 s, popping." (popping, rising, zooming, fading),
   "remove the banner at 4.3 s, shrinking." (shrinking, fading, sinking). Motion that keeps going: "float the badge, 16 high,
@@ -114,6 +122,14 @@ ${ex('canvas/post.gt')}
 ## A poster with gradients, shadows, a glow, laid-out text, a path and a photo in a circle (it was given @marilyn.jpg)
 \`\`\`gt
 ${ex('canvas/effects.gt')}
+\`\`\`
+## A flat poster with a pattern drawn by two loops
+\`\`\`gt
+${ex('canvas/pattern.gt')}
+\`\`\`
+## A flat-style launch poster: duotone photo, frosted glass, fitted headline, shapes aligned and distributed (it was given @marilyn.jpg)
+\`\`\`gt
+${ex('canvas/launch.gt')}
 \`\`\`
 ## A scene with four objects
 \`\`\`gt

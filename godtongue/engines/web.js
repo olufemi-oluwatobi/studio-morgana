@@ -101,14 +101,14 @@ export function toScene(doc) {
       const src = doc.sides[name]?.steps || [];
       const steps = faceSet(doc, { front: { steps: src } }, unsupported).front;
       steps.forEach((st, k) => { const hit = src[k].area?.terms.map(x => rv[x.ref]).find(Boolean); if (hit) st.reveal = hit; });
-      return { name, ...e, faces: { front: steps } };
+      return { name, ...e, ...(doc.canvas?.flat ? { flat: true } : {}), faces: { front: steps } };
     }
     // a card or canvas: the blank is its stock, sized to its body rectangle inside the grid; faces are its sides
     return {
       name, order: e.order, kind: e.kind, size: [W, H], rect: c.rect, at: [W / 2, H / 2], turn: 0, up_mm: 0,
       // a held blank is tilted by the hand (its surface turns); a stage element is lit by a moving light
-      held: true, outline: 'rect', corners: c.r, aged: 0, edge: { style: 'clean', side: 'all' },
-      body: cardBody(c), faces: faceSet(doc, Object.fromEntries(e.faces.map(f => [f, doc.sides[f]])), unsupported),
+      held: true, outline: 'rect', corners: c.r, aged: 0, edge: { style: 'clean', side: 'all' }, ...(doc.canvas?.flat ? { flat: true } : {}),
+      body: doc.canvas?.flat ? { ...cardBody(c), color: '#ffffff', metal: 0, rough: 1, thick_mm: 0 } : cardBody(c), faces: faceSet(doc, Object.fromEntries(e.faces.map(f => [f, doc.sides[f]])), unsupported),
     };
   });
   for (const m of Object.values(doc.materials)) if (m.finish?.startsWith('holo') || m.finish === 'crystal') unsupported.add(m.finish);

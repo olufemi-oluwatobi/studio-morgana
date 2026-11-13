@@ -49,3 +49,11 @@ export async function compile(pieceDir: string, source: string, files: { name: s
   }
   return call<Compiled>('compile', { source, dir: pieceDir });
 }
+
+// a card or canvas as a vector SVG (scenes and videos are not exported this way)
+export async function compileSvg(pieceDir: string, source: string, files: { name: string; url: string }[]): Promise<Blob> {
+  const c = await compile(pieceDir, source, files);   // mounts the piece's files
+  if (!c.ok) throw new Error(c.diagnostics.find((d) => d.level === 'error')?.msg || 'does not compile');
+  const r = await call<{ svg: string }>('svg', { source, dir: pieceDir });
+  return new Blob([r.svg], { type: 'image/svg+xml' });
+}

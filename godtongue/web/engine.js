@@ -84,7 +84,7 @@
     const [w, h] = e.size, seed = key === 'front' ? hashStr(e.name) : hashStr(e.name + ':' + key), rnd = rng(seed);
     const P = { e, steps, shape: outline(e, rnd), masks: await Promise.all(steps.map(s => load(s.mask))), coats: [], photos: {}, boxes: {} };
     for (const [i, s] of steps.entries()) {
-      if (s.params?.gradient) {            // the box a gradient runs across: where the mask has ink
+      if (s.params?.gradient || s.op === 'vignette') {            // the box a gradient runs across: where the mask has ink
         const sc = 4, bw = Math.ceil(w / sc), bh = Math.ceil(h / sc), bc = mk(bw, bh), bx = bc.getContext('2d', { willReadFrequently: true });
         bx.drawImage(P.masks[i], 0, 0, bw, bh); const a = bx.getImageData(0, 0, bw, bh).data;
         let x0 = bw, y0 = bh, x1 = -1, y1 = -1;
@@ -206,9 +206,10 @@
         case 'enamel': {
           // a flat colour or a gradient; "opacity" thins it and a blend mode mixes it with what is under it
           const fill = p.gradient ? gradFill(p.gradient, P.boxes[i]) : s.mat.color, al = p.opacity ?? 1;
-          if (ink) { put(c, mask, fill, p.blend || 'source-over', 0, al); break; }
-          if (paper) put(c, mask, fill, p.blend || 'multiply', 0, al);
-          else { put(c, mask, fill, p.blend || 'source-over', 0, al); put(m, mask, rgb(0, s.mat.rough * 255, 0), 'source-over', 0, p.blend ? al * .5 : al); }
+          const fe = p.feather || 0;
+          if (ink) { put(c, mask, fill, p.blend || 'source-over', fe, al); break; }
+          if (paper) put(c, mask, fill, p.blend || 'multiply', fe, al);
+          else { put(c, mask, fill, p.blend || 'source-over', fe, al); put(m, mask, rgb(0, s.mat.rough * 255, 0), 'source-over', fe, p.blend ? al * .5 : al); }
           break;
         }
         case 'shadow': {
@@ -236,6 +237,12 @@
           c.globalAlpha = p.opacity ?? 1; c.globalCompositeOperation = p.blend || 'source-over'; c.drawImage(sc, 0, 0); c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
           break;
         }
+        case 'vignette': {
+          const [bx0, by0, bw, bh] = P.boxes[i] || [0, 0, w, h], hx = [1, 3, 5].map(j => parseInt((p.color || '#000000').slice(j, j + 2), 16)).join(',');
+          put(c, mask, (g) => { const G2 = g.createRadialGradient(bx0 + bw / 2, by0 + bh / 2, Math.min(bw, bh) * .28, bx0 + bw / 2, by0 + bh / 2, Math.hypot(bw, bh) * .56);
+            G2.addColorStop(0, `rgba(${hx},0)`); G2.addColorStop(1, `rgba(${hx},1)`); g.fillStyle = G2; g.fillRect(0, 0, w, h); }, 'source-over', 0, p.amount ?? .5);
+          break;
+        }
         case 'grain': put(c, mask, (g) => { g.save(); g.scale(p.size || 1, p.size || 1); g.fillStyle = g.createPattern(P.grain, 'repeat'); g.fillRect(0, 0, w, h); g.restore(); }, 'overlay', 0, p.amount ?? .25); break;
         case 'glow': for (let k = 0; k < (p.strength || 1); k++) put(c, mask, p.color || '#fff', p.blend || 'screen', p.blur ?? 30, p.opacity ?? 1); break;
         case 'plate': case 'foil': case 'inlay': put(c, mask, s.mat.color); put(m, mask, rgb(s.mat.metal * 255, s.mat.rough * 255, 0)); break;
@@ -249,7 +256,7 @@
           const k = Math.max(ww / photo.width, hh / photo.height), dw = photo.width * k, dh = photo.height * k;
           const multi = !!s.image.onFoil || paper;
           // adjustments (blur, brightness, contrast, saturation, hue, grayscale, sepia) are applied to the photo itself
-          put(c, mask, (g) => { g.filter = s.image.filter || 'none'; g.drawImage(photo, x - (dw - ww) * fx0, y - (dh - hh) * fy0, dw, dh); g.filter = 'none'; }, p.blend || (multi ? 'multiply' : 'source-over'), 0, p.opacity ?? 1);
+          put(c, mask, (g) => { g.filter = s.image.filter || 'none'; g.drawImage(photo, x - (dw - ww) * fx0, y - (dh - hh) * fy0, dw, dh); g.filter = 'none'; }, p.blend || (multi ? 'multiply' : 'source-over'), p.feather || 0, p.opacity ?? 1);
           if (!multi) put(m, mask, rgb(0, 95, 0));
           break;
         }
@@ -307,7 +314,7 @@ void main(){ vec2 sz = (uSize + 2. * uPad) * uScale; uv = p; if (uMirror > .5) u
   const FS = `#version 300 es
 precision highp float;
 in vec2 uv; out vec4 o;
-uniform sampler2D uCol, uMR, uUp, uDn, uSil, uSh, uFx, uCap; uniform vec2 uSize, uDir, uTilt; uniform vec3 uL; uniform float uHeld; uniform int uMode; uniform float uFibres, uTurn, uThick, uAlpha; uniform vec3 uEdge;
+uniform sampler2D uCol, uMR, uUp, uDn, uSil, uSh, uFx, uCap; uniform vec2 uSize, uDir, uTilt; uniform vec3 uL; uniform float uHeld; uniform int uMode; uniform float uFibres, uTurn, uThick, uAlpha, uFlat; uniform vec3 uEdge;
 float hash(vec2 q){ return fract(sin(dot(q, vec2(127.1, 311.7))) * 43758.5453); }
 float vnoise(vec2 q){ vec2 i = floor(q), f = fract(q); f = f * f * (3. - 2. * f);
   return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }
@@ -323,6 +330,7 @@ void main(){
   float sil = texture(uSil, uv).a; if (sil < .01) discard;
   vec4 col = texture(uCol, uv); vec3 base = pow(col.rgb, vec3(2.2));
   if (uMode == 1) { o = vec4(srgb(uEdge), sil * uAlpha); return; }
+  if (uFlat > .5) { o = vec4(col.rgb, sil * uAlpha); return; }   // flat pieces: the colour as written, no light
   vec3 mr = texture(uMR, uv).rgb; float metal = mr.r, rough = clamp(mr.g, .03, 1.), coat = mr.b;
   vec2 px = 1. / uSize;
   float hx = hgt(uv + vec2(px.x, 0.)) - hgt(uv - vec2(px.x, 0.)), hy = hgt(uv + vec2(0., px.y)) - hgt(uv - vec2(0., px.y));
@@ -511,7 +519,7 @@ void main(){
       const e = b.e, q = pose(e, t); if (!q) continue;
       const angle = angleAt(b, t), face = faceOf(b, angle), tex = b.surf[face].tex, [w, h] = e.size, turn = q.turn * Math.PI / 180, thick = e.body.thick_mm * PXMM, inkB = e.body.color === 'none';
       const mirror = face === 'back' ? 1 : 0;
-      gl.uniform1f(U('uHeld'), e.held ? 1 : 0);
+      gl.uniform1f(U('uHeld'), e.held ? 1 : 0); gl.uniform1f(U('uFlat'), e.flat ? 1 : 0);
       gl.uniform3f(U('uL'), ...(e.held ? Lh : Ls)); gl.uniform2f(U('uDir'), ...(e.held ? Dh : Ds));
       gl.uniform2f(U('uTilt'), e.held ? light[0] : 0, e.held ? light[1] : 0);
       tex.forEach((tt, i) => { gl.activeTexture(gl.TEXTURE0 + i); gl.bindTexture(gl.TEXTURE_2D, tt); gl.uniform1i(U(NAMES[i]), i); });

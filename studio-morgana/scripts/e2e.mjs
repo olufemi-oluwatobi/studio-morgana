@@ -191,6 +191,9 @@ await shot(page, 'editor-error');
 const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 60000 }), (async () => { await page.locator('button', { hasText: 'Export' }).click(); await page.locator('.menu button', { hasText: 'Image (PNG)' }).click(); })()]);
 const pngPath = path.join(OUT, 'export.png'); await dl.saveAs(pngPath);
 check('Export saves a PNG', fs.statSync(pngPath).size > 10000, `${Math.round(fs.statSync(pngPath).size / 1024)} KB`);
+const [dl2] = await Promise.all([page.waitForEvent('download', { timeout: 60000 }), (async () => { await page.locator('button', { hasText: 'Export' }).click(); await page.locator('.menu button', { hasText: 'Vector (SVG)' }).click(); })()]);
+const svgPath = path.join(OUT, 'export.svg'); await dl2.saveAs(svgPath);
+check('Export saves a vector SVG', /^<svg /.test(fs.readFileSync(svgPath, 'utf8')), `${Math.round(fs.statSync(svgPath).size / 1024)} KB`);
 
 // delete from the editor: back to your pieces, gone from them, Undo available
 const doomed = page.url().split('/p/')[1];

@@ -4,6 +4,7 @@
 import fs from 'node:fs';
 import { compile, createRegistry } from '../../../../godtongue/index.js';
 import web from '../../../../godtongue/engines/web.js';
+import { toSvg } from '../../../../godtongue/engines/svg.js';
 import { partsOf, categoryOf } from './parts.js';
 
 let reg = null, ready = null, n = 0;
@@ -57,7 +58,15 @@ async function compileSource({ source, dir }) {
   };
 }
 
-const H = { init, mount, compile: compileSource };
+// a card or canvas as one vector SVG file (godtongue/engines/svg.js says what it leaves out)
+function svgOf({ source, dir }) {
+  if (!reg) throw new Error('the compiler is not ready');
+  const r = compile(source, { registry: reg, baseDir: dir, file: dir + '/piece.gt' });
+  if (!r.ok) throw new Error((r.diagnostics || []).find((d) => d.level === 'error')?.msg || 'does not compile');
+  return { svg: toSvg(r.doc), name: r.doc.name };
+}
+
+const H = { init, mount, compile: compileSource, svg: svgOf };
 self.onmessage = async (ev) => {
   const { id, cmd, ...args } = ev.data || {};
   if (!id || !H[cmd]) return;

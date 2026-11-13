@@ -227,9 +227,10 @@ export default function shapes(reg) {
     },
   });
   reg.verb({
-    words: ['copy', 'repeat', 'duplicate'], help: 'Copy elements: "5 times around 0 0" (a ring), "4 times, 120 apart" (a row), "6 times, 60 apart, 4 rows" (a grid), or once with changes ("scale 0.6, turn 36, called inner").',
-    examples: ['copy the petal 5 times around 0 0.', 'copy the petals, scale 0.6, turn 36, called inner-petals.', 'copy the star 4 times, 90 apart.', 'copy the dot 8 times, 50 apart, 5 rows.'],
-    run(ctx, toks) {
+    words: ['copy', 'repeat', 'duplicate'], help: 'Copy elements: "5 times around 0 0" (a ring), "4 times, 120 apart" (a row), "6 times, 60 apart, 4 rows" (a grid), or once with changes. A loop: "repeat 6 times as: … end." runs the statements inside six times with $n counting 1 to 6 and $i counting from 0 (use them in sums: "(40 * $n) big"); what each pass draws is named orbit-1, orbit-2, … and "the orbit" means all of them ("scale 0.6, turn 36, called inner").',
+    examples: ['copy the petal 5 times around 0 0.', 'copy the petals, scale 0.6, turn 36, called inner-petals.', 'copy the star 4 times, 90 apart.', 'copy the dot 8 times, 50 apart, 5 rows.', 'repeat 6 times as:\n  draw a circle called orbit, (40 * $n) big, at 540 675, hollow 3.\nend.'],
+    run(ctx, toks, s) {
+      if (s?.body) return repeatBlock(ctx, toks, s);   // repeat 6 times as: … end.
       const t = dropArticles(toks), { names, i } = targets(ctx, t);
       let rest = t.slice(i), times = null;
       if (rest[0]?.t === 'num' && isWord(rest[1], 'times')) { times = rest[0].v; rest = rest.slice(2); }
@@ -387,4 +388,27 @@ function place(ctx, obj, m, name, [x, y]) {
     ctx.doc.layers[`${name}-${n}`] = L;
   }
   ctx.addLayer(name, element(all, { object: obj.name, parts: fresh.map(n => `${name}-${n}`) }));
+}
+
+// repeat N times as: … end.   Runs the body N times with $n (1…N) and $i (0…N-1). Each pass's new layers are renamed
+// name-1, name-2, …, the steps of that pass follow the rename, and afterwards the plain name means all of them together.
+function repeatBlock(ctx, toks, s) {
+  const n = toks.find(t => t.t === 'num')?.v;
+  if (!(n >= 1) || n > 500) ctx.err('repeat how many times?', 'e.g. "repeat 6 times as:" then the statements, then "end." (up to 500)');
+  const saved = ['n', 'i'].map(k => [k, ctx.vars.get(k)]), made = new Map();
+  try {
+    for (let k = 0; k < n; k++) {
+      ctx.vars.set('n', { value: [{ t: 'num', v: k + 1, unit: null }] }); ctx.vars.set('i', { value: [{ t: 'num', v: k, unit: null }] });
+      const before = new Set(Object.keys(ctx.doc.layers)), stepsBefore = new Map(Object.entries(ctx.doc.sides).map(([sd, o]) => [sd, o.steps.length]));
+      ctx.run(s.body, 'repeat');
+      const fresh = Object.keys(ctx.doc.layers).filter(x => !before.has(x)), ren = new Map(fresh.map(x => [x, `${x}-${k + 1}`]));
+      for (const [from, to] of ren) { ctx.doc.layers[to] = ctx.doc.layers[from]; delete ctx.doc.layers[from]; (made.get(from) || made.set(from, []).get(from)).push(to); }
+      for (const [sd, o] of Object.entries(ctx.doc.sides)) for (const st of o.steps.slice(stepsBefore.get(sd) ?? 0))
+        for (const key of ['terms', 'minus', 'within']) for (const tm of st.area?.[key] || []) if (ren.has(tm.ref)) tm.ref = ren.get(tm.ref);
+    }
+  } finally { for (const [k, v] of saved) v ? ctx.vars.set(k, v) : ctx.vars.delete(k); }
+  for (const [base, names] of made) {
+    const Ls = names.map(x => ctx.doc.layers[x]);
+    if (Ls.every(L => L.shapes)) ctx.addLayer(base, element(Ls.flatMap(L => L.shapes.map(sh => ({ ...sh }))), { parts: names }));
+  }
 }

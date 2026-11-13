@@ -10,6 +10,8 @@ State at 12 Nov 2026, branch `morgana-p0`. Read this with `docs/morgana-executio
 - **Browser studio** (`tools/studio/`): 13 samples. Superseded by the app, but kept as a single-file tool.
 - **Design canvas** (`design/studio-main-flow/project/`) and the first API spec (`docs/studio-api.md`). The app's README is now the reference for the API.
 
+- **Design features (13 Nov):** twenty Canva, Photoshop and Illustrator basics plus a close-out (flat mode, loops, feather, vignette, vector export). What is covered and what is not: `docs/parity.md`.
+
 ## Not done, in order
 
 1. **Step 1, logic core.** Lists and `for each`, `repeat N times`, expressions in any number slot, parameterised definitions, seeded random, `lib/patterns.gt` and `lib/charts.gt`. Proof: the Goku ornament and the mean-reversion chart rebuilt from `lib/` only, so `examples/goku/*.py` can be retired. The model writes better pieces once `lib/` exists.

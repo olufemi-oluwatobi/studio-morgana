@@ -1,0 +1,22 @@
+-- A flat poster: exact colours, a pattern drawn with a loop, soft edges and a vignette.
+create a canvas called pattern, 1080 by 1350, flat.
+
+repeat 9 times as:
+  draw a circle called orbit, (70 * $n) big, at 540 560, hollow (2 + $n).
+end.
+repeat 12 times as:
+  draw a triangle called ray, 46 by 150, at 540 110.
+  turn it ($i * 30) degrees around 540 560.
+end.
+draw a circle called core, 150 big, at 540 560.
+write "RADIAL" called title in Big Shoulders Display bold, at 540 1150, fit 860.
+write "drawn with two loops" called sub in Jost, at 540 1240, size 40, tracking 6.
+
+on the front.
+enamel the card in #f4efe6.
+enamel the orbit in #1f3a5f, 70% opacity.
+enamel the ray in #e4572e.
+enamel the core in a radial gradient from #ffd166 to #e4572e, feathered 6.
+enamel the title in #1f3a5f.
+enamel the sub in #e4572e.
+vignette the card, 0.35, in #1f3a5f.

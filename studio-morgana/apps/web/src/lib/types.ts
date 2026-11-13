@@ -5,11 +5,11 @@ export interface TypeInfo {
   id: PieceType | 'slides';
   label: string;               // the tab
   viewer: 'image' | 'player' | null;
-  exports: ('png' | 'mp4' | 'gt')[];
+  exports: ('png' | 'svg' | 'mp4' | 'gt')[];
   soon?: boolean;              // shown as coming, not yet made
 }
 export const PIECE_TYPES: TypeInfo[] = [
-  { id: 'image', label: 'Images', viewer: 'image', exports: ['png', 'gt'] },
+  { id: 'image', label: 'Images', viewer: 'image', exports: ['png', 'svg', 'gt'] },
   { id: 'video', label: 'Videos', viewer: 'player', exports: ['png', 'mp4', 'gt'] },
   { id: 'slides', label: 'Slides', viewer: null, exports: [], soon: true },
 ];
