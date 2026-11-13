@@ -24,7 +24,7 @@ Make the promise bone, 25% see-through.
 
 -- 01 colour
 Write "01  COLOUR" called h-colour as a heading, under the cover, 110 apart.
-Let there be 6 rectangles called swatch, 210 by 300, corners 24, in a row, 236 apart, from 0 0, under the h-colour, 40 apart.
+Let there be 6 rectangles called swatch, 210 by 300, corners 24, in a row, 236 apart, under the h-colour, 40 apart.
 Make the first swatch #4a0e1c.
 Make the second swatch #0d1033.
 Make the third swatch #0f3b2e.
@@ -46,7 +46,7 @@ Write "Bodoni Moda\nDisplay · headlines", "Jost\nBody · interface", "Martian M
 
 -- 03 imagery
 Write "03  IMAGERY" called h-image as a heading, under the type-notes, 100 apart.
-Let there be 3 rectangles called img, 440 by 380, corners 28, in a row, 460 apart, from 0 0, under the h-image, 40 apart.
+Let there be 3 rectangles called img, 440 by 380, corners 28, in a row, 460 apart, under the h-image, 40 apart.
 Print @hallows.jpg in the first img, focused at 0.3 0.4.
 Print @sienna-shoreline.jpg in the second img, duotone #0d1033 and #efe6d8, focused at 0.5 0.45.
 Print @tiara-night.jpg in the third img, grayscale, contrast 1.2, focused at 0.5 0.25.

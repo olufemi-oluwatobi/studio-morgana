@@ -17,7 +17,7 @@ Make the title #3a3f47.
 Give the title a shadow, 1 down, blur 0, in #ffffff, 90% opacity.
 
 -- window lights
-Let there be 3 circles called light, 13 big, in a row, 36 apart, from 0 0, in the titlebar, at the left, 30 in.
+Let there be 3 circles called light, 13 big, in a row, 36 apart, in the titlebar, at the left, 30 in.
 Make the first light a radial gradient from #ff8a80 to #c62828.
 Make the second light a radial gradient from #ffe082 to #f9a825.
 Make the third light a radial gradient from #a5d6a7 to #2e7d32.
@@ -37,7 +37,7 @@ Write "2:41" called elapsed as an lcd-text, left of the track, 16 apart.
 Write "-1:26" called remaining as an lcd-text, beside the track, 16 apart.
 Make the track #27331a, 80% see-through.
 Make the played #27331a.
-Let there be 8 rectangles called eq, 10 by 44, in a row, 16 apart, from 0 0, in the lcd, at the top right, 30 in.
+Let there be 8 rectangles called eq, 10 by 44, in a row, 16 apart, in the lcd, at the top right, 30 in.
 Make the eqs #27331a, 25% see-through.
 Make every other eq #27331a.
 
