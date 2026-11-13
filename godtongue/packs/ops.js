@@ -209,7 +209,7 @@ export default function ops(reg) {
     words: ['deboss', 'press', 'sink'],
     help: 'Press an area down. Depth in mm (default 0.04).',
     examples: ['deboss the badge, 0.04 mm deep.'],
-    run(ctx, toks) { const { area, mods } = head(ctx, toks); step(ctx, 'deboss', area, { params: { height_mm: ctx.mm(mods.deep, 0.04) } }); },
+    run(ctx, toks) { const { area, mods } = head(ctx, toks); step(ctx, 'deboss', area, { params: { depth_mm: ctx.mm(mods.deep, 0.04) } }); },
   });
   reg.verb({
     words: ['etch', 'frost'],

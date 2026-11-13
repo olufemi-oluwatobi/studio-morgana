@@ -1,0 +1,155 @@
+// Builds docs/catalogue.md: every part of the platform, every property, what renders it and how a writer reaches it,
+// from core/catalogue.js plus the live registry, the engines and the app's API.   node tools/catalogue.mjs
+//
+// audit() is the completeness check (used by test/run.js): it compiles every example and reads the web renderer,
+// and returns every property either of them uses that the catalogue does not list.
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const imp = (rel) => import(pathToFileURL(path.join(ROOT, rel)).href);
+
+export async function audit() {
+  const { compile, createRegistry } = await imp('index.js');
+  const { catalogued } = await imp('core/catalogue.js');
+  const known = catalogued(), reg = createRegistry(), missing = new Map();
+  const has = (k) => known.has(k) || [...known].some(x => x.startsWith(k + '.'));
+  const need = (k, where) => { if (!has(k)) missing.set(k, where); };
+  const files = []; const walk = (d) => { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); if (fs.statSync(p).isDirectory()) walk(p); else if (f.endsWith('.gt') && !f.includes('template')) files.push(p); } };
+  walk(path.join(ROOT, 'examples'));
+  for (const f of files) {
+    const r = compile(fs.readFileSync(f, 'utf8'), { registry: reg, baseDir: path.dirname(f), file: f });
+    if (!r.ok) continue;
+    const d = r.doc, w = path.relative(ROOT, f), keys = (o) => Object.keys(o || {});
+    for (const k of keys(d)) need(`piece.${k}`, w);
+    for (const k of keys(d.card)) need(`card.${k}`, w);
+    for (const k of keys(d.canvas)) need(`canvas.${k}`, w);
+    for (const k of keys(d.stage)) need(`stage.stage.${k}`, w);
+    for (const k of keys(d.video)) need(`stage.video.${k}`, w);
+    for (const k of keys(d.timeline)) need(`timeline.${k}`, w);
+    for (const z of Object.values(d.zones)) for (const k of keys(z)) need(`zone.${k}`, w);
+    for (const L of Object.values(d.layers)) {
+      const part = L.kind === 'vector' ? 'shape' : L.kind;
+      for (const k of keys(L)) if (!has(`thing.${k}`)) need(`${part}.${k}`, w);
+      for (const s of L.shapes || []) for (const k of keys(s)) need(`outline.${k}`, w);
+    }
+    for (const m of Object.values(d.materials)) for (const k of keys(m)) need(`material.${k}`, w);
+    for (const e of Object.values(d.elements || {})) {
+      for (const k of keys(e)) if (!['moves', 'fades', 'loops', 'enter', 'exit', 'flips'].includes(k)) need(`object.${k}`, w); else need(`motion.${k}`, w);
+      for (const [list, xs] of [['moves', e.moves], ['fades', e.fades], ['loops', e.loops]]) for (const x of xs || []) for (const k of keys(x)) need(`motion.${list}.${k}`, w);
+    }
+    for (const S of Object.values(d.sides)) for (const s of S.steps) {
+      for (const k of keys(s)) need(`step.${k}`, w);
+      need(`op.${s.op}`, w);
+      for (const k of keys(s.params)) need(`op.${s.op}.${k}`, w);
+      for (const k of keys(s.image)) need(`image.${k}`, w);
+      for (const k of keys(s.area)) need(`area.${k}`, w);
+      for (const t of [...s.area.terms, ...(s.area.minus || []), ...(s.area.within || [])]) for (const k of keys(t)) need(`area.term.${k}`, w);
+    }
+  }
+  // what the renderer can do: every operation it draws and every setting each one reads
+  const eng = fs.readFileSync(path.join(ROOT, 'web', 'engine.js'), 'utf8');
+  const cases = [...eng.matchAll(/case '([a-z-]+)':/g)];
+  cases.forEach((m, i) => {
+    const body = eng.slice(m.index, cases[i + 1]?.index ?? m.index + 4000);
+    need(`op.${m[1]}`, 'web/engine.js');
+    for (const p of new Set([...body.matchAll(/\bp\.([a-z][a-zA-Z_]*)\b/g)].map(x => x[1]))) need(`op.${m[1]}.${p}`, 'web/engine.js');
+  });
+  return [...missing].map(([key, where]) => ({ key, where }));
+}
+
+const esc = (s) => String(s ?? '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
+const val = (v) => v == null || v === '' ? '' : typeof v === 'object' ? '`' + JSON.stringify(v) + '`' : '`' + v + '`';
+const STATUS = { ok: 'yes', old: 'older words', none: '**no word**', partial: 'partly', unrendered: 'not drawn', internal: 'compiler' };
+
+export async function build() {
+  const C = await imp('core/catalogue.js');
+  const { createRegistry } = await imp('index.js');
+  const { BODIES, PIGMENTS } = await imp('packs/elements.js');
+  const { loadEngines } = await imp('engines/index.js');
+  const METRICS = (await imp('core/font-metrics.js')).default;
+  const reg = createRegistry(), ref = reg.reference(), engines = await loadEngines();
+  const L = [];
+  const all = [...C.PARTS.flatMap(p => p.props.map(x => ({ ...x, where: p.title }))), ...C.OPERATIONS.flatMap(o => [{ key: o.op, say: o.say, status: o.status, note: o.note, where: 'Operations' }, ...o.params.map(x => ({ ...x, where: `${o.op}` }))])];
+  const count = (s) => all.filter(x => x.status === s).length;
+
+  L.push('# The Studio Morgana catalogue', '',
+    '_Generated by `node tools/catalogue.mjs` from `core/catalogue.js`, the live registry, the engines and the app\'s API. Do not edit by hand._', '',
+    'Everything the platform can make, every property each part has, what the renderer does with it, and the words a writer uses to reach it today. The language is built to cover this list; `test/run.js` fails when the compiler or the renderer uses a property that is not listed here.', '',
+    '## How a piece is built', '',
+    '1. **Source.** A piece is written in godtongue: plain sentences (`Let there be …`, `Make …`, `Give …`). See `docs/english.md`.',
+    '2. **Document.** The compiler turns the source into a Card Document: plain JSON, the only contract between the language and the renderers. Every property below is a field of it.',
+    '3. **Render.** An engine reads the document. In the app, `web` renders in the browser (WebGL2, live light) and exports PNG and MP4; `svg` exports flat vectors.',
+    '4. **App.** Studio Morgana stores pieces, versions and rendered outputs, and the model writes and edits sources (the HTTP API at the end).', '',
+    '## Where the language stands', '',
+    '| Status | Meaning | Properties |', '| --- | --- | --- |',
+    `| yes | rendered, and the plain-English words reach it | ${count('ok')} |`,
+    `| older words | rendered, but only verbs the plain-English layer replaces reach it (create, draw, set, glide, bring in, …) | ${count('old')} |`,
+    `| partly | some values reachable, some not | ${count('partial')} |`,
+    `| **no word** | rendered, but nothing in the language reaches it | ${count('none')} |`,
+    `| not drawn | in the language, but the web renderer does not draw it | ${count('unrendered')} |`,
+    `| compiler | set by the compiler, never written by hand | ${count('internal')} |`, '',
+    'The craft operations (emboss, engrave, deboss, etch, plate, foil, inlay, spray, print, illustrate, mix, sign, reveal, caption, place) keep their own first word by design, so they count as "yes".', '');
+  L.push('### What the language still has to cover', '');
+  for (const [s, title] of [['none', 'Rendered, but no word reaches it'], ['partial', 'Only partly reachable'], ['old', 'Reachable only through older words']]) {
+    const xs = all.filter(x => x.status === s);
+    if (!xs.length) continue;
+    L.push(`**${title}** (${xs.length})`, '');
+    for (const x of xs) L.push(`- ${x.where} › \`${x.key}\`${x.note ? ': ' + x.note : ''}${s === 'old' && x.say ? ` (today: ${x.say})` : ''}`);
+    L.push('');
+  }
+
+  L.push('## Parts and their properties', '');
+  for (const part of C.PARTS) {
+    L.push(`### ${part.title}`, '', `\`${part.path}\` · ${part.does}`, '', '| Property | Type | Default | What it does | How to say it | Status |', '| --- | --- | --- | --- | --- | --- |');
+    for (const p of part.props) L.push(`| \`${p.key}\` | ${esc(p.type)} | ${val(p.def)} | ${esc(p.does)}${p.note ? ` _(${esc(p.note)})_` : ''} | ${esc(p.say)} | ${STATUS[p.status]} |`);
+    L.push('');
+  }
+  L.push('## Operations', '', 'What can be done to an area. Each is one step in a face; its settings follow after commas.', '');
+  for (const o of C.OPERATIONS) {
+    L.push(`### ${o.op}`, '', `${o.does} **Say:** ${o.say} · **Status:** ${STATUS[o.status]}${o.note ? ` · _${o.note}_` : ''}`, '');
+    if (o.params.length) {
+      L.push('| Setting | Type | Default | What it does | How to say it | Status |', '| --- | --- | --- | --- | --- | --- |');
+      for (const p of o.params) L.push(`| \`${p.key}\` | ${esc(p.type)} | ${val(p.def)} | ${esc(p.does)}${p.note ? ` _(${esc(p.note)})_` : ''} | ${esc(p.say)} | ${STATUS[p.status]} |`);
+      L.push('');
+    }
+  }
+
+  L.push('## Vocabulary', '', 'The names the language knows, read from the registry.', '');
+  L.push('### Shapes and patterns', '', 'Things that can be let or drawn: `Let there be a <name> called …`.', '', '| Name | What it draws |', '| --- | --- |');
+  for (const g of reg.genList) L.push(`| \`${g.name}\`${g.words?.length ? ' (' + g.words.map(w => '`' + w + '`').join(', ') + ')' : ''} | ${esc(g.help)} |`);
+  L.push('');
+  const mats = [...reg.materials.entries()];
+  const byType = {}; for (const [k, m] of mats) (byType[m.type || 'other'] ||= []).push(k);
+  L.push('### Materials', '', `${mats.length} materials. A material is a known word for \`make\`: \`Make the title mirror chrome.\``, '');
+  for (const [t, ks] of Object.entries(byType)) L.push(`- **${t}** (${ks.length}): ${ks.map(k => '`' + k + '`').join(', ')}`);
+  L.push('', '### Colours', '', `Any hex colour (\`#1f3a5f\`), a value named with \`let\`, or a named colour: ${[...reg.colors.keys()].map(k => '`' + k + '`').join(', ')}.`, '');
+  L.push('### Stocks', '', 'What objects and blanks are made of: `Let there be a card called ball, of cardstock …`.', '', '| Stock | Family | Colour | Metal | Rough | Thick (mm) | Edge |', '| --- | --- | --- | --- | --- | --- | --- |');
+  for (const [k, b] of Object.entries(BODIES)) L.push(`| \`${k}\` | ${b.family} | ${b.color} | ${b.metal} | ${b.rough} | ${b.thick_mm} | ${b.edge} |`);
+  L.push('', '### Pigments', '', `For mixing paint: \`mix a paint called teal from 2 parts phthalo blue and 1 part titanium white, gloss.\` ${Object.keys(PIGMENTS).map(k => '`' + k + '`').join(', ')}.`, '');
+  const fonts = {}; for (const k of Object.keys(METRICS)) { const [f, w, st] = k.split('/'); (fonts[f] ||= []).push(`${w}${st === 'italic' ? ' italic' : ''}`); }
+  L.push('### Fonts', '', 'Each is measured, so text wraps and fits exactly.', '', '| Font | Cuts |', '| --- | --- |');
+  for (const [f, cuts] of Object.entries(fonts)) L.push(`| ${f.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ')} | ${cuts.join(', ')} |`);
+  L.push('', '### Styles', '', 'Ready-made recipes: `use the <name> style.`', '', '| Style | What it does |', '| --- | --- |');
+  for (const s of reg.styleList) L.push(`| \`${s.name}\` | ${esc(s.help)} |`);
+  L.push('', '### Known words for `make` and `give`', '', 'The dictionary. A new effect, state, transform or motion is one entry (`docs/english.md`).', '', '| Words | Kind | What it does | Example |', '| --- | --- | --- | --- |');
+  for (const w of ref.words) L.push(`| ${w.words.map(x => '`' + x + '`').join(', ')} | ${w.kind} | ${esc(w.help)} | ${esc(w.example)} |`);
+  L.push('', '### Verbs', '', 'Every first word a sentence can start with.', '', '| Words | What it does |', '| --- | --- |');
+  for (const v of ref.verbs) L.push(`| ${v.words.map(x => '`' + x + '`').join(', ')} | ${esc(v.help)} |`);
+
+  L.push('', '## Engines', '', C.ENGINES_NOTE, '', '| Engine | What it makes |', '| --- | --- |');
+  for (const e of Object.values(engines)) L.push(`| \`${e.name}\` | ${esc(e.label)}: ${esc(e.describe)} |`);
+  L.push('', '## HTTP API (Studio Morgana)', '', 'JSON over HTTPS. Paths are under `/api`; every write sends the header `x-morgana: 1`. Visitors get a cookie and can make pieces; signing in keeps them.', '', '| Method | Path | What it does | Who |', '| --- | --- | --- | --- |');
+  for (const r of C.HTTP) L.push(`| ${r.method} | \`${r.path}\` | ${esc(r.does)} | ${r.who} |`);
+
+  const miss = await audit();
+  L.push('', '## Completeness', '', miss.length ? `**${miss.length} properties are used but not catalogued:** ${miss.map(m => `\`${m.key}\` (${m.where})`).join(', ')}` : 'Every property the compiler emits for the examples, and every setting the web renderer reads, is in this catalogue.', '');
+  return { md: L.join('\n'), missing: miss };
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  const { md, missing } = await build();
+  fs.writeFileSync(path.join(ROOT, 'docs', 'catalogue.md'), md);
+  console.log(`docs/catalogue.md · ${md.length} chars${missing.length ? ` · ${missing.length} not catalogued: ${missing.map(m => m.key).join(', ')}` : ' · complete'}`);
+}

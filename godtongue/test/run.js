@@ -217,6 +217,14 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
       const ref = createRegistry().reference();
       ok('known words are listed for the reference', ref.words.length > 30 && ref.words.some(w => w.words.includes('glow') && w.kind === 'effect'));
     }
+    // the catalogue: everything the compiler emits and the renderer reads is listed; its phrases compile; the doc is current
+    { const { audit, build } = await import('../tools/catalogue.mjs'), miss = await audit();
+      ok('catalogue: every property used is catalogued', !miss.length, miss.map(m => `${m.key} (${m.where})`).join(', '));
+      const { check } = await import('./catalogue-phrases.mjs'), bad = check().filter(c => !c.ok);
+      ok('catalogue: its phrases compile and do what it says', !bad.length, bad.map(b => `${b.name} ${b.errors.join('; ')}`).join(' | '));
+      const md = (await build()).md, onDisk = fs.existsSync(path.join(path.dirname(ex), 'docs', 'catalogue.md')) ? fs.readFileSync(path.join(path.dirname(ex), 'docs', 'catalogue.md'), 'utf8') : '';
+      ok('catalogue: docs/catalogue.md is up to date (node tools/catalogue.mjs)', md === onDisk);
+    }
     // element model: bodies, layering, paint
     const sp = path.join(ex, 'stage', 'three-bodies.gt'); const st = compile(fs.readFileSync(sp, 'utf8'), { baseDir: path.dirname(sp) });
     ok('stage compiles with four elements', st.ok && st.doc.kind === 'stage' && Object.keys(st.doc.elements).join() === 'memo,ticket,plaque,swatch', JSON.stringify(st.diagnostics));
