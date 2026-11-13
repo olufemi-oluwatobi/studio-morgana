@@ -62,7 +62,7 @@ export interface PieceFile { name: string; url: string; type: string; bytes: num
 export interface PieceDetail {
   piece: PieceCard & { prompt: string | null; parentId: string | null; versionId: string | null; pinnedIn: string[] };
   version: Version; versions: { id: string; n: number; by: string; command: string | null; created: number; fingerprint: string | null }[];
-  files: PieceFile[]; ai: 'workers-ai' | 'local';
+  files: PieceFile[]; ai: 'workers-ai' | 'local' | 'scripted';
 }
 export interface Project { id: string; name: string; updated: number; count: number; cover: string | null }
-export interface Me { user: { id: string; email: string; role: 'user' | 'admin'; verified: number } | null; ai: 'workers-ai' | 'local'; email: boolean }
+export interface Me { user: { id: string; email: string; role: 'user' | 'admin'; verified: number } | null; ai: 'workers-ai' | 'local' | 'scripted'; email: boolean }

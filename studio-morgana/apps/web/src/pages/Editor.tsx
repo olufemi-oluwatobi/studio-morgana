@@ -18,8 +18,14 @@ import { elementAt, hitAt, indexOf, type Hit, type Index } from '../lib/inspect'
 import { Player } from '../components/Player';
 import { ArrowLeft, Download, Pins, Send, Trash, Undo } from '../components/Icons';
 
-type Phase = 'idle' | 'writing' | 'repairing' | 'rendering' | 'saving' | 'exporting';
-const PHASE_TEXT: Record<Phase, string> = { idle: '', writing: 'Writing the change', repairing: 'Fixing the source', rendering: 'Rendering', saving: 'Saving', exporting: 'Exporting' };
+interface TrailStep { step: string; by: 'reader' | 'writer' | 'compiler'; ms: number; note: string }
+interface Review { ok: boolean; issues: string[]; summary: string }
+interface Note { kind: 'answer' | 'trail' | 'review'; text: string; issues?: string[]; round?: number; checked?: string }
+const REVIEW_ROUNDS = 1;   // after a change is drawn, the reader may send it back once
+const WHO = { reader: 'Scout', writer: 'GPT-OSS', compiler: 'compiler' } as const;
+const trailText = (t?: TrailStep[]) => (t?.length ? t.map((s) => `${WHO[s.by]}: ${s.note}`).join(' → ') : 'written by the offline generator');
+type Phase = 'idle' | 'writing' | 'repairing' | 'rendering' | 'saving' | 'exporting' | 'reviewing';
+const PHASE_TEXT: Record<Phase, string> = { idle: '', writing: 'Writing the change', reviewing: 'Looking at the result', repairing: 'Fixing the source', rendering: 'Rendering', saving: 'Saving', exporting: 'Exporting' };
 const NONE: ReadonlySet<number> = new Set();
 const EXPORT_LABEL = { png: 'Image (PNG)', svg: 'Vector (SVG)', mp4: 'Video (MP4)', gt: 'Godtongue (.gt)' } as const;
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'piece';
@@ -40,6 +46,7 @@ export default function Editor({ id }: { id: string }) {
   const [progress, setProgress] = useState<number | null>(null);
   const [cmd, setCmd] = useState('');
   const [menu, setMenu] = useState(false);
+  const [note, setNote] = useState<Note | null>(null);              // what the models did with the last change
   const [live, setLive] = useState<Diagnostic[]>([]);                       // what the compiler says about the text as it is now
   const [elements, setElements] = useState<Record<string, Elem> | null>(null);
   const [imgGeom, setImgGeom] = useState<Geom | null>(null);               // the picture on screen: its size and the part of the piece it shows
@@ -77,7 +84,7 @@ export default function Editor({ id }: { id: string }) {
     setPhase('rendering'); setDiags([]);
     let res = await render(pieceId, v.source, files, PRIORITY.interactive);
     if (!alive.current || current.current !== v0.id) return false;
-    if (!res.ok && ai === 'workers-ai' && (v.by === 'ai' || v.by === 'repair')) {
+    if (!res.ok && ai && ai !== 'local' && (v.by === 'ai' || v.by === 'repair')) {
       setPhase('repairing');
       const fixed = await api<{ version: Version }>(`/pieces/${pieceId}/repair`, { body: { versionId: v.id, diagnostics: res.diagnostics } });
       if (!alive.current) return false;
@@ -142,26 +149,41 @@ export default function Editor({ id }: { id: string }) {
     setSource(r.version.source);
     setD({ ...det, version: r.version, files, piece: { ...det.piece, id: r.pieceId, mine: true, pinnedIn: r.pieceId === det.piece.id ? det.piece.pinnedIn : [] } });
     setPins(null);
-    await show(r.pieceId, r.version, files, true);
+    return show(r.pieceId, r.version, files, true);
   }, [show]);
 
   const busy = phase !== 'idle';
 
-  const submitCommand = async (e?: FormEvent) => {
-    e?.preventDefault();
-    const text = cmd.trim(); const det = dRef.current;
-    if (!text || busy || !det) return;
-    setPhase('writing');
+  const submitCommand = async (e?: FormEvent) => { e?.preventDefault(); await runCommand(cmd.trim(), 0); };
+  // a change: the reader understands it (looking at the picture), the writer patches the source, the compiler checks it;
+  // once the browser has drawn it, the reader looks again and, if it missed, one more round fixes what it saw
+  const runCommand = async (text: string, round: number) => {
+    const det = dRef.current;
+    if (!text || (busy && round === 0) || !det) return;
+    setPhase('writing'); if (round === 0) setNote(null);
     try {
       // "p1" means nothing without the parts: if the piece has not compiled yet, compile it first
       let ps = parts;
       if (!ps) { const c = await compile('/p/' + det.piece.id, det.version.source, det.files); ps = c.ok ? c.parts : []; if (alive.current && c.ok) setParts(c.parts); }
-      const r = await api<{ pieceId: string; version: Version; files: PieceFile[] }>(`/pieces/${det.piece.id}/command`, {
+      const r = await api<{ pieceId: string; version?: Version; files?: PieceFile[]; answer?: string; trail?: TrailStep[]; ok?: boolean }>(`/pieces/${det.piece.id}/command`, {
         body: { text, versionId: det.version.id, parts: ps.map((p) => ({ n: p.n, name: p.name, face: p.face, lines: p.lines })) },
       });
       if (!alive.current) return;
       setCmd('');
-      await adopt(r, det.version.source);
+      if (r.answer || !r.version) { setNote({ kind: 'answer', text: r.answer || 'Nothing to change.' }); setPhase('idle'); return; }
+      setNote({ kind: 'trail', text: trailText(r.trail), round });
+      const drawn = await adopt({ pieceId: r.pieceId, version: r.version, files: r.files }, det.version.source);
+      if (!drawn || !alive.current || ai === 'local' || round >= REVIEW_ROUNDS) return;
+      setPhase('reviewing');
+      const { review } = await api<{ review: Review | null }>(`/pieces/${r.pieceId}/review`, { body: { versionId: r.version.id, text } });
+      if (!alive.current) return;
+      if (review && !review.ok && review.issues.length) {
+        setNote({ kind: 'review', text: review.summary, issues: review.issues, round });
+        await runCommand(`${text}. Also fix: ${review.issues.join('; ')}`, round + 1);
+        return;
+      }
+      setNote((n) => (n ? { ...n, checked: review?.summary || 'looks as asked' } : n));
+      setPhase('idle');
     } catch (err) { toast((err as Error).message); if (alive.current) setPhase('idle'); }
   };
 
@@ -352,6 +374,14 @@ export default function Editor({ id }: { id: string }) {
             </div>
             <CodeBox ref={code} value={source} onChange={setSource} onRun={run} changed={changed} errors={errorLines} disabled={!d} marks={all} onPoint={onPoint} />
             {all.length > 0 && <Problems all={all} goTo={(n) => code.current?.goToLine(n)} fix={env.fix} />}
+            {note && (
+              <div className={'cmd-note ' + note.kind} role="status">
+                <button className="cmd-note-x" onClick={() => setNote(null)} aria-label="Dismiss">×</button>
+                {note.kind === 'answer' && <p>{note.text}</p>}
+                {note.kind === 'trail' && <p><b>{note.round ? 'Second round' : 'How it was made'}</b> {note.text}{note.checked && <><br /><b>Scout looked at it:</b> {note.checked}</>}</p>}
+                {note.kind === 'review' && <p><b>Scout saw:</b> {note.issues?.join('; ')}. Fixing it…</p>}
+              </div>
+            )}
             <form className="command" onSubmit={submitCommand}>
               <label className="sr-only" htmlFor="cmd">Describe a change</label>
               <input id="cmd" ref={cmdInput} value={cmd} onChange={(e) => setCmd(e.target.value)} placeholder="Describe a change, like “make p1 chrome”" autoComplete="off" disabled={!d} />

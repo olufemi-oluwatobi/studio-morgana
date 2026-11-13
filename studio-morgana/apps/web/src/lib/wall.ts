@@ -128,7 +128,7 @@ async function finishOption(key: string, pieceId: string, version: Version, file
   patchDraft(key, { id: pieceId, state: 'rendering' });
   let v = version;
   let res = await render(pieceId, v.source, files, PRIORITY.wall);
-  if (!res.ok && ai === 'workers-ai') {
+  if (!res.ok && ai && ai !== 'local') {
     const fixed = await api<{ version: Version }>(`/pieces/${pieceId}/repair`, { body: { versionId: v.id, diagnostics: res.diagnostics } });
     v = fixed.version;
     res = await render(pieceId, v.source, files, PRIORITY.wall);
@@ -172,7 +172,10 @@ export async function generate() {
       refs: c.refs.filter((r) => r.kind === 'piece').map((r) => (r as { id: string }).id),
       uploads: c.refs.filter((r) => r.kind === 'upload').map((r) => (r as { key: string }).key),
     }, (line) => {
-      if (line.type === 'piece') {
+      if (line.type === 'plan' && line.plan?.title) {
+        // the reader has planned the piece: the drafts take its name while the writer works
+        keys.forEach((k) => patchDraft(k, { title: String(line.plan.title).replace(/-/g, ' ') }));
+      } else if (line.type === 'piece') {
         seen.add(line.index);
         const key = keys[line.index];
         work.push(finishOption(key, line.piece.id, line.version, line.files, projectId).catch((e) => {

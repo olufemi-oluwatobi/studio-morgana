@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import type { Context } from 'hono';
 import type { App, Env, Who } from './env';
 import { spend } from './auth';
-import { aiMode, editSource, generateSource, repairSource, type Diagnostic, type PartBrief } from './ai';
+import { aiMode, editFor, makeOption, planFor, repairFor, reviewFor, type Diagnostic, type FileRef, type PartBrief } from './ai';
 import { fail, id, now, sha256hex, str, titleOf } from './util';
 import { isPieceType } from './types';
 import { refreshIfDue } from './jobs';
@@ -85,6 +85,11 @@ async function editable(env: Env, who: Who, p: PieceRow): Promise<PieceRow> {
   return (await getPiece(env, nid));
 }
 
+async function fileRefs(env: Env, pid: string): Promise<FileRef[]> {
+  const { results } = await env.DB.prepare('SELECT name, key, type FROM piece_files WHERE piece_id = ?').bind(pid).all<FileRef>();
+  return results;
+}
+
 async function filesOf(env: Env, pid: string) {
   const { results } = await env.DB.prepare('SELECT name, key, type, bytes FROM piece_files WHERE piece_id = ? ORDER BY name').bind(pid).all<{ name: string; key: string; type: string; bytes: number }>();
   return results.map((f) => ({ name: f.name, url: fileUrl(f.key)!, type: f.type, bytes: f.bytes }));
@@ -155,16 +160,20 @@ pieces.post('/generate', async (c) => {
   const env = c.env;
   const run = async () => {
     await send({ type: 'start', n, ai: aiMode(env) });
+    // one plan for all the options (the reader looks at the images and picks the manual's chapters), then one write each
+    const planned = await planFor(env, { prompt, refs, files: uploads.map((u) => ({ name: u.name, key: u.key, type: u.type })) }).catch((e) => { console.error(e); return null; });
+    if (planned) await send({ type: 'plan', plan: planned.planned.plan, chapters: planned.planned.chapters.map((c) => c.id), trail: planned.planned.trail });
     await Promise.all(Array.from({ length: n }, async (_, i) => {
       try {
-        const source = await generateSource(env, { prompt, refs, uploads: uploads.map((u) => u.name), i, n });
+        const made = await makeOption(env, planned, { prompt, uploads: uploads.map((u) => u.name), i, n });
+        const source = made.source;
         const pid = id(), t = now();
         await env.DB.prepare(`INSERT INTO pieces (id, owner, title, status, prompt, created, updated) VALUES (?, ?, ?, 'draft', ?, ?, ?)`)
           .bind(pid, who.owner, titleOf(source, prompt.slice(0, 40)), prompt, t, t).run();
         if (uploads.length) await env.DB.batch(uploads.map((u) => env.DB.prepare('INSERT INTO piece_files (piece_id, name, key, type, bytes) VALUES (?, ?, ?, ?, ?)').bind(pid, u.name, u.key, u.type, u.bytes)));
         const v = await addVersion(env, pid, source, 'ai', null, null);
         if (project) await env.DB.prepare('INSERT OR IGNORE INTO project_pins (project_id, piece_id, pinned) VALUES (?, ?, ?)').bind(project.id, pid, now()).run();
-        await send({ type: 'piece', index: i, piece: { id: pid, title: titleOf(source, prompt.slice(0, 40)) }, version: versionOut(v), files: await filesOf(env, pid) });
+        await send({ type: 'piece', index: i, piece: { id: pid, title: titleOf(source, prompt.slice(0, 40)) }, version: versionOut(v), files: await filesOf(env, pid), ok: made.ok, trail: made.trail });
       } catch (e) {
         await send({ type: 'error', index: i, message: (e as { message?: string })?.message || 'this option failed' });
       }
@@ -202,9 +211,11 @@ pieces.post('/pieces/:id/command', async (c) => {
     n: Number(x.n) | 0, name: String(x.name ?? '').slice(0, 80), face: x.face ? String(x.face).slice(0, 40) : undefined,
     lines: (Array.isArray(x.lines) ? x.lines : []).map(Number).filter(Number.isFinite).slice(0, 50),
   }));
-  const source = await editSource(c.env, { source: base.source, parts, text });
-  const v = await addVersion(c.env, p.id, source, 'ai', text, base.id);
-  return c.json({ pieceId: p.id, version: versionOut(v), files: await filesOf(c.env, p.id) });
+  const r = await editFor(c.env, { source: base.source, parts, text, versionId: base.id, files: await fileRefs(c.env, p.id) });
+  // a question gets an answer and no new version
+  if (r.answer) return c.json({ pieceId: p.id, answer: r.answer, understood: r.understood, trail: r.trail });
+  const v = await addVersion(c.env, p.id, r.source, 'ai', text, base.id);
+  return c.json({ pieceId: p.id, version: versionOut(v), files: await filesOf(c.env, p.id), ok: r.ok, understood: r.understood, trail: r.trail });
 });
 
 // ── a hand edit from the code box
@@ -230,9 +241,21 @@ pieces.post('/pieces/:id/repair', async (c) => {
   }));
   if (!diags.length) fail(400, 'nothing to repair');
   await spend(c.env, who, 'command');
-  const source = await repairSource(c.env, { source: v.source, diagnostics: diags });
-  const nv = await addVersion(c.env, p.id, source, 'repair', null, v.id);
-  return c.json({ pieceId: p.id, version: versionOut(nv) });
+  const r = await repairFor(c.env, { source: v.source, files: await fileRefs(c.env, p.id) });
+  const nv = await addVersion(c.env, p.id, r.source, 'repair', null, v.id);
+  return c.json({ pieceId: p.id, version: versionOut(nv), ok: r.ok, trail: r.trail });
+});
+
+// ── a version the browser has drawn: the reader looks at the picture and says whether it does what was asked
+pieces.post('/pieces/:id/review', async (c) => {
+  const who = c.get('who');
+  const body = await json<{ versionId?: string; text?: string }>(c);
+  const p = await getPiece(c.env, c.req.param('id'));
+  if (p.owner !== who.owner) fail(403, 'not your piece');
+  const v = await getVersion(c.env, p.id, str(body.versionId, 'versionId', 64));
+  const text = body.text ? str(body.text, 'text', 1000) : v.command || p.prompt || '';
+  const review = await reviewFor(c.env, { versionId: v.id, text, source: v.source });
+  return c.json({ review });
 });
 
 // ── the browser rendered a version and uploaded its posters: make it the current one
