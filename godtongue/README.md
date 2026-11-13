@@ -23,6 +23,8 @@ This repository is the working code for the Studio Morgana effort. It holds:
 - tests and golden images (`test/`, `golden/`);
 - examples, from a single card to two videos (`examples/`).
 
+The plain-English layer (let, write, make, give, move, change, when) is described in `docs/english.md`.
+
 ## Status
 
 - **Step 0 is done:** one renderer, cards placed on a stage, timed flips, deterministic golden frames, and the browser studio.

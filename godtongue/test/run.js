@@ -173,6 +173,50 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
       const l2 = compile(fs.readFileSync(path.join(ex, 'canvas', 'launch.gt'), 'utf8'), { baseDir: path.join(ex, 'canvas') }), s2 = toSvg(l2.doc);
       ok('vector export: photo embedded, what is left out is listed', /<image href="data:image\/jpeg/.test(s2) && /left out[^>]*adjust/.test(s2) && /left out[^>]*grain/.test(s2));
     }
+    // the plain-English layer: let, make, give, move, change, when
+    { const E = (src, o = {}) => compile(src, o), C = 'Let there be a flat canvas called x, 400 by 400.\n';
+      const fp = path.join(ex, 'canvas', 'pattern-en.gt'), fr = E(fs.readFileSync(fp, 'utf8'), { baseDir: path.dirname(fp) });
+      ok('english pattern compiles', fr.ok, JSON.stringify(fr.diagnostics));
+      const L = fr.doc.layers, st = fr.doc.sides.front.steps, refs = st.map(x => `${x.op}:${x.area.terms[0].ref}`);
+      ok('let there be a flat canvas', fr.doc.kind === 'canvas' && fr.doc.canvas.flat === true && fr.doc.name === 'pattern');
+      ok('plurals: numbered things and one name for all', !!L['orbit-9'] && !L['orbit-10'] && L.orbit.shapes.length === 9 && L.ray.shapes.length === 12);
+      ok('plurals: each bigger than the last', Math.abs(Math.max(...L['orbit-3'].shapes[0].pts.map(q => q[0])) - 750) < .5);
+      ok('plurals: a ring goes round its centre', Math.abs(Math.max(...L['ray-4'].shapes[0].pts.map(q => q[0])) - (540 + 450 + 75)) < 1);
+      ok('let names a value that make understands', st.find(x => x.area.terms[0].ref === 'title').material && fr.doc.materials[st.find(x => x.area.terms[0].ref === 'title').material].hex === '#1f3a5f');
+      ok('the order of sentences does not matter: things stack as they were let', refs.join() === 'enamel:card,enamel:orbit,enamel:ray,enamel:ray-3,enamel:core,enamel:title,enamel:sub,vignette:card', refs.join());
+      ok('"the third ray" is one of the rays', refs.includes('enamel:ray-3'));
+      ok('see-through and feathered ride on the colour', st.find(x => x.area.terms[0].ref === 'orbit').params.opacity === .7 && st.find(x => x.area.terms[0].ref === 'core').params.feather === 6);
+      const shuffled = fs.readFileSync(fp, 'utf8').split('\n'), mk = shuffled.filter(l => /^Make /.test(l)).reverse(), others = shuffled.filter(l => !/^Make /.test(l));
+      ok('reversing the make sentences gives the same steps', JSON.stringify(E([...others, ...mk].join('\n'), {}).doc.sides.front.steps.map(x => [x.op, x.area.terms[0].ref, x.params])) === JSON.stringify(st.map(x => [x.op, x.area.terms[0].ref, x.params])));
+      const lp = path.join(ex, 'canvas', 'launch-en.gt'), lr = E(fs.readFileSync(lp, 'utf8'), { baseDir: path.dirname(lp) }), ls = lr.ok ? lr.doc.sides.front.steps.map(x => `${x.op}:${x.area.terms[0].ref}`) : [];
+      ok('english launch poster compiles', lr.ok, JSON.stringify(lr.diagnostics));
+      ok('a thing paints as shadow, frost, colour, outline', ls.join().includes('shadow:glass,adjust:glass,enamel:glass,enamel:glass'), ls.join());
+      ok('craft words stay with their thing: the photo is printed under what was let later', ls.indexOf('print:photo') > 0 && ls.indexOf('print:photo') < ls.indexOf('enamel:dot'));
+      ok('the page grain goes over everything', ls.at(-1) === 'grain:card');
+      ok('make … line up, evenly spaced', lr.ok && Math.abs(lr.doc.layers.title.box[0] - lr.doc.layers.when.box[0]) < .2);
+      ok('give … an inner shadow', lr.ok && lr.doc.sides.front.steps.filter(x => x.op === 'inshadow').length === 4);
+      const g = E(C + 'Let there be a circle called sun, 50 big, at 200 200.\nMake the sun glow.\nGive the glow a width of 90.\nGive the sun the colour #ffb347.\nMake it 2 times bigger, turned 10.');
+      ok('give sets a value on an effect; "it" carries on', g.ok && g.doc.sides.front.steps.map(x => x.op).join() === 'glow,enamel' && g.doc.sides.front.steps[0].params.blur === 90, JSON.stringify(g.diagnostics));
+      ok('make … bigger changes the thing itself', g.ok && Math.abs(Math.max(...g.doc.layers.sun.shapes[0].pts.map(q => q[0])) - 300) < 1);
+      const mat = E('Let there be a card called m from stainless.\nLet there be a circle called dot, 40 big, at 300 300.\nMake the dot gold.\nEmboss the dot, 0.3 mm.');
+      ok('a material is a known word too', mat.ok && mat.doc.sides.front.steps.map(x => x.op).join() === 'plate,emboss', JSON.stringify(mat.diagnostics));
+      const tx = E(C + 'Write "Hello" called t in Jost, at 100 100, size 40.\nMake the t uppercase.\nGive the t a size of 80.\nMove the t to 200 200.\nMove it 20 right, 10 down.');
+      ok('text: uppercase, size, move', tx.ok && tx.doc.layers.t.text === 'HELLO' && tx.doc.layers.t.size === 80 && Math.abs((tx.doc.layers.t.box[0] + tx.doc.layers.t.box[2]) / 2 - 220) < 1, JSON.stringify(tx.diagnostics));
+      const bad = E(C + 'Let there be a circle called sun, 50 big.\nMake the sun glowy.\nMake the moon red.\nLet there be 3 circles called c, in a grid 2 by 2, 10 apart.');
+      ok('unknown words and things are explained', bad.diagnostics.some(d => /glowy/.test(d.msg) && /glow/.test(d.hint || '')) && bad.diagnostics.some(d => /nothing called "moon"/.test(d.msg)) && bad.diagnostics.some(d => /holds 4, not 3/.test(d.msg)));
+      const old = E('create a canvas called x, 400 by 400.\ndraw a circle called p, 20 big.\ndraw a circle called q, 20 big.\non the front.\nmake the q #ff0000.\nmake the p #00ff00, shadowed.');
+      ok('a piece that starts with "create" still paints in sentence order', old.ok && old.doc.sides.front.steps.map(x => `${x.op}:${x.area.terms[0].ref}`).join() === 'enamel:q,shadow:p,enamel:p', JSON.stringify(old.diagnostics));
+      const vp = path.join(ex, 'video', 'events-en.gt'), vr = E(fs.readFileSync(vp, 'utf8'), { baseDir: path.dirname(vp) }), el = vr.doc.elements || {};
+      ok('english events video compiles', vr.ok, JSON.stringify(vr.diagnostics));
+      ok('move over time, with easing', vr.ok && el.ball.moves[0].t0 === .5 && el.ball.moves[0].dur === 1.4 && el.ball.moves[0].ease === 'bounce' && el.ball.moves[0].to.join() === '880,300');
+      ok('when the ball arrives: the next thing starts as it lands', vr.ok && Math.abs(el.banner.fades[0].t0 - 1.9) < 1e-9 && el.banner.fades[0].to === 1);
+      ok('when the banner appears: a chain of moments', vr.ok && Math.abs(el.ball.moves[1].t0 - 2.3) < 1e-9 && el.ball.moves[1].scale === 1.3 && el.ball.moves[2].scale === 1 && el.banner.loops[0].t0 === 2.3);
+      ok('a relative move starts from where the thing ended up', vr.ok && el.ball.moves.at(-1).to.join() === '880,600');
+      const nv = E(C + 'Let there be a circle called p, 20 big.\nWhen the video starts, make the p float.\nChange the p to invisible over 1 s.');
+      ok('events and changes say what they need', nv.diagnostics.some(d => /events need a video/.test(d.msg)) && nv.diagnostics.some(d => /only an object on a stage/.test(d.msg)));
+      const ref = createRegistry().reference();
+      ok('known words are listed for the reference', ref.words.length > 30 && ref.words.some(w => w.words.includes('glow') && w.kind === 'effect'));
+    }
     // element model: bodies, layering, paint
     const sp = path.join(ex, 'stage', 'three-bodies.gt'); const st = compile(fs.readFileSync(sp, 'utf8'), { baseDir: path.dirname(sp) });
     ok('stage compiles with four elements', st.ok && st.doc.kind === 'stage' && Object.keys(st.doc.elements).join() === 'memo,ticket,plaque,swatch', JSON.stringify(st.diagnostics));

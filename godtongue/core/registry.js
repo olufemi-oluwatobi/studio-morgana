@@ -13,12 +13,17 @@ export class Registry {
     this.materials = new Map(); this.matList = [];
     this.colors = new Map();
     this.styles = new Map(); this.styleList = [];
+    this.words = new Map(); this.wordList = [];       // what "make" and "give" can apply: effects, states, transforms, motions
+    this.finishers = [];                              // run once after the last statement
   }
   use(pack) { pack(this); return this; }
   verb(v) { this.verbList.push(v); for (const w of v.words) this.verbs.set(w, v); }
   generator(g) { this.genList.push(g); for (const w of [g.name, ...(g.words || [])]) this.generators.set(w, g); }
   material(m) { this.matList.push(m); for (const w of [m.name, ...(m.words || [])]) this.materials.set(w, m); }
   color(name, hex) { this.colors.set(name, hex); }
+  // reg.word({ words: ['glow', 'glowing'], kind: 'effect', help, example, apply(ctx, a) }): a known word for "make the x glow"
+  word(w) { this.wordList.push(w); for (const k of w.words) this.words.set(k, w); }
+  finish(fn) { this.finishers.push(fn); }
   style(s) { this.styleList.push(s); for (const w of [s.name, ...(s.words || [])]) this.styles.set(w, s); }
 
   // multi-word lookup: longest phrase of words from the start of toks that names an entry
@@ -41,6 +46,7 @@ export class Registry {
       materials: this.matList.map(m => ({ name: m.name, words: m.words || [], type: m.type })),
       colors: [...this.colors.entries()].map(([name, hex]) => ({ name, hex })),
       styles: this.styleList.map(s => ({ name: s.name, words: s.words || [], help: s.help })),
+      words: this.wordList.map(w => ({ words: w.words, kind: w.kind, help: w.help, example: w.example })),
     };
   }
 }

@@ -59,6 +59,8 @@ The words are in `docs/properties.md`. This list is the starting point for chang
 
 ## Things in the language that got in the way
 
+The plain-English layer (`docs/english.md`) answers 2, 3, 5, 6 and the loop part of 7 for pieces that start with "Let there be"; 4 is fixed on flat pieces; 1, 8, 9 (beyond whole objects) and 10 are open.
+
 Found while building these; they are candidates for the next round of language changes.
 
 1. A layer cannot be named `ring`, `outline`, `edge` or `halo` (they mean "the outline of" in an area), and the error does not say so.

@@ -22,7 +22,8 @@ admin.put('/collections/:slug', async (c) => {
   ]);
   // hand-picked means public: they are shown to everyone
   if (slug === 'featured' && ids.length) {
-    await c.env.DB.prepare(`UPDATE pieces SET visibility = 'public', published = COALESCE(published, ?) WHERE id IN (${ids.map(() => '?').join(',')})`).bind(now(), ...ids).run();
+    // by the collection, not by a list of ids: D1 allows about 100 variables in one statement
+    await c.env.DB.prepare("UPDATE pieces SET visibility = 'public', published = COALESCE(published, ?) WHERE id IN (SELECT piece_id FROM collection_items WHERE slug = 'featured')").bind(now()).run();
   }
   const n = await c.env.DB.prepare('SELECT COUNT(*) AS n FROM collection_items WHERE slug = ?').bind(slug).first<{ n: number }>();
   return c.json({ slug, count: n?.n ?? 0 });

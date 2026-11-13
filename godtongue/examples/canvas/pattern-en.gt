@@ -1,0 +1,18 @@
+-- The flat pattern poster in plain English: no loops, and the order of the sentences does not matter.
+Let there be a flat canvas called pattern, 1080 by 1350.
+Let navy be #1f3a5f.
+Let ember be #e4572e.
+
+Let there be 9 circles called orbit, at 540 560, the first 70 big, each 70 bigger than the last, hollow 6.
+Let there be 12 triangles called ray, 46 by 150, in a ring around 540 560, 450 out.
+Let there be a circle called core, 150 big, at 540 560.
+Write "RADIAL" called title in Big Shoulders Display bold, at 540 1150, fit 860.
+Write "drawn in plain English" called sub in Jost, at 540 1240, size 40, tracking 6.
+
+Make the card #f4efe6, vignetted 0.35, in navy.
+Make the orbits navy, 30% see-through.
+Make the rays ember.
+Make the third ray navy.
+Make the core a radial gradient from #ffd166 to #e4572e, feathered 6.
+Make the title navy.
+Make the sub ember.

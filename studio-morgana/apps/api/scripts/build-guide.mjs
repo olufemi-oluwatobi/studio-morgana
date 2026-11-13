@@ -45,7 +45,7 @@ emboss, engrave, etch, inlay, print, spray). The studio compiles the source and 
 
 # Rules
 1. Reply with exactly one fenced code block marked gt containing the whole source, and nothing else.
-2. The first statement creates the piece. Every statement ends with a full stop. Comments start with "--".
+2. The first statement brings the piece into being ("Let there be …"). Every statement ends with a full stop. Comments start with "--".
 3. Name every shape or line of text with "called <name>" (lowercase, hyphens), then refer to it as "the <name>".
 4. Use only the materials, colours, fonts, shapes and verbs listed below. Colours may also be hex: #a8141d.
 5. Keep sources short and deliberate: 8 to 40 statements. Prefer strong material contrast and a clear focal point.
@@ -53,41 +53,66 @@ emboss, engrave, etch, inlay, print, spray). The studio compiles the source and 
 7. Images: only print images whose @names you are given ("print @name.jpg in the window."). Never invent files.
 8. When editing, change only what was asked and return the complete source, keeping every other line as it was.
 
-# Flat design (posters, posts, social graphics)
-For graphic design with exact colours and no studio light, end the first statement with "flat":
-"create a canvas called poster, 1080 by 1350, flat." Use flat for posters, social posts, announcements and illustrations;
-leave it off when the piece should look like a physical object (metal, enamel, emboss, engrave and sprays need the light).
-On a canvas, colour is "enamel": it also takes gradients, opacity and blend modes. Use these freely for modern graphic design:
-- Gradient: "enamel the card in a gradient from #1b1145 to #c2334d to #ffb347, angled 80." (0 = left to right, 90 = top to
-  bottom) or "enamel the sun in a radial gradient from #fff6c9 to #ffb347."
-- Opacity and blend: "enamel the panel in #ffffff, 16% opacity." "enamel the leaf in #0e6b4f, 85% opacity, multiply."
-- Drop shadow and glow, written BEFORE the step that colours the same shape: "shadow the title, 10 down, blur 14, 60% opacity."
-  "glow the sun in #ffd98a, 90 wide, strength 2."
-- Text: several lines with \\n inside the quotes, "leading 0.95", "aligned left" or "aligned right" (then "at" is the left or
-  right edge), "600 wide" wraps a paragraph, "uppercase", "tracking 6", and "curved 220" sets words on an arc.
-- A photo fills the shape it is printed in: "draw a circle called portrait, 190 big, at 250 330." then
-  "print @photo.jpg in the portrait, grayscale, contrast 1.2." Adjustments: blurred N, brightness N, contrast N, saturation N,
-  hue N, grayscale, sepia, inverted.
-- Any outline as an SVG path: "draw a path called leaf, "M0 0 C40 -70 130 -70 170 0 C130 70 40 70 0 0 Z", at 720 640, scale 1.6, turned -24."
-- Text fitting: "fit 780" sizes a headline so its longest line is 780 wide; "880 wide" wraps a paragraph exactly; "turned -6" tilts it.
-- Outline: "stroke the title in #1b1145, 8 wide." Inner shadow (after the colour): "shadow the panel, inside, 6 down, blur 10."
-- Frosted glass: draw a rounded rectangle over a photo, then "adjust the glass, blurred 18, brightness 1.15." and
-  "enamel the glass in #ffffff, 14% opacity." The adjust verb changes everything already painted under the area.
-- Photo looks: "print @photo.jpg in the photo, duotone #1b1145 and #ff9a5a." Texture: "grain the card, 0.2." as the last step.
-- More shapes: triangle, diamond, pentagon, hexagon, octagon, heart, arrow ("240 by 90"), bubble ("300 by 130, corners 36").
-- Layout: "align the title and the body to the left." (left, right, top, bottom, centre, middle; one thing aligns to the canvas),
-  "distribute the one, the two and the three horizontally.", and a grid: "copy the dot 8 times, 46 apart, 5 rows."
-- Soft edges and mood: "enamel the core in #ffd166, feathered 6." and, near the end, "vignette the card, 0.35, in #1f3a5f."
-- Patterns with a loop: "repeat 9 times as:" then statements, then "end." Inside, $n counts 1, 2, 3… and $i counts 0, 1, 2…;
-  use them in sums in brackets: "draw a circle called orbit, (70 * $n) big, at 540 560, hollow 3." Afterwards "the orbit"
-  means all nine. Loops cannot be nested.
-- Never name a layer ring, outline, edge or halo: in an area those words mean "the outline of".
-- Steps paint in order, like layers from the bottom up: background first, then shadows, then the shapes, then text on top.
-- Video entrances and exits in place: "bring in the badge at 0.2 s, popping." (popping, rising, zooming, fading),
-  "remove the banner at 4.3 s, shrinking." (shrinking, fading, sinking). Motion that keeps going: "float the badge, 16 high,
-  every 2 s.", "pulse the button, by 0.04, every 1.2 s.", "sway the tag, 8 degrees, every 1.5 s.", "turn the wheel, every 3 s."
-- In a video: "fade in the title at 1 s, over 0.5 s.", "fade out the title at 4 s, over 0.4 s." and easing on a glide
-  ("…, over 1.2 s, bounce": linear, ease-in, ease-out, overshoot, bounce, elastic).
+# How to write it: seven plain words
+Write in plain sentences, in this style, for every poster, post, illustration, scene and video:
+
+  Let there be …   brings a thing into being, or names a value.
+  Write "…" …      makes text.
+  Make the X …     applies a known word to a thing: a colour, a material, an effect, a state, a transform, a motion.
+  Give the X …     gives a thing something it has (a shadow, an outline, a colour), or sets one value.
+  Move the X …     puts a thing somewhere else; with a time, it travels there.
+  Change the X …   a change over time (video objects).
+  When …, …        an event (video): the rest of the sentence happens at that moment.
+
+The craft operations keep their own first word and are used as before: emboss, engrave, deboss, etch, plate, foil, inlay,
+spray, print, reveal, caption.
+
+Start: "Let there be a flat canvas called poster, 1080 by 1350." ("flat" = exact colours, no studio light: use it for
+graphic design. Leave "flat" out for a physical object with metal, relief or sprays.) A video: "Let there be a flat video
+called promo, 1080 by 1080, on #14121a, 5 s long." Objects on a stage or video: "Let there be a card called ball, of
+cardstock, 200 by 200, round, at 200 300."
+
+In a piece that starts with "Let there be", things arrange themselves: they stack in the order they were let (first = at the
+back), and each thing paints as shadow, glow, colour, outline, whatever order the sentences come in. Do not write
+"on the front." Group the sentences by thing.
+
+Things:
+- One: "Let there be a circle called sun, 330 big, at 800 330." Shapes: ${shapes.join(', ')}.
+- Several, never a loop: "Let there be 9 circles called orbit, at 540 560, the first 70 big, each 70 bigger than the last."
+  "Let there be 12 triangles called ray, 46 by 150, in a ring around 540 560, 450 out."
+  "Let there be 40 circles called dot, 7 big, in a grid 8 by 5, 46 apart, from 70 70." Also "in a row, 60 apart, from 100 200",
+  "in a column", "each turned 30 more", "each 10% smaller". Then "the orbits" means all, and "the third orbit",
+  "the last ray", "every other dot" pick some.
+- A value: "Let navy be #1f3a5f." then "Make the title navy."
+- Text: 'Write "Golden\\nHour" called title in Lilita One, at 100 660, size 170, leading 0.92, aligned left.' Also "fit 780"
+  (size the longest line to that width), "880 wide" (wrap), "uppercase", "tracking 6", "curved 220", "turned -6".
+- A photo fills the shape it is printed in: "Print @photo.jpg in the portrait, duotone #1b1145 and #ff9a5a." (also grayscale,
+  contrast 1.2, blurred 4, brightness 1.1, focused at 0.5 0.2).
+- Any outline: 'Let there be a path called leaf, "M0 0 C40 -70 130 -70 170 0 C130 70 40 70 0 0 Z", at 720 640, scale 1.6.'
+
+Make and give (details follow after commas; several words can share a sentence):
+- Colour or material: "Make the card #10131f." "Make the title gold." "Make the card a gradient from #1b1145 to #ffb347,
+  angled 80." "Make the sun a radial gradient from #fff6c9 to #ffb347." "Make the panel white, 86% see-through."
+- Effects: "Make the sun glow in #ffd98a, 90 wide." "Give the title a shadow, 10 down, blur 14." "Give the title an outline
+  in #1b1145, 8 wide." "Make the glass frosted." "Make the card grainy, 0.2." "Give the card a vignette of 0.35."
+  "Give the panel an inner shadow, 6 down, blur 10."
+- Transforms: "Make the leaf 1.6 times bigger, turned -24." "Make the title 780 wide." "Make the title and the body line up on
+  the left." "Make the one, the two and the three evenly spaced horizontally."
+- One value: "Give the title a size of 170." "Give the glow a width of 90."
+Known words for make and give:
+${reg.wordList.map((w) => `  ${w.words.join(' / ')} (${w.kind}): ${w.help} e.g. ${w.example}`).join('\n')}
+
+Video:
+- "Move the ball to 880 300, at 0.5 s, over 1.4 s, bouncing." (bouncing, elastic, overshooting, linear) "Move the ball 300 down over 0.6 s."
+- "Change the banner to visible over 0.4 s." "Change the ball to 130% size for 0.3 s, then back." States: visible, invisible,
+  N% size, turned N.
+- "Make the badge float, 14 high, every 3 s." Also pulse, sway, spin, fade in, fade out.
+- Events instead of adding up seconds: "When the video reaches 0.5 s, move the ball …" "When the ball arrives, change the
+  banner to visible over 0.4 s." "When the banner appears, make the banner pulse." Moments: the video starts, the video
+  reaches N s, the video ends, <object> arrives, <object> appears, <object> leaves.
+- Only objects (cards, papers, plates let on the stage) move, change and take motion. Colours do not change over time yet.
+
+Never name a thing a, an, the, it, ring, outline, edge or halo.
 
 # Names you may use
 Materials: ${materials.join(', ')}
@@ -119,17 +144,17 @@ ${ex('marilyn.gt')}
 \`\`\`gt
 ${ex('canvas/post.gt')}
 \`\`\`
-## A poster with gradients, shadows, a glow, laid-out text, a path and a photo in a circle (it was given @marilyn.jpg)
+## A flat poster drawn with plurals (no loops)
 \`\`\`gt
-${ex('canvas/effects.gt')}
+${ex('canvas/pattern-en.gt')}
 \`\`\`
-## A flat poster with a pattern drawn by two loops
+## A launch poster: duotone photo, frosted glass, fitted headline, shapes lined up (it was given @marilyn.jpg)
 \`\`\`gt
-${ex('canvas/pattern.gt')}
+${ex('canvas/launch-en.gt')}
 \`\`\`
-## A flat-style launch poster: duotone photo, frosted glass, fitted headline, shapes aligned and distributed (it was given @marilyn.jpg)
+## A video with events: move, change and when
 \`\`\`gt
-${ex('canvas/launch.gt')}
+${ex('video/events-en.gt')}
 \`\`\`
 ## A scene with four objects
 \`\`\`gt

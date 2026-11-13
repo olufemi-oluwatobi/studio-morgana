@@ -32,6 +32,7 @@ export function compile(source, { registry, baseDir = '.', vars = {}, assetDirs 
   for (const [k, v] of Object.entries(vars)) ctx.vars.set(k.toLowerCase(), { value: toTokens(v) });
   if (file) doc.source = { file: path.basename(file) };
   ctx.run(source);
+  for (const f of registry.finishers || []) { try { f(ctx); } catch (e) { if (!(e instanceof GTError)) throw e; diagnostics.push({ level: 'error', line: ctx.line, msg: e.message, hint: e.hint }); } }
   validate(ctx);
   toV2(doc);
   return { doc, diagnostics, ok: !diagnostics.some(d => d.level === 'error') };
@@ -79,6 +80,12 @@ function makeContext(doc, reg, diagnostics, baseDir, assetDirs) {
     resolve(name) {                       // "petals" finds "petal"
       const L = doc.layers, Z = doc.zones;
       for (const n of [name, name.replace(/ies$/, 'y'), name.replace(/es$/, ''), name.replace(/s$/, '')]) if (L[n] || Z[n]) return n;
+      // one of several: "third-orbit" finds "orbit-3", "last-ray" the last of the rays
+      const o = name.match(/^(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|last)-(.+)$/);
+      if (o) {
+        const base = ctx.resolve(o[2]), set = ctx.sets?.get(base);
+        if (set) { const k = o[1] === 'last' ? set.length - 1 : ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth'].indexOf(o[1]); if (set[k]) return set[k]; ctx.err(`there are only ${set.length} of "${base}"`); }
+      }
       return name;
     },
     asset(rel) {

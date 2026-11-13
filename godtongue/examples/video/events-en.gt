@@ -1,0 +1,15 @@
+-- Events in plain English: each sentence happens when the one before it has finished.
+Let there be a flat video called events, 1080 by 1080, on #14121a, 5 s long.
+Let there be a card called ball, of cardstock, 200 by 200, round, at 200 300.
+Let there be a card called banner, of cardstock, 820 by 240, corners 40, at 540 760.
+Write "It landed" called word in Lilita One, at 410 150, size 110.
+
+Make the ball a radial gradient from #fff6c9 to #ff7a3d.
+Make the banner a gradient from #3a1c71 to #d76d77 to #ffaf7b, angled 0.
+Make the word white.
+
+When the video reaches 0.5 s, move the ball to 880 300 over 1.4 s, bouncing.
+When the ball arrives, change the banner to visible over 0.4 s.
+When the banner appears, change the ball to 130% size for 0.3 s, then back.
+When the banner appears, make the banner pulse, by 0.03, every 1.2 s.
+When the video reaches 4.2 s, move the ball 300 down over 0.6 s.

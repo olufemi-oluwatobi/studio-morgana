@@ -13,8 +13,9 @@ import styles from './packs/styles.js';
 import shapes from './packs/shapes.js';
 import room from './packs/room.js';
 import elements from './packs/elements.js';
+import english from './packs/english.js';
 
-export const PACKS = [materials, card, ops, text, art, shapes, styles, room, elements];
+export const PACKS = [materials, card, ops, text, art, shapes, styles, room, elements, english];   // english last: it builds on the others
 
 export function createRegistry(packs = PACKS) {
   const reg = new Registry();

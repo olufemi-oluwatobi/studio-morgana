@@ -197,7 +197,8 @@
       gr.stops.forEach((c, i) => G.addColorStop(gr.stops.length > 1 ? i / (gr.stops.length - 1) : 0, c));
       g.fillStyle = G; g.fillRect(0, 0, w, h);
     };
-    const paper = B.family === 'paper' || B.family === 'card';
+    // on paper and card, colour soaks in (it multiplies); on a flat piece colours are exactly as written, so they cover
+    const paper = (B.family === 'paper' || B.family === 'card') && !e.flat;
     const mists = [];
     for (const [i, s] of P.steps.entries()) {
       const mask = revealed(P.masks[i], s.reveal), p = s.params || {};
