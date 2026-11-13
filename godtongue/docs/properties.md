@@ -19,3 +19,14 @@ once order 5.1 lands; until then the timed words are the ones marked "timed".
 | `reveal … at T s` | `reveal the title at 1 s, over 0.5 s, from the left.` | layer | timed | done |
 | `caption … at T s` | `caption "Quants" at 2 s, for 3 s.` | caption | timed | done |
 | `spray … with` | `spray the card with glitter, 30 µm thick.` | step | timed (`at`, `for`) | done |
+| `enamel … in a gradient` | `enamel the card in a gradient from #1b1145 to #ffb347, angled 80.` (or `in a radial gradient …`) | step | not yet | done |
+| opacity and blend | `enamel the leaf in #0e6b4f, 85% opacity, multiply.` (multiply, screen, overlay, darken, lighten, soft-light, …) | step (enamel, print, glow) | not yet | done |
+| `shadow` | `shadow the title, 10 down, 6 right, blur 14, in #2a0a3a, 60% opacity.` | step (write it before the colour) | not yet | done |
+| `glow` | `glow the sun in #ffd98a, 90 wide, strength 2.` | step | not yet | done |
+| photo adjustments | `print @photo.jpg in the window, grayscale, contrast 1.25, blurred 4, brightness 1.1, saturation 0.6, hue 40, sepia.` | step | not yet | done |
+| photo in a shape | `print @photo.jpg in the portrait.` (any drawn shape: the photo fills it) | step | no | done |
+| text lines and alignment | `write "Golden\nHour" …, leading 0.92, aligned left.` and `…, 780 wide` to wrap (widths are estimated, not measured) | layer | no | done |
+| text on an arc | `write "LIMITED EDITION" …, curved 222, tracking 8.` (negative curves the other way) | layer | no | done |
+| placed paths | `draw a path called leaf, "M0 0 C40 -70 …Z", at 720 640, scale 1.6, turned -24.` | layer | no | done |
+| `fade in`, `fade out` | `fade in the title at 0.4 s, over 0.8 s.` | element | timed | done |
+| easing | `glide the ball to 880 300, at 0.5 s, over 1.4 s, bounce.` (linear, ease-in, ease-out, overshoot, bounce, elastic) | element, camera | timed | done |

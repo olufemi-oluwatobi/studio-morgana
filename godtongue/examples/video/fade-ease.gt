@@ -1,0 +1,13 @@
+-- Motion basics: fade in and out, and easing on a glide.
+create a video called fade-ease, 1080 by 1080, on #14121a, 4 s long.
+make a card called ball from cardstock, 200 by 200, at 200 300.
+make a card called title from cardstock, 700 by 220, at 540 760.
+write "Bounce" called word in Lilita One, at 350 150, size 120.
+on the ball.
+enamel the card in a radial gradient from #fff6c9 to #ff7a3d.
+on the title.
+enamel the card in a gradient from #3a1c71 to #d76d77 to #ffaf7b, angled 0.
+enamel the word in #1b1145.
+glide the ball to 880 300, at 0.5 s, over 1.4 s, bounce.
+fade in the title at 0.4 s, over 0.8 s.
+fade out the title at 3.2 s, over 0.6 s.

@@ -82,8 +82,15 @@
   // ── one face of an element is prepared once (masks, outline, paint coats, drips), then composed at any time t
   async function prepareFace(e, steps, key) {
     const [w, h] = e.size, seed = key === 'front' ? hashStr(e.name) : hashStr(e.name + ':' + key), rnd = rng(seed);
-    const P = { e, steps, shape: outline(e, rnd), masks: await Promise.all(steps.map(s => load(s.mask))), coats: [], photos: {} };
+    const P = { e, steps, shape: outline(e, rnd), masks: await Promise.all(steps.map(s => load(s.mask))), coats: [], photos: {}, boxes: {} };
     for (const [i, s] of steps.entries()) {
+      if (s.params?.gradient) {            // the box a gradient runs across: where the mask has ink
+        const sc = 4, bw = Math.ceil(w / sc), bh = Math.ceil(h / sc), bc = mk(bw, bh), bx = bc.getContext('2d', { willReadFrequently: true });
+        bx.drawImage(P.masks[i], 0, 0, bw, bh); const a = bx.getImageData(0, 0, bw, bh).data;
+        let x0 = bw, y0 = bh, x1 = -1, y1 = -1;
+        for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) if (a[(y * bw + x) * 4 + 3] > 8) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+        if (x1 >= 0) P.boxes[i] = [x0 * sc, y0 * sc, (x1 - x0 + 1) * sc, (y1 - y0 + 1) * sc];
+      }
       if (s.image) P.photos[i] = await load(s.image.src);
       if (s.op === 'spray' && s.kind === 'paint') {
         const p = s.params, sten = mk(w, h), sx = sten.getContext('2d');
@@ -169,14 +176,38 @@
       ox.fillStyle = g; ox.fillRect(0, 0, w, h); return out;
     };
     const tint = (mask, fill) => { tx.globalCompositeOperation = 'copy'; tx.drawImage(mask, 0, 0); tx.globalCompositeOperation = 'source-in'; if (typeof fill === 'string') { tx.fillStyle = fill; tx.fillRect(0, 0, w, h); } else fill(tx); return tmp; };
-    const put = (k, mask, fill, op = 'source-over', blur = 0) => { const tt = tint(mask, fill); k.globalCompositeOperation = op; k.filter = blur ? `blur(${blur}px)` : 'none'; k.drawImage(tt, 0, 0); k.filter = 'none'; k.globalCompositeOperation = 'source-over'; };
+    const put = (k, mask, fill, op = 'source-over', blur = 0, alpha = 1, dx = 0, dy = 0) => { const tt = tint(mask, fill); k.globalCompositeOperation = op; k.globalAlpha = alpha; k.filter = blur ? `blur(${blur}px)` : 'none'; k.drawImage(tt, dx, dy); k.filter = 'none'; k.globalAlpha = 1; k.globalCompositeOperation = 'source-over'; };
+    // a gradient across the area's own box: linear at an angle (0 = left to right, 90 = top to bottom) or radial from its centre
+    const gradFill = (gr, box) => (g) => {
+      const [x, y, bw, bh] = box || [0, 0, w, h], cx = x + bw / 2, cy = y + bh / 2; let G;
+      if (gr.radial) G = g.createRadialGradient(cx, cy, 0, cx, cy, Math.hypot(bw, bh) / 2);
+      else { const a = (gr.angle ?? 90) * Math.PI / 180, ux = Math.cos(a), uy = Math.sin(a), half = (Math.abs(ux) * bw + Math.abs(uy) * bh) / 2; G = g.createLinearGradient(cx - ux * half, cy - uy * half, cx + ux * half, cy + uy * half); }
+      gr.stops.forEach((c, i) => G.addColorStop(gr.stops.length > 1 ? i / (gr.stops.length - 1) : 0, c));
+      g.fillStyle = G; g.fillRect(0, 0, w, h);
+    };
     const paper = B.family === 'paper' || B.family === 'card';
     const mists = [];
     for (const [i, s] of P.steps.entries()) {
       const mask = revealed(P.masks[i], s.reveal), p = s.params || {};
       if (!mask) continue;
       switch (s.op) {
-        case 'enamel': if (ink) { put(c, mask, s.mat.color); break; } if (paper) put(c, mask, s.mat.color, 'multiply'); else { put(c, mask, s.mat.color); put(m, mask, rgb(0, s.mat.rough * 255, 0)); } break;
+        case 'enamel': {
+          // a flat colour or a gradient; "opacity" thins it and a blend mode mixes it with what is under it
+          const fill = p.gradient ? gradFill(p.gradient, P.boxes[i]) : s.mat.color, al = p.opacity ?? 1;
+          if (ink) { put(c, mask, fill, p.blend || 'source-over', 0, al); break; }
+          if (paper) put(c, mask, fill, p.blend || 'multiply', 0, al);
+          else { put(c, mask, fill, p.blend || 'source-over', 0, al); put(m, mask, rgb(0, s.mat.rough * 255, 0), 'source-over', 0, p.blend ? al * .5 : al); }
+          break;
+        }
+        case 'shadow': {
+          // the shadow is knocked out under the area itself, so a see-through fill on top is not darkened by its own shadow
+          const sc = mk(w, h), sx = sc.getContext('2d'), tt = tint(mask, p.color || '#000');
+          sx.filter = `blur(${p.blur ?? 18}px)`; sx.drawImage(tt, p.dx || 0, p.dy ?? 10); sx.filter = 'none';
+          sx.globalCompositeOperation = 'destination-out'; sx.drawImage(mask, 0, 0);
+          c.globalCompositeOperation = paper ? 'multiply' : 'source-over'; c.globalAlpha = p.opacity ?? .45; c.drawImage(sc, 0, 0); c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
+          break;
+        }
+        case 'glow': for (let k = 0; k < (p.strength || 1); k++) put(c, mask, p.color || '#fff', p.blend || 'screen', p.blur ?? 30, p.opacity ?? 1); break;
         case 'plate': case 'foil': case 'inlay': put(c, mask, s.mat.color); put(m, mask, rgb(s.mat.metal * 255, s.mat.rough * 255, 0)); break;
         case 'emboss': put(u, mask, grey(p.height_mm ?? .1), 'lighter', 1 + (p.soft ?? .5) * 4); break;
         case 'deboss': put(d, mask, grey(p.depth_mm ?? .08), 'lighter', 2); break;
@@ -187,7 +218,8 @@
           const photo = P.photos[i], [x, y, ww, hh] = s.image.rect, [fx0, fy0] = s.image.focus;
           const k = Math.max(ww / photo.width, hh / photo.height), dw = photo.width * k, dh = photo.height * k;
           const multi = !!s.image.onFoil || paper;
-          put(c, mask, (g) => g.drawImage(photo, x - (dw - ww) * fx0, y - (dh - hh) * fy0, dw, dh), multi ? 'multiply' : 'source-over');
+          // adjustments (blur, brightness, contrast, saturation, hue, grayscale, sepia) are applied to the photo itself
+          put(c, mask, (g) => { g.filter = s.image.filter || 'none'; g.drawImage(photo, x - (dw - ww) * fx0, y - (dh - hh) * fy0, dw, dh); g.filter = 'none'; }, p.blend || (multi ? 'multiply' : 'source-over'), 0, p.opacity ?? 1);
           if (!multi) put(m, mask, rgb(0, 95, 0));
           break;
         }
@@ -328,6 +360,11 @@ void main(){
   const norm2 = (x, y) => { const l = Math.hypot(x, y); return [x / l, y / l]; }, norm3 = (x, y, z) => { const l = Math.hypot(x, y, z); return [x / l, y / l, z / l]; };
   const clamp = (x) => Math.max(0, Math.min(1, x)), easeIO = (k) => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
   const easeOutBack = (k) => 1 + 2.2 * Math.pow(k - 1, 3) + 1.2 * Math.pow(k - 1, 2), easeIn = (k) => k * k * k;
+  const EASE = {
+    linear: (k) => k, 'ease-in': easeIn, 'ease-out': (k) => 1 - Math.pow(1 - k, 3), overshoot: easeOutBack,
+    bounce: (k) => { const n = 7.5625, d = 2.75; return k < 1 / d ? n * k * k : k < 2 / d ? n * (k -= 1.5 / d) * k + .75 : k < 2.5 / d ? n * (k -= 2.25 / d) * k + .9375 : n * (k -= 2.625 / d) * k + .984375; },
+    elastic: (k) => k === 0 || k === 1 ? k : Math.pow(2, -10 * k) * Math.sin((k * 10 - .75) * 2.0944) + 1,
+  };
   const FLIP_MS = 760;
   // the moments maps must be rebuilt: coats, drips and reveals
   const allSteps = S.elements.flatMap(e => Object.values(e.faces).flat());
@@ -339,16 +376,20 @@ void main(){
     const q = { x: e.at[0], y: e.at[1], turn: e.turn || 0, scale: e.scale ?? 1, alpha: 1, lift: 0 };
     for (const mv of (e.moves || []).slice().sort((a, b) => a.t0 - b.t0)) {
       if (!V || t <= mv.t0) { if (V) break; }
-      const k = V ? easeIO(clamp((t - mv.t0) / mv.dur)) : 1;
+      const k = V ? (EASE[mv.ease] || easeIO)(clamp((t - mv.t0) / mv.dur)) : 1;
       if (mv.to) { q.x += (mv.to[0] - q.x) * k; q.y += (mv.to[1] - q.y) * k; }
       if (mv.turn != null) q.turn += (mv.turn - q.turn) * k; if (mv.scale != null) q.scale += (mv.scale - q.scale) * k;
       q.lift = Math.max(q.lift, Math.sin(Math.PI * clamp((t - mv.t0) / mv.dur)) * 4);
     }
     if (!V) return q;
+    // fades: an element that fades in starts invisible; each fade moves its opacity to 1 or 0
+    if (e.fades?.length) { const fs = e.fades.slice().sort((a, b) => a.t0 - b.t0); let al = fs[0].to === 1 ? 0 : 1;
+      for (const f of fs) { if (t <= f.t0) break; al += (f.to - al) * clamp((t - f.t0) / (f.dur || .001)); }
+      q.alpha = al; if (al <= 0) return null; }
     const en = e.enter, ex = e.exit;
     if (en) {
       if (t < en.t0) return null;
-      if (en.style === 'slam') { const k = clamp((t - en.t0) / .2); q.scale *= 1 + 1.3 * (1 - easeIn(k)); q.alpha = clamp(k * 4); const after = t - en.t0 - .2; if (after > 0) q.scale *= 1 + .05 * Math.sin(after * 40) * Math.exp(-after * 14); q.lift = 10 * (1 - k); }
+      if (en.style === 'slam') { const k = clamp((t - en.t0) / .2); q.scale *= 1 + 1.3 * (1 - easeIn(k)); q.alpha *= clamp(k * 4); const after = t - en.t0 - .2; if (after > 0) q.scale *= 1 + .05 * Math.sin(after * 40) * Math.exp(-after * 14); q.lift = 10 * (1 - k); }
       else { const k = clamp((t - en.t0) / .75), d = DIRS[en.from] || DIRS.bottom, dist = (d[0] ? W : H) * .9, back = 1 - easeOutBack(k);
         q.x += d[0] * dist * back; q.y += d[1] * dist * back; q.turn += back * 7 * (d[0] || 1); q.lift = Math.max(q.lift, 8 * (1 - k)); }
     }
@@ -360,7 +401,7 @@ void main(){
     const c = { x: W / 2, y: H / 2, zoom: 1 };
     if (!V) return c;
     if (!TL.camera.length) { c.zoom = 1 + .04 * (t / T); return c; }
-    for (const k of TL.camera.slice().sort((a, b) => a.t0 - b.t0)) { if (t <= k.t0) break; const e = easeIO(clamp((t - k.t0) / k.dur));
+    for (const k of TL.camera.slice().sort((a, b) => a.t0 - b.t0)) { if (t <= k.t0) break; const e = (EASE[k.ease] || easeIO)(clamp((t - k.t0) / k.dur));
       if (k.to) { c.x += (k.to[0] - c.x) * e; c.y += (k.to[1] - c.y) * e; } if (k.zoom != null) c.zoom += (k.zoom - c.zoom) * e; }
     return c;
   }

@@ -113,17 +113,30 @@ export default function elements(reg) {
     run(ctx, toks) { let t = dropArticles(toks); if (isWord(t[0], 'away', 'off', 'out')) t = t.slice(1); const n = element(ctx, t, ['away', 'off']);
       const { t0, dir } = timing(t.slice(t.findIndex(x => isWord(x, 'at')))); ctx.doc.elements[n].exit = { t0: t0 ?? 0, to: (dir || 'left').replace(/-/g, ' ') }; },
   });
+  const EASES = ['linear', 'ease-in', 'ease-out', 'bounce', 'elastic', 'overshoot'];
+  reg.verb({
+    words: ['fade'],
+    help: 'Fade an element in or out over time: "fade in the title at 1 s, over 0.5 s." "fade out the title at 4 s, over 0.4 s."',
+    examples: ['fade in the title at 1 s, over 0.5 s.', 'fade out the title at 4 s, over 0.4 s.'],
+    run(ctx, toks) {
+      let t = dropArticles(toks); const out = isWord(t[0], 'out', 'away'); if (isWord(t[0], 'in', 'out', 'away')) t = t.slice(1);
+      const n = element(ctx, t, ['in', 'out']), ai = t.findIndex(x => isWord(x, 'at')), { t0, dur } = timing(ai < 0 ? [] : t.slice(ai));
+      const o = out || t.some(x => isWord(x, 'out'));
+      (ctx.doc.elements[n].fades ||= []).push({ t0: t0 ?? 0, dur: dur ?? .5, to: o ? 0 : 1 });
+    },
+  });
   // move the chart to 540 700 at 9 s, over 0.6 s · move the camera to 700 600, zoom 1.2, at 9 s, over 0.5 s
   reg.verb({
     words: ['glide'],
-    help: 'Move an element (or the camera) to a new place over time: "glide the chart to 540 700, turned 3, at 9 s, over 0.6 s." "glide the camera to 700 600, zoom 1.2, at 9 s, over 0.5 s."',
+    help: 'Move an element (or the camera) to a new place over time: "glide the chart to 540 700, turned 3, at 9 s, over 0.6 s." "glide the camera to 700 600, zoom 1.2, at 9 s, over 0.5 s." The motion eases in and out unless you add: linear, ease-in, ease-out, overshoot, bounce or elastic.',
     examples: ['glide the camera to 700 600, zoom 1.2, at 9 s, over 0.5 s.'],
     run(ctx, toks) {
       const t = dropArticles(toks), cam = isWord(t[0], 'camera');
       const n = cam ? null : element(ctx, t, []);
       const ti = t.findIndex(x => isWord(x, 'to')), m = readMods(t.slice(ti));
       const to = [].concat(m.to || []).map(num).filter(v => v != null);
-      const key = { t0: secs(m.at) ?? 0, dur: secs(m.over) ?? .6, ...(to.length === 2 ? { to } : {}), ...(m.zoom != null ? { zoom: num(m.zoom) } : {}), ...(m.turned != null ? { turn: num(m.turned) } : {}), ...(m.scale != null ? { scale: num(m.scale) } : {}) };
+      const ease = EASES.find(e => m._flags?.has(e) || m.easing === e || m.ease === e);
+      const key = { t0: secs(m.at) ?? 0, dur: secs(m.over) ?? .6, ...(ease ? { ease } : {}), ...(to.length === 2 ? { to } : {}), ...(m.zoom != null ? { zoom: num(m.zoom) } : {}), ...(m.turned != null ? { turn: num(m.turned) } : {}), ...(m.scale != null ? { scale: num(m.scale) } : {}) };
       if (cam) ((ctx.doc.timeline ||= { reveals: {} }).camera ||= []).push(key); else (ctx.doc.elements[n].moves ||= []).push(key);
     },
   });

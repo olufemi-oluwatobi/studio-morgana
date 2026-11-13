@@ -1,0 +1,27 @@
+-- Ten Canva / Photoshop / Illustrator basics in one poster: gradient, opacity and blend, drop shadow, glow,
+-- photo adjustments, a photo in a shape, several lines of aligned text, text on an arc, a placed SVG path.
+create a canvas called effects, 1080 by 1350.
+
+draw a circle called sun, 330 big, at 800 330.
+draw a circle called portrait, 190 big, at 250 330.
+draw a rectangle called panel, 920 by 420, corners 36, at 540 1040.
+draw a path called leaf, "M0 0 C40 -70 130 -70 170 0 C130 70 40 70 0 0 Z", at 720 640, scale 1.6, turned -24.
+write "LIMITED EDITION" called arc in Jost, at 250 112, size 30, curved 222, tracking 8.
+write "Golden\nHour" called title in Lilita One, at 100 660, size 170, leading 0.92, aligned left.
+write "A poster made of code: gradients, glows, shadows, photo filters and frames, all written as plain sentences." called body in Jost, at 130 960, size 42, 780 wide, leading 1.3, aligned left.
+write "studiomorgana.xyz" called foot in Martian Mono, at 950 1200, size 26, aligned right.
+
+on the front.
+enamel the card in a gradient from #1b1145 to #c2334d to #ffb347, angled 80.
+glow the sun in #ffd98a, 90 wide, strength 2.
+enamel the sun in a radial gradient from #fff6c9 to #ffb347.
+enamel the leaf in #0e6b4f, 85% opacity, multiply.
+shadow the portrait, 18 down, blur 30, 55% opacity.
+print @marilyn.jpg in the portrait, grayscale, contrast 1.25, focused at 0.5 0.25.
+enamel the arc in #ffe9c4.
+shadow the title, 10 down, 6 right, blur 14, in #2a0a3a, 60% opacity.
+enamel the title in a gradient from #fff6c9 to #ffb347, angled 90.
+shadow the panel, 24 down, blur 48, 50% opacity.
+enamel the panel in #ffffff, 16% opacity.
+enamel the body in #fff4e0.
+enamel the foot in #ffd98a.

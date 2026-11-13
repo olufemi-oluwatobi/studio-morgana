@@ -114,6 +114,27 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
     const { toScene } = await import('../engines/web.js');
     const sc = toScene(r.doc);
     { const F = sc.elements[0].faces.front; ok('web scene: one mask per step, materials resolved', F.length === r.doc.sides.front.steps.length && F.every(s => s.mask.startsWith('data:image/svg+xml')) && F.find(s => s.op === 'plate').mat.metal === 1); }
+    // design effects: gradients, opacity and blend, shadow, glow, photo adjustments and frames, text layout, placed paths
+    { const fp = path.join(ex, 'canvas', 'effects.gt'); const fr = compile(fs.readFileSync(fp, 'utf8'), { baseDir: path.dirname(fp) });
+      const st = fr.ok ? fr.doc.sides.front.steps : [], by = (op, n = 0) => st.filter(x => x.op === op)[n];
+      ok('effects poster compiles', fr.ok, JSON.stringify(fr.diagnostics));
+      ok('gradient: stops, angle, radial', fr.ok && by('enamel').params.gradient.stops.length === 3 && by('enamel').params.gradient.angle === 80 && by('enamel', 1).params.gradient.radial === true);
+      ok('opacity and blend mode', fr.ok && by('enamel', 2).params.opacity === .85 && by('enamel', 2).params.blend === 'multiply');
+      ok('shadow: offsets, blur, colour, opacity', fr.ok && by('shadow', 1).params.dx === 6 && by('shadow', 1).params.dy === 10 && by('shadow', 1).params.blur === 14 && by('shadow', 1).params.color === '#2a0a3a' && by('shadow', 1).params.opacity === .6);
+      ok('glow: colour, width, strength', fr.ok && by('glow').params.color === '#ffd98a' && by('glow').params.blur === 90 && by('glow').params.strength === 2);
+      ok('photo: fills its shape, with adjustments', fr.ok && by('print').image.rect.join() === '60,140,380,380' && by('print').image.filter === 'contrast(1.25) grayscale(1)');
+      const L = fr.ok ? fr.doc.layers : {};
+      ok('text: lines, leading, alignment', fr.ok && L.title.lines.join('|') === 'Golden|Hour' && L.title.leading === .92 && L.title.align === 'left');
+      ok('text: wraps to a width', fr.ok && L.body.lines.length >= 3 && L.body.lines.join(' ') === L.body.text);
+      ok('text: on an arc', fr.ok && L.arc.curve === 222);
+      ok('path: placed, scaled and turned', fr.ok && /translate\(720 640\) rotate\(-24\) scale\(1.6\)/.test(L.leaf.svg));
+      const { maskSvg } = await import('../engines/web.js');
+      ok('text masks: tspans per line, textPath on an arc', fr.ok && (maskSvg(fr.doc, { terms: [{ ref: 'title' }] }).match(/<tspan/g) || []).length === 2 && /<textPath/.test(maskSvg(fr.doc, { terms: [{ ref: 'arc' }] })));
+      const vp = path.join(ex, 'video', 'fade-ease.gt'); const vr = compile(fs.readFileSync(vp, 'utf8'), { baseDir: path.dirname(vp) });
+      ok('motion: fades and easing', vr.ok && vr.doc.elements.title.fades.map(f => f.to).join() === '1,0' && vr.doc.elements.ball.moves[0].ease === 'bounce', JSON.stringify(vr.diagnostics));
+      const bad = compile('create a canvas called x, 100 by 100.\non the front.\nenamel the card in a gradient from #ffffff.', {});
+      ok('a gradient with one colour is explained', !bad.ok && bad.diagnostics.some(d => /two colours/.test(d.msg)));
+    }
     // element model: bodies, layering, paint
     const sp = path.join(ex, 'stage', 'three-bodies.gt'); const st = compile(fs.readFileSync(sp, 'utf8'), { baseDir: path.dirname(sp) });
     ok('stage compiles with four elements', st.ok && st.doc.kind === 'stage' && Object.keys(st.doc.elements).join() === 'memo,ticket,plaque,swatch', JSON.stringify(st.diagnostics));

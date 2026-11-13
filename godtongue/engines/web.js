@@ -16,6 +16,23 @@ const MIME = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'i
 const STOCK = { brass: '#b8923f', stainless: '#b9bdc2', aluminium: '#c9ccd1', titanium: '#8f8a83', 'anodized-navy': '#17225e', 'anodized-midnight': '#0a1458', 'anodized-black': '#1c1e23' };
 const mixHex = (a, b, t = .5) => '#' + [1, 3, 5].map(i => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - t) + parseInt(b.slice(i, i + 2), 16) * t).toString(16).padStart(2, '0')).join('');
 
+// a text layer: one line, several lines (aligned, with leading; the block is centred on its point), or set on an arc
+function textSvg(name, L) {
+  const [x, y] = L.at, anchor = { left: 'start', right: 'end' }[L.align] || 'middle';
+  const face = `font-family="${esc(L.font.family)}, serif" font-weight="${L.font.weight}" font-style="${L.font.style}" font-size="${L.size}" letter-spacing="${L.track || 0}" fill="#fff"`;
+  if (L.curve) {
+    // radius R: positive arches over the point (a rainbow), negative hangs under it (a smile); the words are centred on the point
+    const R = Math.abs(L.curve), up = L.curve > 0, cy = up ? y + R : y - R;
+    const d = up ? `M${x - R},${cy} A${R},${R} 0 0 1 ${x + R},${cy}` : `M${x - R},${cy} A${R},${R} 0 0 0 ${x + R},${cy}`;
+    return `<g id="L-${name}"><path id="P-${name}" d="${d}" fill="none"/><text ${face} text-anchor="middle"><textPath href="#P-${name}" startOffset="50%">${esc(L.text)}</textPath></text></g>`;
+  }
+  if (L.lines?.length > 1) {
+    const lh = L.size * (L.leading || 1.15), y0 = y - (L.lines.length - 1) * lh / 2;
+    return `<text id="L-${name}" ${face} text-anchor="${anchor}">${L.lines.map((ln, i) => `<tspan x="${x}" y="${Math.round((y0 + i * lh) * 10) / 10}">${esc(ln) || ' '}</tspan>`).join('')}</text>`;
+  }
+  return `<text id="L-${name}" x="${x}" y="${y}" ${face} text-anchor="${anchor}">${esc(L.text)}</text>`;
+}
+
 // one SVG per step: the step's area in white on transparent, carrying only the layers and fonts it uses
 export function maskSvg(doc, area) {
   const [W, H] = doc.card.grid, defs = [], filters = new Set(), fonts = new Map();
@@ -24,7 +41,7 @@ export function maskSvg(doc, area) {
     const L = doc.layers[name], z = doc.zones[name];
     if (L?.font) { const f = fontFile(L.font.family, L.font.weight, L.font.style); if (f) fonts.set(f, `@font-face{font-family:"${L.font.family}";font-weight:${L.font.weight};font-style:${L.font.style};src:url(data:font/woff2;base64,${fs.readFileSync(f).toString('base64')}) format("woff2")}`); }
     if (L?.kind === 'vector') defs.push(`<g id="L-${name}">${L.svg}</g>`);
-    else if (L?.kind === 'text') defs.push(`<text id="L-${name}" x="${L.at[0]}" y="${L.at[1]}" font-family="${esc(L.font.family)}, serif" font-weight="${L.font.weight}" font-style="${L.font.style}" font-size="${L.size}" text-anchor="middle" letter-spacing="${L.track || 0}" fill="#fff">${esc(L.text)}</text>`);
+    else if (L?.kind === 'text') defs.push(textSvg(name, L));
     else if (L?.kind === 'signature') defs.push(`<text id="L-${name}" transform="translate(${L.center[0]} ${L.center[1]}) rotate(${L.rotate_deg})" font-family="${esc(L.font.family)}, cursive" font-size="${L.size}" textLength="${L.max_width}" lengthAdjust="spacingAndGlyphs" text-anchor="middle" fill="#fff">${esc(L.text)}</text>`);
     else if (z?.rect) defs.push(`<rect id="L-${name}" x="${z.rect[0]}" y="${z.rect[1]}" width="${z.rect[2]}" height="${z.rect[3]}" rx="${z.r || 0}" fill="#fff"/>`);
   }
@@ -56,7 +73,7 @@ function faceSet(d, sides, unsupported) {
   const stepOf = (s) => {
     const out = { op: s.op, line: s.line, params: s.params || {}, kind: s.kind, mask: 'data:image/svg+xml;base64,' + Buffer.from(maskSvg(d, s.area)).toString('base64') };
     if (s.material) out.mat = mat(s.material);
-    if (s.image) { const a = d.assets[s.image.asset], z = d.zones[s.image.zone] || d.zones.window; out.image = { src: `data:${MIME[a.path.split('.').pop().toLowerCase()]};base64,${fs.readFileSync(a.path).toString('base64')}`, rect: z.rect, focus: s.image.focus || [.5, .5], onFoil: !!s.on_foil }; }
+    if (s.image) { const a = d.assets[s.image.asset], z = d.zones[s.image.zone] || d.zones.window; out.image = { src: `data:${MIME[a.path.split('.').pop().toLowerCase()]};base64,${fs.readFileSync(a.path).toString('base64')}`, rect: s.image.rect || z.rect, focus: s.image.focus || [.5, .5], onFoil: !!s.on_foil, ...(s.image.filter ? { filter: s.image.filter } : {}) }; }
     if (s.op === 'spray' && !['gloss', 'glitter', 'metalflake', 'candy', 'matte', 'paint'].includes(s.kind)) unsupported.add(`spray ${s.kind}`);
     return out;
   };

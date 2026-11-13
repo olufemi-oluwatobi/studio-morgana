@@ -53,6 +53,23 @@ emboss, engrave, etch, inlay, print, spray). The studio compiles the source and 
 7. Images: only print images whose @names you are given ("print @name.jpg in the window."). Never invent files.
 8. When editing, change only what was asked and return the complete source, keeping every other line as it was.
 
+# Flat design (posters, posts, social graphics)
+On a canvas, colour is "enamel": it also takes gradients, opacity and blend modes. Use these freely for modern graphic design:
+- Gradient: "enamel the card in a gradient from #1b1145 to #c2334d to #ffb347, angled 80." (0 = left to right, 90 = top to
+  bottom) or "enamel the sun in a radial gradient from #fff6c9 to #ffb347."
+- Opacity and blend: "enamel the panel in #ffffff, 16% opacity." "enamel the leaf in #0e6b4f, 85% opacity, multiply."
+- Drop shadow and glow, written BEFORE the step that colours the same shape: "shadow the title, 10 down, blur 14, 60% opacity."
+  "glow the sun in #ffd98a, 90 wide, strength 2."
+- Text: several lines with \\n inside the quotes, "leading 0.95", "aligned left" or "aligned right" (then "at" is the left or
+  right edge), "600 wide" wraps a paragraph, "uppercase", "tracking 6", and "curved 220" sets words on an arc.
+- A photo fills the shape it is printed in: "draw a circle called portrait, 190 big, at 250 330." then
+  "print @photo.jpg in the portrait, grayscale, contrast 1.2." Adjustments: blurred N, brightness N, contrast N, saturation N,
+  hue N, grayscale, sepia, inverted.
+- Any outline as an SVG path: "draw a path called leaf, "M0 0 C40 -70 130 -70 170 0 C130 70 40 70 0 0 Z", at 720 640, scale 1.6, turned -24."
+- Steps paint in order, like layers from the bottom up: background first, then shadows, then the shapes, then text on top.
+- In a video: "fade in the title at 1 s, over 0.5 s.", "fade out the title at 4 s, over 0.4 s." and easing on a glide
+  ("…, over 1.2 s, bounce": linear, ease-in, ease-out, overshoot, bounce, elastic).
+
 # Names you may use
 Materials: ${materials.join(', ')}
 Colours: ${colors.join(', ')}
@@ -82,6 +99,10 @@ ${ex('marilyn.gt')}
 ## A canvas post
 \`\`\`gt
 ${ex('canvas/post.gt')}
+\`\`\`
+## A poster with gradients, shadows, a glow, laid-out text, a path and a photo in a circle (it was given @marilyn.jpg)
+\`\`\`gt
+${ex('canvas/effects.gt')}
 \`\`\`
 ## A scene with four objects
 \`\`\`gt

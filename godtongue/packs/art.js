@@ -318,19 +318,24 @@ export default function art(reg) {
     let svg = fs.readFileSync(ctx.doc.assets[key].path, 'utf8');
     svg = svg.replace(/<\?xml[^>]*>/, '').replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
     const at = Array.isArray(m.at) ? m.at.map(ctx.px) : [0, 0], sc = num(m.scaled ?? m.scale, 1);
-    ctx.addLayer(m.name || key.replace(/\.\w+$/, '').replace(/[^\w-]/g, '-'), { kind: 'vector', svg: `<g transform="translate(${at[0]} ${at[1]}) scale(${sc})">${svg}</g>`, generator: 'sketch' });
+    ctx.addLayer(m.name || key.replace(/\.\w+$/, '').replace(/[^\w-]/g, '-'), { kind: 'vector', svg: `<g transform="translate(${at[0]} ${at[1]})${num(m.turned ?? m.rotated, 0) ? ` rotate(${num(m.turned ?? m.rotated, 0)})` : ''} scale(${sc})">${svg}</g>`, generator: 'sketch' });
   }
   function rawPath(ctx, t) {
     const s = t.find(x => x.t === 'str'); if (!s) ctx.err('a path needs its outline in quotes', 'e.g. draw a path called tag, "M100 100 L300 100 L200 260 Z", filled.');
     const m = readMods(t.filter(x => x !== s));
-    const filled = !flag(m, 'stroked', 'outlined', 'lined');
-    ctx.addLayer(m.name || 'path', { kind: 'vector', svg: filled ? `<path d="${s.v}" fill="#fff" fill-rule="evenodd"/>` : `<path d="${s.v}" fill="none" stroke="#000" stroke-width="${m.wide != null ? ctx.px(m.wide) : 4}" stroke-linecap="round"/>`, clip: filled ? s.v : undefined, generator: 'path' });
+    const filled = !flag(m, 'stroked', 'outlined', 'lined', 'hollow');
+    // "at x y" moves the path's own 0 0 there; "scale 2" and "turned 30" work round that point
+    const at = Array.isArray(m.at) ? m.at.map(ctx.px) : null, sc = num(m.scale ?? m.scaled, 1), turn = num(m.turned ?? m.rotated, 0);
+    const moved = at || sc !== 1 || turn;
+    const open = moved ? `<g transform="translate(${at ? at[0] : 0} ${at ? at[1] : 0}) rotate(${turn}) scale(${sc})">` : '', close = moved ? '</g>' : '';
+    const body = filled ? `<path d="${s.v}" fill="#fff" fill-rule="evenodd"/>` : `<path d="${s.v}" fill="none" stroke="#fff" stroke-width="${m.wide != null ? ctx.px(m.wide) : 4}" stroke-linecap="round" stroke-linejoin="round"/>`;
+    ctx.addLayer(m.name || 'path', { kind: 'vector', svg: open + body + close, clip: filled && !moved ? s.v : undefined, generator: 'path' });
   }
 
   reg.verb({
     words: ['draw', 'grow', 'add', 'scatter', 'carve'],
     help: 'Draw a generator as a named layer: bezel, rule, band, ironwork, studs, jewels, rims, beads, vine, dots, crosshatch, damask, rays — or a path, or a drawing (@sketch.svg).',
-    examples: ['draw a bezel called frame.', 'grow a vine along the card, 88 in, leaving a gap at the top.', 'draw @sketch-1.svg called heart.', 'draw a path called tag, "M100 100 L300 100 L200 260 Z".'],
+    examples: ['draw a bezel called frame.', 'grow a vine along the card, 88 in, leaving a gap at the top.', 'draw @sketch-1.svg called heart.', 'draw a path called tag, "M100 100 L300 100 L200 260 Z".', 'draw a path called leaf, "M0 0 C40 -60 120 -60 160 0 C120 60 40 60 0 0 Z", at 400 700, scale 1.5, turned -20.'],
     run: drawRun,
   });
 }
