@@ -21,7 +21,7 @@ export function read(text) {
   const re = {
     space: /^\s+/,
     str: /^"([^"]*)"/,
-    color: /^#[0-9a-fA-F]{6}\b|^#[0-9a-fA-F]{3}\b/,
+    color: /^#[0-9a-fA-F]{8}\b|^#[0-9a-fA-F]{6}\b|^#[0-9a-fA-F]{3}\b/,   // #rrggbbaa carries see-through
     var: /^\$([A-Za-z_][\w-]*)/,
     asset: /^@([\w./-]+[\w])/,
     num: /^[-+]?(?:\d+\.?\d*|\.\d+)/,

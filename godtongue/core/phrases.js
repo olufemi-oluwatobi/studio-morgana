@@ -172,13 +172,14 @@ export function readColors(ctx, toks) {
   for (let i = 0; i < toks.length; i++) {
     const t = toks[i];
     if (t.t === 'color') { out.push(t.v); continue; }
+    if (t.t === 'word' && ['transparent', 'clear', 'nothing'].includes(t.v)) { out.push(null); continue; }   // see-through: its neighbour's colour at 0
     const m = t.t === 'word' ? ctx.reg.match(ctx.reg.colors, toks, i, 3) : null;
     const e = !m && t.t === 'word' ? ctx.reg.match(ctx.reg.materials, toks, i, 3) : null;
     if (m) { out.push(m.entry); i += m.n - 1; }
     else if (e?.entry.hex) { out.push(e.entry.hex); i += e.n - 1; }
     else if (t.t === 'word' && !['and', 'or', 'with', 'in'].includes(t.v)) ctx.err(`unknown colour "${t.v}"`, ctx.suggest(t.v, [...ctx.reg.colors.keys()]) || 'use a colour name or #hex');
   }
-  return out;
+  return out.map((c, k) => c ?? ((out[k + 1] || out[k - 1] || '#000000').slice(0, 7) + '00'));
 }
 
 export const num = (t, d = null) => t == null ? d : t.t === 'num' ? t.v : (typeof t === 'number' ? t : d);

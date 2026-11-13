@@ -214,6 +214,9 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
       ok('a relative move starts from where the thing ended up', vr.ok && el.ball.moves.at(-1).to.join() === '880,600');
       const nv = E(C + 'Let there be a circle called p, 20 big.\nWhen the video starts, make the p float.\nChange the p to invisible over 1 s.');
       ok('events and changes say what they need', nv.diagnostics.some(d => /events need a video/.test(d.msg)) && nv.diagnostics.some(d => /only an object on a stage/.test(d.msg)));
+      const pr = E(C + 'Let there be a circle called o, 100 big, at 200 200.\nMake the o hollow, 3 wide.\nGive the o an outline in #ffffff, 2 wide, 88% see-through.\nLet there be a line called r, from 10 10 to 300 10.\nMake the r dashed, 18 on 12 off.\nLet there be a rectangle called f, 400 by 100, at 200 350.\nMake the f a gradient from transparent to #0b0604.');
+      ok('proof fixes: hollow keeps its width, see-through on an effect, dashed, transparent gradient stops', pr.ok && pr.doc.layers.o.shapes[0].width === 3 && pr.doc.layers.r.shapes[0].dash && Math.abs(pr.doc.sides.front.steps.find(x => x.area.terms[0].mod === 'halo').params.opacity - .12) < 1e-9 && pr.doc.sides.front.steps.find(x => x.params?.gradient).params.gradient.stops[0] === '#0b060400', JSON.stringify(pr.diagnostics));
+      for (const f of ['brand-guide', 'album-cover', 'player-skin']) { const fp = path.join(ex, 'proof', f + '.gt'), r = E(fs.readFileSync(fp, 'utf8'), { baseDir: path.dirname(fp) }); ok(`proof piece compiles cleanly: ${f}`, r.ok && !r.diagnostics.length, JSON.stringify(r.diagnostics)); }
       const ref = createRegistry().reference();
       ok('known words are listed for the reference', ref.words.length > 30 && ref.words.some(w => w.words.includes('glow') && w.kind === 'effect'));
     }

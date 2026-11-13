@@ -24,7 +24,9 @@ import { element as groupOf } from './shapes.js';
 
 const UNIT = { pct: '%', deg: ' degrees', s: ' s', mm: ' mm', um: ' um', px: ' px', m: ' m', cm: ' cm' };
 const txt1 = (t) => t.t === 'word' ? (t.raw ?? t.v) : t.t === 'num' ? `${t.v}${UNIT[t.unit] || ''}` : t.t === 'str' ? `"${t.v}"` : t.t === 'color' ? t.v : t.t === 'asset' ? '@' + t.v : t.t === 'var' ? '$' + t.v : t.t === 'op' ? t.v : t.t;
-export const txt = (toks) => toks.map(txt1).join(' ').replace(/ ,/g, ',').replace(/\( /g, '(').replace(/ \)/g, ')');
+export const txt0 = (toks) => toks.map(txt1).join(' ').replace(/ ,/g, ',').replace(/\( /g, '(').replace(/ \)/g, ')');
+// plain words for settings the older verbs spell differently: "88% see-through" is "12% opacity"
+export const txt = (toks) => txt0(toks).replace(/(\d+(?:\.\d+)?)%\s+(?:see-through|transparent|translucent)/g, (_, n) => `${Math.round((100 - n) * 100) / 100}% opacity`);
 const r2 = (v) => Math.round(v * 100) / 100;
 // the numbers that follow a word: after(rest, 'to', 2) reads "to 880 300"; after(rest, 'over') reads "over 1.4 s"
 const after = (toks, word, n = 1) => { const i = toks.findIndex(t => isWord(t, word)); if (i < 0) return null; const v = []; for (let k = i + 1; k < toks.length && v.length < n && toks[k].t === 'num'; k++) v.push(toks[k]); return v.length === n ? (n === 1 ? v[0].v : v) : null; };
@@ -172,7 +174,7 @@ function dictionary(reg) {
   W(['gradient', 'radial gradient', 'linear gradient'], 'colour', 'A blend of colours across the thing: from … to … (to …), "angled 45"; "radial gradient" spreads from the middle.', 'Make the card a gradient from #1b1145 to #ffb347, angled 80.',
     (ctx, a) => a.slot('fill', { verb: 'enamel', head: `in a ${a.word.startsWith('radial') ? 'radial ' : ''}gradient ${txt(a.rest)}`, mods: a.mods.map(txt) }));
   const pct = (a, d) => { const n = [...a.lead, ...a.rest].find(t => t.t === 'num'); return n ? (n.unit === 'pct' || n.v > 1 ? n.v : n.v * 100) : d; };
-  W(['see-through', 'transparent', 'translucent', 'faint'], 'colour', 'How much shows through the thing\'s colour: "40% see-through". Without a number, half.', 'Make the panel 85% see-through.', (ctx, a) => a.fillMod(`${r2(100 - pct(a, 50))}% opacity`));
+  W(['see-through', 'transparent', 'translucent', 'faint'], 'colour', 'How much shows through the thing\'s colour: "40% see-through". Without a number, half.', 'Make the panel 85% see-through.', (ctx, a) => a.fillMod(`${r2(100 - pct(a, 50))}% opacity`), { lone: true });
   W(['opacity', 'opaque'], 'colour', 'How solid the thing\'s colour is: "60% opacity".', 'Give the leaf an opacity of 85%.', (ctx, a) => a.fillMod(`${r2(pct(a, 100))}% opacity`), { lone: true });
   W(['multiply', 'screen', 'overlay', 'darken', 'lighten', 'soft-light', 'hard-light', 'difference', 'color-dodge', 'color-burn'], 'colour', 'How the thing\'s colour mixes with what is under it (a blend mode).', 'Make the leaf #0e6b4f, multiply.', (ctx, a) => a.fillMod(a.word), { lone: true });
   W(['feathered', 'soft-edged'], 'colour', 'Soft edges on the thing\'s colour: "feathered 12".', 'Make the core #ffd166, feathered 6.', (ctx, a) => a.fillMod(`feathered ${pct(a, 12)}`), { lone: true });
@@ -211,6 +213,12 @@ function dictionary(reg) {
     const n = [...a.rest, ...a.lead].find(t => t.t === 'num'); if (!n) ctx.err('turned how far?', 'e.g. "make the leaf turned -24."');
     if (th.el) th.el.turn = (th.el.turn || 0) + n.v; else if (th.L?.kind === 'text') th.L.turn = (th.L.turn || 0) + n.v; else say(ctx, th.side, `turn the ${th.name} ${n.v} degrees.`);
   }));
+  const lineWidth = (a, d) => { const n = [...a.lead, ...a.rest, ...a.mods.flat()].find(t => t.t === 'num'); return n ? n.v : d; };
+  W(['hollow', 'hollowed', 'line-drawn'], 'transform', 'Draws the thing as a line instead of solid: "hollow, 3 wide".', 'Make the orbit hollow, 3 wide.', (ctx, a) => a.things.forEach(th => say(ctx, th.side, `hollow the ${th.name}, ${lineWidth(a, 4)} wide.`)), { details: true });
+  W(['solid', 'filled'], 'transform', 'Draws a hollow thing solid again.', 'Make the orbit solid.', (ctx, a) => a.things.forEach(th => say(ctx, th.side, `solidify the ${th.name}.`)));
+  W(['dashed', 'dotted'], 'transform', 'Turns the thing\'s lines into dashes: "dashed, 18 on 12 off" ("dotted" makes short dashes).', 'Make the rule dashed, 18 on 12 off.', (ctx, a) => a.things.forEach(th => {
+    const ns = [...a.rest, ...a.mods.flat()].filter(t => t.t === 'num'); const on = ns[0]?.v ?? (a.word === 'dotted' ? 2 : 18), off = ns[1]?.v ?? (a.word === 'dotted' ? 10 : 12);
+    say(ctx, th.side, `dash the ${th.name}, ${on} on ${off} off.`); }), { details: true });
   W(['flipped', 'mirrored'], 'transform', 'Flips the thing left to right ("flipped upside down" for top to bottom).', 'Make the leaf flipped.', (ctx, a) => a.things.forEach(th => say(ctx, th.side, `flip the ${th.name}${a.rest.length ? ' ' + txt(a.rest) : ''}.`)));
   const together = (verb) => (ctx, a) => say(ctx, a.things[0].side, `${verb} ${a.things.map(th => 'the ' + th.name).join(' and ')} ${txt(a.rest)}${a.mods.map(m => ', ' + txt(m)).join('')}.`);
   W(['line up', 'lined up', 'aligned', 'align'], 'transform', 'Lines things up by an edge or centre: on the left, right, top, bottom, centre or middle. One thing lines up with the page.', 'Make the title and the body line up on the left.', together('align'), { joint: true });
@@ -256,7 +264,7 @@ function applyWords(ctx, things, rest, verb) {
     if (!c.length) continue;
     let hit = findWord(ctx, c);
     // "90 wide", "50% opacity", "multiply" after an effect or a motion are its details, not a new word
-    if (hit?.entry.lone && apps.length && ['effect', 'motion'].includes(apps.at(-1).entry.kind)) hit = null;
+    if (hit?.entry.lone && apps.length && (['effect', 'motion'].includes(apps.at(-1).entry.kind) || apps.at(-1).entry.details)) hit = null;
     if (hit) apps.push({ entry: hit.entry, word: hit.key, lead: c.slice(0, hit.at), rest: c.slice(hit.at + hit.n), mods: [] });
     else if (apps.length) apps.at(-1).mods.push(c);
     else {

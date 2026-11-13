@@ -641,6 +641,9 @@ The dictionary. A new effect, state, transform or motion is one entry (`docs/eng
 | `wide` | transform | Scales the thing to a width: "780 wide". | Make the title 780 wide. |
 | `tall`, `high` | transform | Scales the thing to a height: "300 tall". | Make the badge 300 tall. |
 | `turned`, `tilted`, `rotated` | transform | Turns the thing by degrees. | Make the leaf turned -24. |
+| `hollow`, `hollowed`, `line-drawn` | transform | Draws the thing as a line instead of solid: "hollow, 3 wide". | Make the orbit hollow, 3 wide. |
+| `solid`, `filled` | transform | Draws a hollow thing solid again. | Make the orbit solid. |
+| `dashed`, `dotted` | transform | Turns the thing's lines into dashes: "dashed, 18 on 12 off" ("dotted" makes short dashes). | Make the rule dashed, 18 on 12 off. |
 | `flipped`, `mirrored` | transform | Flips the thing left to right ("flipped upside down" for top to bottom). | Make the leaf flipped. |
 | `line up`, `lined up`, `aligned`, `align` | transform | Lines things up by an edge or centre: on the left, right, top, bottom, centre or middle. One thing lines up with the page. | Make the title and the body line up on the left. |
 | `evenly spaced`, `spaced evenly`, `spread out`, `spread evenly` | transform | Spaces three or more things evenly: horizontally or vertically. | Make the one, the two and the three evenly spaced horizontally. |

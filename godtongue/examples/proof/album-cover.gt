@@ -1,0 +1,38 @@
+-- An album cover: "Ember Season" by Vesper Lane (both invented). Full-bleed photo, warm grade, condensed title,
+-- a sticker, a halo of text, film grain.
+Let there be a flat canvas called album-cover, 1500 by 1500.
+Let ember be #ff7a2f.
+Let cream be #fff1dc.
+
+Let there be a rectangle called photo, 1500 by 1500, at 750 750.
+Print @hallows.jpg in the photo, contrast 1.15, saturation 1.2, focused at 0.32 0.45.
+Make the photo 20% darker.
+
+Let there be a rectangle called fade, 1500 by 640, at 750 1180.
+Make the fade a gradient from transparent to #0b0604, angled 90.
+
+Let there be a circle called orbit, 300 big, at 470 560.
+Make the orbit hollow, 3 wide.
+Make the orbit cream, 45% see-through.
+Write "VESPER LANE · EMBER SEASON" called around in Martian Mono, at 470 230, size 26, curved 330, tracking 10.
+Make the around cream.
+
+Write "EMBER\nSEASON" called title in Big Shoulders Display bold, at 90 1200, size 300, leading 0.82, aligned left.
+Make the title cream.
+Make the title glow in ember, 60 wide.
+Give the title a shadow, 14 down, blur 30, 60% opacity.
+
+Write "VESPER LANE" called artist in Jost, at 96 1420, size 42, tracking 14, aligned left.
+Make the artist ember.
+
+Let there be a circle called sticker, 120 big, at 1250 300.
+Make the sticker ember.
+Give the sticker a shadow, 10 down, blur 24, 50% opacity.
+Write "INCLUDES\n“Lanterns”\n& “Hollow”" called sticker-text in Jost bold, at 1250 285, size 36, leading 1.2, turned 12.
+Make the sticker-text #1a0b05.
+
+Write "LP · 2026" called catalogue in Martian Mono, at 1404 1420, size 26, tracking 6, aligned right.
+Make the catalogue cream, 40% see-through.
+
+Give the card a vignette of 0.55, in #0b0604.
+Make the card grainy 0.25.
