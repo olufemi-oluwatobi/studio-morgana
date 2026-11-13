@@ -306,3 +306,13 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
 }
 
 console.log(`\n${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);
+
+// ── errors an editor can act on ───────────────────────────────────────────────────────────────────────────────────
+{
+  const r = compile('Let there be a canvas called a, 400 by 400.\nLet there be a cirle called c, 100 big.\nMake the c red.\nLet there be a rectangle called 02-box, 50 by 20.\nWrite "hi" called t, in the zzz.\n');
+  const [d1, d2, d3] = r.diagnostics;
+  ok('an error says which word, and offers the fix', d1.range.col === 16 && d1.range.len === 5 && d1.fix?.replace === 'circle', JSON.stringify(d1));
+  ok('an error caused by an earlier failed sentence says which', d2.follows === 2, JSON.stringify(d2));
+  ok('names may start with a digit', !r.diagnostics.some(d => /02-box/.test(d.msg)), JSON.stringify(r.diagnostics.map(d => d.msg)));
+  ok('"in the <nothing>" is an error, with the name', d3.range && /nothing called "zzz"/.test(d3.msg), JSON.stringify(d3));
+}

@@ -50,3 +50,43 @@ export function categoryOf(doc) {
   if (doc.kind === 'canvas') return 'posts';
   return 'cards';
 }
+
+// What the editor shows when the pointer rests on a name in the source (or on the thing in the picture): the box it
+// covers in the piece's own pixels, what it is, and how it was made up. Layers of a canvas or card; elements of a stage.
+const short = (v) => (typeof v === 'number' ? +v.toFixed(2) : v);
+function lookOf(step, doc) {
+  const p = step.params || {}, m = typeof step.material === 'string' ? doc.materials?.[step.material] : null;
+  if (p.gradient) return { op: step.op, text: `${p.gradient.radial ? 'radial ' : ''}gradient ${p.gradient.stops.join(' → ')}`, css: gradientCss(p.gradient) };
+  if (m?.hex && ['enamel', 'plate', 'foil', 'inlay'].includes(step.op)) return { op: step.op, text: m.hex, css: m.hex };
+  if (step.op === 'print' || step.op === 'illustrate') return { op: step.op, text: step.op === 'print' ? 'a picture' : 'an illustration' };
+  const kv = Object.entries(p).filter(([, v]) => typeof v !== 'object').map(([k, v]) => `${k.replace(/_/g, ' ')} ${short(v)}`).join(', ');
+  return { op: step.op, text: kv ? `${step.op}: ${kv}` : step.op, css: p.color && /^#/.test(p.color) ? p.color : undefined };
+}
+function gradientCss(g) {
+  const st = g.stops.map((c, i) => `${c} ${Math.round(100 * i / Math.max(1, g.stops.length - 1))}%`).join(', ');
+  return g.radial ? `radial-gradient(circle, ${st})` : `linear-gradient(${(g.angle ?? 90) + 90}deg, ${st})`;
+}
+export function elementsOf(doc) {
+  const out = {};
+  const steps = {};
+  for (const side of Object.values(doc.sides || {})) for (const s of side.steps || []) { const r = s.area?.terms?.[0]?.ref; if (r) (steps[r] ||= []).push(s); }
+  for (const [name, L] of Object.entries(doc.layers || {})) {
+    const box = L.path?.rect || L.box; if (!box) continue;
+    const looks = (steps[name] || []).map((s) => lookOf(s, doc));
+    out[name] = {
+      name, line: L.line ?? null, box: box.map((n) => Math.round(n * 10) / 10),
+      kind: L.kind === 'text' ? 'text' : L.generator || L.kind || 'shape',
+      text: L.kind === 'text' ? L.text : undefined, font: L.font ? `${L.font.family}${L.font.weight && L.font.weight !== 400 ? ' ' + L.font.weight : ''}${L.font.style === 'italic' ? ' italic' : ''}` : undefined, size: L.kind === 'text' ? L.size : undefined,
+      fill: looks.find((l) => l.css && ['enamel', 'plate', 'foil', 'inlay'].includes(l.op))?.css,
+      looks: looks.map((l) => l.text),
+    };
+  }
+  if (doc.kind === 'stage') {
+    for (const [name, e] of Object.entries(doc.elements || {})) {
+      if (out[name] || !e.at) continue;
+      const sz = e.size_px || [80, 80];
+      out[name] = { name, line: e.line ?? null, kind: e.kind, box: [e.at[0] - sz[0] / 2, e.at[1] - sz[1] / 2, e.at[0] + sz[0] / 2, e.at[1] + sz[1] / 2], looks: (doc.sides[name]?.steps || []).map((s) => lookOf(s, doc).text) };
+    }
+  }
+  return out;
+}

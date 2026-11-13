@@ -16,6 +16,8 @@ export const UNITS = {
   m: 'm', metre: 'm', metres: 'm', meter: 'm', meters: 'm', cm: 'cm', centimetre: 'cm', centimetres: 'cm', centimeter: 'cm', centimeters: 'cm',
 };
 
+export class ReadError extends Error { constructor(msg, hint) { super(msg); this.hint = hint; this.gt = true; } }
+
 export function read(text) {
   const toks = []; let i = 0;
   const re = {
@@ -39,6 +41,7 @@ export function read(text) {
     if ((m = s.match(/^[*×\/+]/))) { toks.push({ t: 'op', v: m[0] === '×' ? '*' : m[0] }); i += 1; continue; }
     if (s[0] === '(' || s[0] === ')') { toks.push({ t: s[0] }); i += 1; continue; }
     if ((m = s.match(re.asset))) { toks.push({ t: 'asset', v: m[1] }); i += m[0].length; continue; }
+    if ((m = s.match(/^\d[\w]*(?:-[A-Za-z][\w]*)+/))) { toks.push({ t: 'word', v: m[0].toLowerCase(), raw: m[0] }); i += m[0].length; continue; }   // 02-type
     if ((m = s.match(re.num))) {
       const n = parseFloat(m[0]); let len = m[0].length, unit = null;
       const rest = text.slice(i + len);
@@ -54,7 +57,7 @@ export function read(text) {
     }
     if ((m = s.match(re.word))) { toks.push({ t: 'word', v: m[0].toLowerCase(), raw: m[0] }); i += m[0].length; continue; }
     if ((m = s.match(re.punct))) { toks.push({ t: m[0] === ';' ? ',' : m[0] }); i += 1; continue; }
-    throw new Error(`can't read "${s.slice(0, 12)}"`);
+    throw new ReadError(`can't read "${s.slice(0, 12).split(/\s/)[0]}"`, s.slice(0, 1) === '-' || s.slice(0,1)==='+' ? 'a minus or plus sign needs a number after it' : 'this character has no meaning here; names are letters, digits and hyphens');
   }
   return toks;
 }

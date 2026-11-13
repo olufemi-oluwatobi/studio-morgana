@@ -34,10 +34,46 @@ export function compile(source, { registry, baseDir = '.', vars = {}, assetDirs 
   ctx.run(source);
   for (const f of registry.finishers || []) { try { f(ctx); } catch (e) { if (!(e instanceof GTError)) throw e; diagnostics.push({ level: 'error', line: ctx.line, msg: e.message, hint: e.hint }); } }
   validate(ctx);
+  locateAll(diagnostics, source);
   toV2(doc);
   return { doc, diagnostics, ok: !diagnostics.some(d => d.level === 'error') };
 }
 
+
+// A diagnostic that an editor can act on: where the trouble is (the quoted word, found in the sentence), a ready fix when
+// the hint is "did you mean", and, when the trouble is a thing that an earlier failed sentence should have made,
+// which sentence that was ("follows" tells the editor to show it as a consequence, not as a second problem).
+function describe(d, s, ctx, mine) {
+  const names = (ctx.failedNames ||= new Map());
+  const q = d.msg.match(/"([^"]+)"/);
+  if (q) {
+    const at = d.statement.toLowerCase().indexOf(q[1].toLowerCase());
+    if (at >= 0) {
+      const before = d.statement.slice(0, at), nl = before.split('\n').length - 1;
+      d.range = { line: s.line + nl, col: (nl ? before.length - before.lastIndexOf('\n') : s.col + before.length), len: q[1].length };
+      const m = (d.hint || '').match(/did you mean "([^"]+)"\?/);
+      if (m) d.fix = { replace: m[1], label: `${q[1]} → ${m[1]}` };
+    }
+    const f = names.get(q[1].toLowerCase());
+    if (f && f !== d.line) d.follows = f;
+  }
+  if (!mine) { d.internal = true; d.hint = 'This is a fault in Morgana, not in your sentence. Rewording it a little may avoid it.'; }
+  const made = d.statement.match(/\b(?:called|named)\s+([A-Za-z][\w-]*)/i);
+  if (made && !d.follows) names.set(made[1].toLowerCase(), d.line);
+  return d;
+}
+
+// diagnostics that name a word but came without a place (found when the piece is finished) are placed on their line
+function locateAll(diags, source) {
+  const lines = source.replace(/\r\n?/g, '\n').split('\n');
+  for (const d of diags) {
+    if (d.range || !d.line || !lines[d.line - 1]) continue;
+    const q = d.msg.match(/"([^"]+)"/); if (!q) continue;
+    const at = lines[d.line - 1].toLowerCase().indexOf(q[1].toLowerCase()); if (at < 0) continue;
+    d.range = { line: d.line, col: at + 1, len: q[1].length };
+    const m = (d.hint || '').match(/did you mean "([^"]+)"\?/); if (m) d.fix = { replace: m[1], label: `${q[1]} → ${m[1]}` };
+  }
+}
 function toTokens(v) {   // batch values: numbers, files, colours, text
   if (typeof v === 'number') return [{ t: 'num', v, unit: null }];
   const s = String(v).trim();
@@ -123,8 +159,9 @@ function makeContext(doc, reg, diagnostics, baseDir, assetDirs) {
       }
       hit.entry.run(ctx, toks.slice(hit.n), s);
     } catch (e) {
-      if (!(e instanceof GTError)) { e.message = `internal: ${e.message}`; console.error(e); }
-      diagnostics.push({ level: 'error', ...where, msg: e.message, hint: e.hint, statement: s.text });
+      const mine = e instanceof GTError || e.gt;
+      if (!mine) { e.message = `internal: ${e.message}`; console.error(e); }
+      diagnostics.push(describe({ level: 'error', ...where, msg: e.message, hint: e.hint, statement: s.text }, s, ctx, mine));
     }
   }
   return ctx;

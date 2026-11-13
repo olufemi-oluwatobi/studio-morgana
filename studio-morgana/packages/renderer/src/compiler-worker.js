@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import { compile, createRegistry } from '../../../../godtongue/index.js';
 import web from '../../../../godtongue/engines/web.js';
 import { toSvg } from '../../../../godtongue/engines/svg.js';
-import { partsOf, categoryOf } from './parts.js';
+import { partsOf, categoryOf, elementsOf } from './parts.js';
 
 let reg = null, ready = null, n = 0;
 
@@ -55,6 +55,7 @@ async function compileSource({ source, dir }) {
     corners: doc.kind === 'stage' ? 0 : c.r || 0,
     faces: Object.keys(doc.sides || {}),
     parts: partsOf(doc),
+    elements: elementsOf(doc),
   };
 }
 
@@ -66,7 +67,25 @@ function svgOf({ source, dir }) {
   return { svg: toSvg(r.doc), name: r.doc.name };
 }
 
-const H = { init, mount, compile: compileSource, svg: svgOf };
+// compile only (no picture): fast enough to run as the person types. The diagnostics point at words; the elements say
+// where each named thing is, for the hover cards.
+function check({ source, dir }) {
+  if (!reg) throw new Error('the compiler is not ready');
+  let r;
+  try { r = compile(source, { registry: reg, baseDir: dir, file: dir + '/piece.gt' }); }
+  catch (e) { return { diagnostics: [{ level: 'error', line: 0, msg: e.message }], elements: null }; }
+  const doc = r.doc, c = doc.card;
+  return { diagnostics: r.diagnostics, elements: elementsOf(doc), size: [c.grid[0], c.grid[1]], crop: doc.kind === 'stage' ? null : c.rect };
+}
+
+// the words the language knows, for the hover cards (the same registry that compiles)
+function reference() {
+  if (!reg) throw new Error('the compiler is not ready');
+  const r = reg.reference();
+  return { ...r, generators: r.generators.map((g) => ({ ...g, params: Object.fromEntries(Object.entries(g.params || {}).slice(0, 12)) })) };
+}
+
+const H = { init, mount, compile: compileSource, svg: svgOf, check, reference };
 self.onmessage = async (ev) => {
   const { id, cmd, ...args } = ev.data || {};
   if (!id || !H[cmd]) return;

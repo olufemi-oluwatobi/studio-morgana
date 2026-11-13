@@ -59,6 +59,24 @@ function optical(th) {
 
 // ── reading a placement out of a sentence ───────────────────────────────────────────────────────────────────────────
 // returns the sentence without it, and what it said: { mode, targets, h, v, inset, gap, cross, each, row }
+
+// "under the heding" when nothing is called that: say so, with the closest name (only in "Let there be" pieces, where
+// these words are placements; older pieces use "in" for materials and fonts)
+function unknownTarget(ctx, cl) {
+  if (!ctx.english) return;
+  for (const c of cl) for (let i = 0; i < c.length - 1; i++) {
+    const w = c[i]?.t === 'word' ? c[i].v : null; if (!w) continue;
+    const strong = ['under', 'below', 'above', 'beside'].includes(w);
+    if (!strong && !(w === 'in' && isWord(c[i + 1], 'the'))) continue;
+    let k = i + 1; while (isWord(c[k], 'the', 'a', 'an')) k++;
+    const x = c[k]; if (x?.t !== 'word') continue;
+    const end = c[k + 1]; if (end && end.t !== ',' && !isWord(end, 'and')) continue;     // a longer phrase: leave it to the verb
+    const n = x.v;
+    if (thing(ctx, n) || ctx.sets?.has(n) || members(ctx, ctx.resolve(n)) || ctx.doc.zones[n] || ctx.reg.colors.has(n) || ctx.reg.materials.has(n) || ctx.reg.words.has(n) || ctx.lets?.has(n) || ['front', 'back', 'window', 'edge', 'top', 'bottom', 'left', 'right', 'centre', 'center', 'middle'].includes(n)) continue;
+    const names = [...Object.keys(ctx.doc.layers), ...Object.keys(ctx.doc.elements || {}), ...(ctx.sets?.keys() || [])];
+    ctx.err(`there is nothing called "${n}" to put it ${w}`, ctx.suggest(n, names) || (names.length ? 'made so far: ' + names.slice(-6).join(', ') : 'make it first with "Let there be …"'));
+  }
+}
 export function takePlacement(ctx, toks, opts = {}) {
   const cl = splitC(toks); let place = null;
   const anchorOf = (ws, p) => { for (const w of ws) { if (w === 'top' || w === 'bottom') p.v = w; else if (w === 'left' || w === 'right') p.h = w; else if (['centre', 'center', 'middle'].includes(w)) { p.c = true; } } };
@@ -105,7 +123,7 @@ export function takePlacement(ctx, toks, opts = {}) {
       break;
     }
   }
-  if (!place) return { toks, place: null };
+  if (!place) { if (!opts.noIn) unknownTarget(ctx, cl); return { toks, place: null }; }
   const c = cl[place.ci]; cl[place.ci] = [...c.slice(0, place.start), ...c.slice(place.end)];
   for (let k = 1; k <= (place.absorb || 0); k++) cl[place.ci + k] = [];
   // the details that belong to it: "20 in", "40 apart", "at the bottom left", "centred", "aligned to the left edges"
