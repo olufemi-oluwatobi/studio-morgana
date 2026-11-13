@@ -308,7 +308,9 @@ await a.waitForSelector('.editor-bar button[aria-label="Public"]');
 check('making it public works, and the button says so', true);
 check('a visitor can now open the public piece, not the private one', (await vget(pubId)) === 200 && (await vget(privId)) === 404);
 const vjson = await visitor.evaluate(async () => (await (await fetch('/api/wall')).json()).featured.map((p) => p.id));
-check('before the scheduler runs, a public piece is not yet on the visitors wall', !vjson.includes(pubId));
+let seeded = vjson.includes(pubId);
+for (let i = 0; i < 20 && !seeded; i++) { await a.waitForTimeout(250); seeded = (await visitor.evaluate(async () => (await (await fetch('/api/wall')).json()).featured.map((p) => p.id))).includes(pubId); }
+check('going public fires the showcase job at once, no waiting for the cron', seeded);
 const anon = await visitor.evaluate(async (i) => (await fetch('/api/pieces/' + i + '/visibility', { method: 'POST', headers: { 'content-type': 'application/json', 'x-morgana': '1' }, body: '{"visibility":"public"}' })).status, privId);
 check('a visitor cannot change visibility', anon === 403 || anon === 401 || anon === 404, String(anon));
 

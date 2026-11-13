@@ -68,3 +68,15 @@ export async function runJobs(env: Env, only: JobName | 'all' = 'all'): Promise<
   }
   return out;
 }
+
+// Fire the showcase job without waiting for the cron: used when the showcase has never run or has gone stale (a missed cron,
+// a fresh deploy), and when a piece goes public while the showcase still has room. `minAgeMs` stops it running on every request.
+export async function refreshIfDue(env: Env, minAgeMs: number, onlyIfRoom = false): Promise<JobResult | null> {
+  const last = await env.DB.prepare("SELECT ran FROM job_runs WHERE name = 'showcase'").first<{ ran: number }>();
+  if (last && now() - last.ran < minAgeMs) return null;
+  if (onlyIfRoom) {
+    const n = await env.DB.prepare("SELECT COUNT(*) AS n FROM collection_items WHERE slug = 'showcase'").first<{ n: number }>();
+    if ((n?.n ?? 0) >= SHOWCASE_DEFAULTS.size) return null;
+  }
+  try { return await refreshShowcase(env); } catch (e) { console.error('showcase catch-up failed', e); return null; }
+}

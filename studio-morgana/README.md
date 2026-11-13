@@ -138,7 +138,7 @@ score = (1 + 3·people who pinned it + 2·people who remixed it) × freshness ×
 
 People are other accounts, counted once each. Freshness is 1.5× in the first day. Picks go best first, at most 24, at most 2 per owner, at most 70% of one type. See `apps/api/src/showcase.ts` (pure, checked by `node scripts/check-showcase.mjs`).
 
-The job runs from a Cron Trigger every six hours (`triggers.crons` in `wrangler.jsonc`) together with housekeeping (expired sessions, tokens, old usage counters). To fire it by hand: **Refresh showcase** in the sidebar (admins), or `POST /api/admin/jobs/run {"job":"showcase"}`. `GET /api/admin/jobs` shows the last runs.
+The job runs from a Cron Trigger every six hours (`triggers.crons` in `wrangler.jsonc`) together with housekeeping (expired sessions, tokens, old usage counters). To fire it by hand: **Refresh showcase** in the sidebar (admins), or `POST /api/admin/jobs/run {"job":"showcase"}`. `GET /api/admin/jobs` shows the last runs. It also fires on its own when it has never run or is over 13 hours stale (checked on wall loads), and right after a piece goes public while the showcase has room, so a fresh deploy seeds itself.
 
 ## API
 

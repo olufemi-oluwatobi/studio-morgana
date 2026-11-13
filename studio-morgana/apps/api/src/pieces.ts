@@ -6,6 +6,7 @@ import { spend } from './auth';
 import { aiMode, editSource, generateSource, repairSource, type Diagnostic, type PartBrief } from './ai';
 import { fail, id, now, sha256hex, str, titleOf } from './util';
 import { isPieceType } from './types';
+import { refreshIfDue } from './jobs';
 
 export const pieces = new Hono<App>();
 export { CARD_SELECT, card, type CardRow, type PieceRow };
@@ -97,6 +98,8 @@ const json = async <T>(c: Context<App>): Promise<T> => { try { return await c.re
 
 // ── the wall: your pieces first (newest first), then the featured and showcase pieces (public ones only)
 pieces.get('/wall', async (c) => {
+  // never run, or the cron missed a day: catch up in the background
+  c.executionCtx.waitUntil(refreshIfDue(c.env, 13 * 3600_000));
   const who = c.get('who');
   const type = c.req.query('type'), cat = c.req.query('cat');
   const catSql = isPieceType(type) ? ' AND p.type = ?' : cat && CATS.has(cat) ? ' AND p.category = ?' : '';
@@ -296,6 +299,8 @@ pieces.post('/pieces/:id/visibility', async (c) => {
     if (!who.userId) fail(403, 'sign in to make a piece public');
     if (p.status !== 'ready') fail(409, 'let the piece finish rendering first');
     if (p.visibility !== 'public') await c.env.DB.prepare("UPDATE pieces SET visibility = 'public', published = ? WHERE id = ?").bind(now(), p.id).run();
+    // seed the showcase now rather than at the next cron, while it has room (at most once a minute)
+    c.executionCtx.waitUntil(refreshIfDue(c.env, 60_000, true));
   } else if (p.visibility !== 'private') {
     await c.env.DB.batch([
       c.env.DB.prepare("UPDATE pieces SET visibility = 'private', published = NULL WHERE id = ?").bind(p.id),
