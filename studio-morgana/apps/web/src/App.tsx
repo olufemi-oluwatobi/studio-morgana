@@ -9,7 +9,7 @@ import Wall from './pages/Wall';
 
 const Editor = lazy(() => import('./pages/Editor'));
 const Auth = lazy(() => import('./pages/Auth'));
-const Lab = lazy(() => import('./pages/Lab'));
+const Chat = lazy(() => import('./pages/Chat'));
 
 export default function App() {
   const route = parse(useLocation());
@@ -22,7 +22,7 @@ export default function App() {
   }, []);
   useEffect(() => { window.scrollTo(0, 0); }, [route.name, route.name === 'editor' ? route.id : '']);
 
-  if (route.name === 'lab') return <ErrorBoundary><Suspense fallback={null}><Lab token={route.token} /></Suspense></ErrorBoundary>;
+  if (route.name === 'chat') return <ErrorBoundary><Suspense fallback={null}><Chat /></Suspense></ErrorBoundary>;
   if (route.name === 'auth') return <ErrorBoundary><Suspense fallback={null}><Auth mode={route.mode} token={route.token} /><Toasts /></Suspense></ErrorBoundary>;
   return (
     <div className="app">

@@ -1,32 +1,23 @@
-// The lab: a plain chat with any model the service offers, with a few harmless tools so tool calls can be watched.
-// It lives at a secret address (LAB=on and LAB_TOKEN) and reaches the service with LAB_BASE_URL / LAB_API_KEY
-// (falling back to AI_BASE_URL / AI_API_KEY), so trying a model never changes what the app itself uses.
+// A plain chat with the app's own model service (the same AI_* settings and key the app uses), with a few harmless
+// tools so tool calls can be watched. Each message counts against the visitor's daily edits, like any other.
 import { Hono } from 'hono';
 import type { App, Env } from './env';
 import { fail } from './util';
-import { within } from './wizard/models';
+import { OSS, SCOUT, roleConfig, within } from './wizard/models';
+import { spend } from './auth';
 import { log } from './wizard/common';
 
-const cfg = (env: Env) => ({ base: (env.LAB_BASE_URL || env.AI_BASE_URL || '').replace(/\/+$/, ''), key: env.LAB_API_KEY || env.AI_API_KEY || '' });
 
-export const lab = new Hono<App>();
-// no sign-in: the page lives at a secret address (/lab/<LAB_TOKEN>) and every call must carry that token. Without the flag
-// or the token the lab does not exist.
-function sameToken(a: string, b: string) {
-  if (a.length !== b.length) return false;
-  let d = 0; for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return d === 0;
-}
-lab.use('*', async (c, next) => {
-  const want = c.env.LAB_TOKEN || '';
-  if (c.env.LAB !== 'on' || want.length < 16 || !sameToken(c.req.header('x-lab-token') || '', want)) fail(404, 'not found');
-  await next();
-});
+export const chat = new Hono<App>();
+
+// the service the app itself uses: AI_PROVIDER, AI_BASE_URL, AI_API_KEY
+const svc = (env: Env) => { const c = roleConfig(env, 'write'); return { workers: c.provider === 'workers-ai', base: c.baseUrl, key: c.apiKey }; };
 
 // what the service offers, with what it says about images and price when it says
-lab.get('/models', async (c) => {
-  const { base, key } = cfg(c.env);
-  if (!base || !key) fail(409, 'set LAB_BASE_URL and LAB_API_KEY (wrangler secret put LAB_API_KEY) to list models');
+chat.get('/models', async (c) => {
+  const { workers, base, key } = svc(c.env);
+  if (workers) return c.json({ models: [{ id: OSS, vision: false, free: null }, { id: SCOUT, vision: true, free: null }] });
+  if (!base || !key) fail(409, 'the AI service is not set up: set AI_BASE_URL and the AI_API_KEY secret');
   const r = await within(fetch(base + '/models', { headers: { authorization: `Bearer ${key}` } }), 20_000, 'the model list').catch((e) => { fail(502, (e as Error).message); });
   if (!r!.ok) fail(502, `the service answered ${r!.status} to the model list`);
   const j = (await r!.json().catch(() => ({}))) as any;
@@ -38,7 +29,6 @@ lab.get('/models', async (c) => {
     return {
       id: String(m.id), vision: mod && mod !== '""' ? /image|vision|multimodal/.test(mod) : null,
       free: price !== undefined ? Number(price) === 0 : /:free\b|\bfree\b/.test(String(m.id).toLowerCase()) ? true : null,
-      context: m.context_length ?? m.context_window ?? null,
     };
   }).sort((a, b) => a.id.localeCompare(b.id));
   return c.json({ models });
@@ -78,9 +68,10 @@ const SYSTEM = 'You are a helpful assistant. You may use the tools you are given
 interface ChatBody { model?: string; messages?: { role: string; content: string }[]; image?: string }
 export interface Step { tool: string; args: unknown; result: string; ms: number }
 
-lab.post('/chat', async (c) => {
-  const { base, key } = cfg(c.env);
-  if (!base || !key) fail(409, 'set LAB_BASE_URL and LAB_API_KEY first');
+chat.post('/', async (c) => {
+  const { workers, base, key } = svc(c.env);
+  if (!workers && (!base || !key)) fail(409, 'the AI service is not set up: set AI_BASE_URL and the AI_API_KEY secret');
+  await spend(c.env, c.get('who'), 'command', 1);
   const b = (await c.req.json().catch(() => ({}))) as ChatBody;
   const model = String(b.model || '').slice(0, 200);
   if (!model) fail(400, 'choose a model');
@@ -91,6 +82,15 @@ lab.post('/chat', async (c) => {
   if (image) { const last = messages[messages.length - 1]; messages[messages.length - 1] = { role: 'user', content: [{ type: 'text', text: last.content }, { type: 'image_url', image_url: { url: image } }] }; }
 
   const t0 = Date.now(), steps: Step[] = [];
+  if (workers) {
+    // Workers AI: plain chat (no tools, no images)
+    try {
+      const out: any = await within((c.env.AI as any).run(model, { messages: messages.map((m) => ({ role: m.role, content: typeof m.content === 'string' ? m.content : m.content[0]?.text ?? '' })), max_tokens: 2000 }), 90_000, model);
+      const text = out?.response ?? out?.choices?.[0]?.message?.content ?? '';
+      log('chat', { model, ms: Date.now() - t0, ok: !!text });
+      return c.json({ ok: !!text, text, steps, ms: Date.now() - t0, model, noTools: true, error: text ? undefined : 'the model sent an empty answer' });
+    } catch (e) { return c.json({ ok: false, status: 0, ms: Date.now() - t0, steps, model, error: (e as Error).message }); }
+  }
   let useTools = true, noTools = false, usage = { prompt: 0, completion: 0 };
   const post = async (): Promise<{ status: number; j: any; raw: string }> => {
     const ctl = new AbortController();
@@ -105,7 +105,7 @@ lab.post('/chat', async (c) => {
       // a model that does not take tools still chats
       if (r.status >= 400 && useTools && round === 0 && /tool|function/i.test(r.raw)) { useTools = false; noTools = true; r = await post(); }
       if (r.status >= 400 || !r.j?.choices?.[0]) {
-        log('lab-chat', { model, ms: Date.now() - t0, status: r.status, ok: false });
+        log('chat', { model, ms: Date.now() - t0, status: r.status, ok: false });
         return c.json({ ok: false, status: r.status, ms: Date.now() - t0, steps, model, error: (r.j?.error?.message || r.j?.error || r.raw || 'no answer').toString().slice(0, 600) });
       }
       usage.prompt += r.j.usage?.prompt_tokens ?? 0; usage.completion += r.j.usage?.completion_tokens ?? 0;
@@ -113,7 +113,7 @@ lab.post('/chat', async (c) => {
       const calls: any[] = Array.isArray(msg.tool_calls) ? msg.tool_calls : [];
       if (!calls.length) {
         const text = msg.content ?? r.j.choices[0].text ?? '';
-        log('lab-chat', { model, ms: Date.now() - t0, ok: !!text, tools: steps.map((s) => s.tool), image: !!image });
+        log('chat', { model, ms: Date.now() - t0, ok: !!text, tools: steps.map((s) => s.tool), image: !!image });
         return c.json({ ok: !!text, text, steps, ms: Date.now() - t0, usage, model, noTools, error: text ? undefined : 'the model sent an empty answer' });
       }
       messages.push({ role: 'assistant', content: msg.content ?? null, tool_calls: calls });
@@ -127,7 +127,7 @@ lab.post('/chat', async (c) => {
     }
     return c.json({ ok: false, status: 0, ms: Date.now() - t0, steps, model, error: 'the model kept calling tools and never answered' });
   } catch (e) {
-    log('lab-chat', { model, ms: Date.now() - t0, ok: false, error: (e as Error).message });
+    log('chat', { model, ms: Date.now() - t0, ok: false, error: (e as Error).message });
     return c.json({ ok: false, status: 0, ms: Date.now() - t0, steps, model, error: (e as Error).message });
   }
 });

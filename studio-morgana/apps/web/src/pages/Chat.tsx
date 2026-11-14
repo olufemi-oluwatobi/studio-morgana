@@ -1,5 +1,4 @@
-// The model lab (feature flag LAB, at a secret address): a plain chat with a model of your choice, with a few small
-// tools so tool calls can be watched. "Download chat" saves everything, to paste back.
+// A plain chat with the app's own model service: pick a model, add an image, watch tool calls, download the chat.
 import { useEffect, useRef, useState } from 'react';
 import { api, ApiError } from '../lib/api';
 import { toast } from '../lib/session';
@@ -10,8 +9,8 @@ interface Step { tool: string; args: unknown; result: string; ms: number }
 interface Turn { role: 'user' | 'assistant'; content: string; image?: string; steps?: Step[]; meta?: string; error?: boolean; model?: string }
 interface ChatOut { ok: boolean; text?: string; steps: Step[]; ms: number; usage?: { prompt: number; completion: number }; error?: string; status?: number; noTools?: boolean; model: string }
 
-const load = (k: string) => { try { return localStorage.getItem('lab-' + k) ?? ''; } catch { return ''; } };
-const save = (k: string, v: string) => { try { localStorage.setItem('lab-' + k, v); } catch { /* private window */ } };
+const load = (k: string) => { try { return localStorage.getItem('chat-' + k) ?? ''; } catch { return ''; } };
+const save = (k: string, v: string) => { try { localStorage.setItem('chat-' + k, v); } catch { /* private window */ } };
 const secs = (ms: number) => (ms / 1000).toFixed(1) + 's';
 
 async function shrink(file: File, max = 1280): Promise<string> {
@@ -27,11 +26,11 @@ function Tool({ s }: { s: Step }) {
   const args = JSON.stringify(s.args);
   const bad = /^error/i.test(s.result);
   return (
-    <details className="lab-tool">
+    <details className="chat-tool">
       <summary>
-        <span className={'lab-dot' + (bad ? ' bad' : '')} aria-hidden="true" />
-        <span className="lab-tool-name">{s.tool}</span>
-        <span className="lab-tool-args">{args === '{}' ? '' : args}</span>
+        <span className={'chat-dot' + (bad ? ' bad' : '')} aria-hidden="true" />
+        <span className="chat-tool-name">{s.tool}</span>
+        <span className="chat-tool-args">{args === '{}' ? '' : args}</span>
         <small>{secs(s.ms)}</small>
       </summary>
       <div><b>Input</b><pre>{JSON.stringify(s.args, null, 2)}</pre><b>Result</b><pre>{prettyResult(s.result)}</pre></div>
@@ -39,9 +38,7 @@ function Tool({ s }: { s: Step }) {
   );
 }
 
-export default function Lab({ token }: { token: string }) {
-  const hdr = { 'x-lab-token': token };
-  const [denied, setDenied] = useState(false);
+export default function Chat() {
   const [models, setModels] = useState<ModelRow[]>([]);
   const [listErr, setListErr] = useState('');
   const [model, setModel] = useState(load('model'));
@@ -52,15 +49,11 @@ export default function Lab({ token }: { token: string }) {
   const end = useRef<HTMLDivElement>(null), file = useRef<HTMLInputElement>(null), ta = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    let m = document.querySelector('meta[name=robots]') as HTMLMetaElement | null;
-    if (!m) { m = document.createElement('meta'); m.name = 'robots'; document.head.appendChild(m); }
-    m.content = 'noindex, nofollow';
-    api<{ models: ModelRow[] }>('/lab/models', { headers: hdr }).then((r) => setModels(r.models)).catch((e) => { if (e instanceof ApiError && e.status === 404) setDenied(true); else setListErr((e as Error).message); });
+    api<{ models: ModelRow[] }>('/chat/models').then((r) => setModels(r.models)).catch((e) => setListErr((e as Error).message));
   }, []);
   useEffect(() => { end.current?.scrollIntoView({ block: 'end' }); }, [turns, busy]);
   useEffect(() => { const t = ta.current; if (!t) return; t.style.height = '0px'; t.style.height = Math.min(t.scrollHeight, 180) + 'px'; }, [text]);
 
-  if (denied) return <div className="page"><div className="empty"><h2>Not available</h2><p>This page is switched off.</p><p><a className="link" href="/">Back to the wall</a></p></div></div>;
 
   async function send() {
     const t = text.trim();
@@ -69,7 +62,7 @@ export default function Lab({ token }: { token: string }) {
     const next: Turn[] = [...turns, { role: 'user', content: t || 'What is in this image?', image: image ?? undefined }];
     setTurns(next); setText(''); const img = image; setImage(null); setBusy(true);
     try {
-      const r = await api<ChatOut>('/lab/chat', { headers: hdr, body: { model, messages: next.filter((m) => !m.error).map(({ role, content }) => ({ role, content })), image: img ?? undefined } });
+      const r = await api<ChatOut>('/chat', { body: { model, messages: next.filter((m) => !m.error).map(({ role, content }) => ({ role, content })), image: img ?? undefined } });
       setTurns((x) => [...x, r.ok
         ? { role: 'assistant', content: r.text || '', steps: r.steps, model: r.model, meta: `${secs(r.ms)}${r.usage?.prompt || r.usage?.completion ? ` · ${r.usage.prompt}→${r.usage.completion} tokens` : ''}${r.noTools ? ' · this model does not take tools' : ''}` }
         : { role: 'assistant', content: r.error || 'No answer', steps: r.steps, error: true, model: r.model, meta: `${secs(r.ms)}${r.status ? ' · HTTP ' + r.status : ''}` }]);
@@ -80,46 +73,46 @@ export default function Lab({ token }: { token: string }) {
   }
 
   function download() {
-    const md = [`# Model lab chat`, `Saved ${new Date().toISOString()}`, '', ...turns.flatMap((t) => [
+    const md = [`# Chat`, `Saved ${new Date().toISOString()}`, '', ...turns.flatMap((t) => [
       t.role === 'user' ? `## You${t.image ? ' (with an image)' : ''}` : `## ${t.model ?? 'Assistant'}${t.error ? ' (error)' : ''}${t.meta ? ' · ' + t.meta : ''}`,
       ...(t.steps ?? []).map((s) => `<tool ${s.tool} ${secs(s.ms)}>\ninput: ${JSON.stringify(s.args)}\nresult: ${s.result}\n</tool>`),
       t.content, '']),
     ].join('\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([md], { type: 'text/markdown' }));
-    a.download = `lab-chat-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.md`;
+    a.download = `chat-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.md`;
     a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   }
 
   return (
-    <div className="page lab">
-      <header className="lab-bar">
+    <div className="page chat">
+      <header className="chat-bar">
         <select value={model} onChange={(e) => { setModel(e.target.value); save('model', e.target.value); }} aria-label="Model">
           <option value="">{listErr ? 'Models unavailable' : models.length ? 'Choose a model' : 'Loading models…'}</option>
           {models.map((m) => <option key={m.id} value={m.id}>{m.id}{m.vision ? ' · images' : ''}{m.free ? ' · free' : ''}</option>)}
         </select>
         <button className="btn small" onClick={download} disabled={!turns.length}><Download size={14} /> Download chat</button>
       </header>
-      {listErr && <p className="lab-bad">{listErr}</p>}
-      <div className="lab-thread" aria-live="polite">
+      {listErr && <p className="chat-bad">{listErr}</p>}
+      <div className="chat-thread" aria-live="polite">
         {turns.map((t, i) => t.role === 'user' ? (
-          <div key={i} className="lab-user">{t.image && <img src={t.image} alt="Attached" />}<p>{t.content}</p></div>
+          <div key={i} className="chat-user">{t.image && <img src={t.image} alt="Attached" />}<p>{t.content}</p></div>
         ) : (
-          <div key={i} className={'lab-ai' + (t.error ? ' err' : '')}>
+          <div key={i} className={'chat-ai' + (t.error ? ' err' : '')}>
             {t.steps?.map((s, k) => <Tool key={k} s={s} />)}
-            <div className="lab-text">{t.content}</div>
+            <div className="chat-text">{t.content}</div>
             {t.meta && <small>{t.meta}</small>}
           </div>
         ))}
-        {busy && <div className="lab-ai"><span className="lab-dots" aria-label="Waiting for the model"><i /><i /><i /></span></div>}
+        {busy && <div className="chat-ai"><span className="chat-dots" aria-label="Waiting for the model"><i /><i /><i /></span></div>}
         <div ref={end} />
       </div>
-      <div className="lab-composer">
-        {image && <span className="lab-img"><img src={image} alt="Attached" /><button aria-label="Remove image" onClick={() => setImage(null)}><X size={10} /></button></span>}
-        <div className="lab-box">
-          <button className="lab-round" aria-label="Add an image" onClick={() => file.current?.click()}><Plus size={18} /></button>
+      <div className="chat-composer">
+        {image && <span className="chat-img"><img src={image} alt="Attached" /><button aria-label="Remove image" onClick={() => setImage(null)}><X size={10} /></button></span>}
+        <div className="chat-box">
+          <button className="chat-round" aria-label="Add an image" onClick={() => file.current?.click()}><Plus size={18} /></button>
           <textarea ref={ta} rows={1} value={text} placeholder="Message" onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(); } }} />
-          <button className="lab-round go" aria-label="Send" onClick={() => void send()} disabled={busy || (!text.trim() && !image)}><ArrowUp size={18} /></button>
+          <button className="chat-round go" aria-label="Send" onClick={() => void send()} disabled={busy || (!text.trim() && !image)}><ArrowUp size={18} /></button>
         </div>
         <input ref={file} type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (!f) return; try { setImage(await shrink(f)); } catch { toast('That image could not be read'); } }} />
       </div>

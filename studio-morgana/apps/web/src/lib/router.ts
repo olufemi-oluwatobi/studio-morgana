@@ -23,15 +23,14 @@ export const sameScope = (a: Scope, b: Scope) => a.kind === b.kind && (a.kind !=
 export type Route =
   | { name: 'wall'; scope: Scope }
   | { name: 'editor'; id: string }
-  | { name: 'lab'; token: string }
+  | { name: 'chat' }
   | { name: 'auth'; mode: 'signin' | 'signup' | 'forgot' | 'reset' | 'verify'; token: string | null };
 
 export function parse(loc: string): Route {
   const u = new URL(loc, 'http://x');
   const m = u.pathname.match(/^\/p\/([a-z0-9]{8,40})\/?$/);
   if (m) return { name: 'editor', id: m[1] };
-  const lb = u.pathname.match(/^\/lab\/([A-Za-z0-9_-]{16,128})\/?$/);
-  if (lb) return { name: 'lab', token: lb[1] };
+  if (/^\/chat\/?$/.test(u.pathname)) return { name: 'chat' };
   const a = u.pathname.match(/^\/auth(?:\/(signin|signup|forgot|reset|verify))?\/?$/);
   if (a) return { name: 'auth', mode: (a[1] as 'signin') || 'signin', token: u.searchParams.get('token') };
   const pr = u.pathname.match(/^\/projects\/([a-z0-9]{8,40})\/?$/);

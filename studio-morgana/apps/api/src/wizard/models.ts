@@ -49,7 +49,7 @@ export type ProviderFactory = (c: RoleConfig, env: Env, fetcher: typeof fetch) =
 export function roleConfig(env: Env, role: Role): RoleConfig {
   const e = env as unknown as Record<string, string | undefined>, pre = role === 'read' ? 'READER_' : 'WRITER_';
   const provider = (e[pre + 'PROVIDER'] || env.AI_PROVIDER || 'workers-ai').toLowerCase();
-  const fallback = provider === 'workers-ai' ? (role === 'read' ? SCOUT : OSS) : role === 'read' ? 'gpt-4o-mini' : 'gpt-4o';
+  const fallback = provider === 'workers-ai' ? (role === 'read' ? SCOUT : OSS) : '';
   return {
     role, provider,
     baseUrl: (e[pre + 'BASE_URL'] || env.AI_BASE_URL || '').replace(/\/+$/, ''),
@@ -135,6 +135,7 @@ export function buildModels(env: Env, fetcher: typeof fetch = fetch): Models {
   const make = (role: Role): { backend: Backend; cfg: RoleConfig } => {
     const cfg = roleConfig(env, role), f = PROVIDERS[cfg.provider];
     if (!f) throw new ModelError(`the AI provider "${cfg.provider}" is not set up (known: ${Object.keys(PROVIDERS).join(', ')})`);
+    if (!cfg.model) throw new ModelError(`no model is chosen for the ${role === 'read' ? 'reader' : 'writer'}: set ${role === 'read' ? 'READER_MODEL' : 'WRITER_MODEL'} (pick one on /chat)`);
     return { backend: f(cfg, env, fetcher), cfg };
   };
   const r = make('read'), w = make('write');

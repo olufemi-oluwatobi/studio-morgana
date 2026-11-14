@@ -12,10 +12,6 @@ export interface Env {
   // each role can have its own provider; anything unset falls back to the AI_* settings above
   READER_PROVIDER?: string; READER_BASE_URL?: string; READER_API_KEY?: string; READER_MODEL?: string;   // the reader (sees images)
   WRITER_PROVIDER?: string; WRITER_BASE_URL?: string; WRITER_API_KEY?: string; WRITER_MODEL?: string;   // the writer (godtongue)
-  LAB?: string;                // feature flag: "on" opens the model lab at /lab/<LAB_TOKEN>
-  LAB_TOKEN?: string;          // secret (wrangler secret put LAB_TOKEN), at least 16 characters; the lab's address and its key
-  LAB_BASE_URL?: string;       // the lab's service (falls back to AI_BASE_URL); e.g. https://crowllm.com/v1
-  LAB_API_KEY?: string;        // secret (wrangler secret put LAB_API_KEY); falls back to AI_API_KEY
   AI_ROUNDS?: string;          // how many times the writer may fix what the compiler rejects (default 3)
   APP_URL?: string;
   EMAIL_FROM?: string;

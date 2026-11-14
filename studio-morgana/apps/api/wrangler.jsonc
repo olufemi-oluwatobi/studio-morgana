@@ -29,11 +29,12 @@
   "observability": { "enabled": true },
   "vars": {
     "AI_MODE": "live",
-    "AI_MODEL": "@cf/openai/gpt-oss-120b",
-    // the lab (/lab/<LAB_TOKEN>): "on" opens it, anything else closes it. It needs the secrets LAB_TOKEN and LAB_API_KEY
-    // and never changes what the app itself uses.
-    "LAB": "on",
-    "LAB_BASE_URL": "https://crowllm.com/v1",
+    // the models: CrowLLM, an OpenAI-compatible gateway. The key is the secret AI_API_KEY (wrangler secret put AI_API_KEY).
+    // Pick the two models on /chat, then set them here:
+    //   "READER_MODEL": "<a model that sees images>", "WRITER_MODEL": "<the model that writes godtongue>"
+    // For Workers AI instead, remove these three lines (AI_PROVIDER, AI_BASE_URL, the models) and keep the AI binding.
+    "AI_PROVIDER": "openai",
+    "AI_BASE_URL": "https://crowllm.com/v1",
     "APP_URL": "https://www.studiomorgana.xyz",
     "EMAIL_FROM": "Studio Morgana <studio@studiomorgana.xyz>",
     "ANON_DAILY_GENERATIONS": "12",
