@@ -34,7 +34,19 @@ function call<T>(cmd: string, args: Record<string, unknown> = {}, transfer: Tran
     worker.onerror = (e) => { for (const p of pending.values()) p.rej(new Error(e.message || 'the compiler stopped')); pending.clear(); };
   }
   const id = ++seq;
-  return new Promise<T>((res, rej) => { pending.set(id, { res, rej }); worker!.postMessage({ id, cmd, ...args }, transfer); });
+  return new Promise<T>((res, rej) => {
+    // a compiler that stops answering is replaced rather than waited on
+    const t = setTimeout(() => {
+      if (!pending.delete(id)) return;
+      if (cmd === 'init') ready = null;
+      worker?.terminate(); worker = null; ready = null; mounted.clear();
+      for (const p of pending.values()) p.rej(new Error('the compiler stopped answering'));
+      pending.clear();
+      rej(new Error('the compiler took too long'));
+    }, cmd === 'init' ? 60_000 : 45_000);
+    pending.set(id, { res: (v) => { clearTimeout(t); res(v); }, rej: (e) => { clearTimeout(t); rej(e); } });
+    worker!.postMessage({ id, cmd, ...args }, transfer);
+  });
 }
 
 function init() {

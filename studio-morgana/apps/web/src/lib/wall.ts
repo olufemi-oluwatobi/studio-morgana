@@ -131,11 +131,12 @@ const preload = (url: string) => new Promise<void>((res) => { const i = new Imag
 async function finishOption(key: string, pieceId: string, version: Version, files: PieceFile[], projectId: string | null) {
   patchDraft(key, { id: pieceId, state: 'rendering' });
   let v = version;
-  let res = await render(pieceId, v.source, files, PRIORITY.wall);
+  const timed = <T,>(p: Promise<T>) => { let t: ReturnType<typeof setTimeout>; return Promise.race([p, new Promise<never>((_, rej) => { t = setTimeout(() => rej(new Error('This option took too long to draw')), 60_000); })]).finally(() => clearTimeout(t)); };
+  let res = await timed(render(pieceId, v.source, files, PRIORITY.wall));
   if (!res.ok) {
     // the server has already checked what it wrote; if the browser still cannot draw it, ask for one repair
     const fixed = await api<{ version: Version }>(`/pieces/${pieceId}/repair`, { body: { versionId: v.id, diagnostics: res.diagnostics } }).catch(() => null);
-    if (fixed) { v = fixed.version; res = await render(pieceId, v.source, files, PRIORITY.wall); }
+    if (fixed) { v = fixed.version; res = await timed(render(pieceId, v.source, files, PRIORITY.wall)); }
   }
   if (!res.ok) throw new Error('This option could not be drawn');
   const r = res.r;
@@ -169,7 +170,7 @@ export async function generate() {
   if (wallStore.get().tab !== 'all') void loadWall({ tab: 'all' });
   window.scrollTo({ top: 0, behavior: 'smooth' });
   const work: Promise<void>[] = [];
-  const seen = new Set<number>();
+  const seen = new Set<number>(), failures = new Set<string>();
   try {
     await streamLines('/generate', {
       prompt, n, projectId,
@@ -191,14 +192,19 @@ export async function generate() {
       } else if (line.type === 'error') {
         seen.add(line.index);
         patchDraft(keys[line.index], { state: 'failed' });
+        failures.add(String(line.message || 'One option could not be made'));
         setTimeout(() => dropDraft(keys[line.index]), 4000);
       }
     });
     composerStore.set((s) => ({ ...s, text: '' }));
   } catch (e) {
-    toast((e as Error).message);
+    toast(e instanceof ApiError ? e.message : 'Something went wrong. Please try again.');
   } finally {
-    keys.forEach((k, i) => { if (!seen.has(i)) dropDraft(k); });
+    // options that never reported (the stream ended or stalled) are gone, and the person is told
+    const lost = keys.filter((_, i) => !seen.has(i));
+    lost.forEach((k) => dropDraft(k));
+    if (lost.length && !failures.size && lost.length === keys.length) toast('Nothing was made. Please try again.');
+    else if (failures.size) toast([...failures][0] + (failures.size > 1 || lost.length ? '' : ''));
     composerStore.set((s) => ({ ...s, busy: false }));
   }
   await Promise.allSettled(work);

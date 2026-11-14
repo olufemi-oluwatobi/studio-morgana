@@ -21,7 +21,18 @@ export async function api<T>(path: string, o: Opts = {}): Promise<T> {
 }
 
 // newline-delimited JSON, one object per line, handed over as each line arrives
-export async function streamLines(path: string, body: unknown, onLine: (o: any) => void, signal?: AbortSignal): Promise<void> {
+// A stream that goes quiet for `idleMs` is treated as stuck: the server sends a sign of life every few seconds.
+export async function streamLines(path: string, body: unknown, onLine: (o: any) => void, signal?: AbortSignal, idleMs = 40_000): Promise<void> {
+  const ctl = new AbortController();
+  signal?.addEventListener('abort', () => ctl.abort());
+  let stalled = false, timer: ReturnType<typeof setTimeout>;
+  const watch = () => { clearTimeout(timer); timer = setTimeout(() => { stalled = true; ctl.abort(); }, idleMs); };
+  watch();
+  try { await readLines(path, body, onLine, ctl.signal, watch); }
+  catch (e) { if (stalled) throw new ApiError(504, 'This is taking too long. Please try again.'); throw e; }
+  finally { clearTimeout(timer!); }
+}
+async function readLines(path: string, body: unknown, onLine: (o: any) => void, signal: AbortSignal, alive: () => void): Promise<void> {
   const res = await fetch('/api' + path, {
     method: 'POST', headers: { 'x-morgana': '1', 'content-type': 'application/json' }, body: JSON.stringify(body), signal, credentials: 'same-origin',
   });
@@ -36,6 +47,7 @@ export async function streamLines(path: string, body: unknown, onLine: (o: any) 
     for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
+      alive();
       buf += dec.decode(value, { stream: true });
       let i;
       while ((i = buf.indexOf('\n')) >= 0) {

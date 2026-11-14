@@ -82,6 +82,15 @@ const plan = { kind: 'canvas', title: 'sale', size: [1080, 1350], flat: true, mo
   ok('the reader sees a style reference and is told not to print it', m.calls[0].a.images?.length === 1 && /must not print/.test(m.calls[0].a.prompt) && /condensed/.test(p.looks));
 }
 
+// 3c. a model that never answers ends in an error, not a wait
+{
+  const { within, ModelError } = await import('../src/wizard/models');
+  let err: unknown = null;
+  try { await within(new Promise(() => { }), 30, 'the writer'); } catch (e) { err = e; }
+  ok('a call that never answers times out with a clear error', err instanceof ModelError && /too long/.test((err as Error).message));
+  ok('a call that answers in time is untouched', (await within(Promise.resolve('ok'), 30, 'x')) === 'ok');
+}
+
 // 4. patches
 {
   const src = 'a\nb\nc\nd\ne\n';

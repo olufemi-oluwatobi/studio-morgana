@@ -171,16 +171,20 @@ pieces.post('/generate', async (c) => {
   if (inspo.length) (await readFiles(c.env, inspo)).images.forEach((im, i) => looksLike.push({ ...im, name: `style image ${i + 1}` }));
   const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
   const w = writable.getWriter(), enc = new TextEncoder();
-  const send = (o: unknown) => w.write(enc.encode(JSON.stringify(o) + '\n'));
+  const send = (o: unknown) => w.write(enc.encode(JSON.stringify(o) + '\n')).catch(() => { /* the client went away */ });
   const env = c.env;
+  const late = <T,>(p: Promise<T>, ms: number): Promise<T> => { let t: ReturnType<typeof setTimeout>; return Promise.race([p, new Promise<never>((_, rej) => { t = setTimeout(() => rej(new Error('late')), ms); })]).finally(() => clearTimeout(t)); };
   const run = async () => {
     await send({ type: 'start', n });
+    // a sign of life every few seconds, so the browser (and anything between) can tell slow from stuck
+    const beat = setInterval(() => { void send({ type: 'ping' }); }, 8000);
+    try {
     // one plan for all the options (the reader looks at the images and picks the manual's chapters), then one write each
-    const planned = await planFor(env, { prompt, refs, files: uploads.map((u) => ({ name: u.name, key: u.key, type: u.type })), looksLike }).catch((e) => { console.error(e); return null; });
+    const planned = await late(planFor(env, { prompt, refs, files: uploads.map((u) => ({ name: u.name, key: u.key, type: u.type })), looksLike }), 70_000).catch((e) => { console.error('planning failed', e); return null; });
     if (planned) log('plan', { n, kind: planned.planned.plan.kind, chapters: planned.planned.chapters.map((c) => c.id), trail: planned.planned.trail });
     await Promise.all(Array.from({ length: n }, async (_, i) => {
       try {
-        const made = await makeOption(env, planned, { prompt, uploads: uploads.map((u) => u.name), i, n });
+        const made = await late(makeOption(env, planned, { prompt, uploads: uploads.map((u) => u.name), i, n }), 200_000);
         const source = made.source;
         log('option', { i, ok: made.ok, lines: source.split('\n').length, trail: made.trail });
         const pid = id(), t = now();
@@ -192,10 +196,10 @@ pieces.post('/generate', async (c) => {
         await send({ type: 'piece', index: i, piece: { id: pid, title: titleOf(source, prompt.slice(0, 40)) }, version: versionOut(v), files: await filesOf(env, pid) });
       } catch (e) {
         console.error('option failed', e);
-        await send({ type: 'error', index: i, message: e instanceof HTTPException ? e.message : 'this option could not be made' });
+        await send({ type: 'error', index: i, message: e instanceof HTTPException ? e.message : (e as Error).message === 'late' ? 'this is taking too long; please try again' : 'this option could not be made' });
       }
     }));
-    await send({ type: 'done' });
+    } finally { clearInterval(beat); await send({ type: 'done' }); }
   };
   c.executionCtx.waitUntil(run().catch(() => { /* the client went away */ }).finally(() => w.close().catch(() => { })));
   return new Response(readable, { headers: { 'content-type': 'application/x-ndjson; charset=utf-8', 'cache-control': 'no-store' } });

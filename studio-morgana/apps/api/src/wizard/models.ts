@@ -38,14 +38,15 @@ function b64(bytes: Uint8Array): string {
 export function openAiCompatible(env: Env, fetcher: typeof fetch = fetch): Models {
   const base = (env.AI_BASE_URL || '').replace(/\/+$/, ''), key = env.AI_API_KEY || '';
   const reader = env.AI_READER || 'gpt-4o-mini', writer = env.AI_MODEL || 'gpt-4o';
-  const run = async (model: string, messages: unknown[], max: number, temperature: number): Promise<string> => {
+  const run = async (model: string, messages: unknown[], max: number, temperature: number, ms = WRITE_MS): Promise<string> => {
     let last: unknown;
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        const r = await fetcher(base + '/chat/completions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` }, body: JSON.stringify({ model, messages, max_tokens: max, temperature }) });
+        const ctl = new AbortController();
+        const r = await within(fetcher(base + '/chat/completions', { method: 'POST', signal: ctl.signal, headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` }, body: JSON.stringify({ model, messages, max_tokens: max, temperature }) }), ms, 'the generator').catch((e) => { ctl.abort(); throw e; });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return textOf(await r.json());
-      } catch (e) { last = e; await new Promise((res) => setTimeout(res, 400 + attempt * 800)); }
+        return textOf(await within(r.json(), ms, 'the generator'));
+      } catch (e) { last = e; if (timedOut(e)) break; await new Promise((res) => setTimeout(res, 400 + attempt * 800)); }
     }
     throw new ModelError('the generator is not answering right now', last);
   };
@@ -54,7 +55,7 @@ export function openAiCompatible(env: Env, fetcher: typeof fetch = fetch): Model
     async read(a) {
       const imgs = (a.images || []).filter((i) => i.bytes.length <= MAX_IMAGE && /^image\/(png|jpe?g|webp|gif)$/.test(i.mime));
       const content = imgs.length ? [{ type: 'text', text: a.prompt }, ...imgs.map((i) => ({ type: 'image_url', image_url: { url: `data:${i.mime};base64,${b64(i.bytes)}` } }))] : a.prompt;
-      return run(reader, [...(a.system ? [{ role: 'system', content: a.system }] : []), { role: 'user', content }], a.maxTokens ?? 1500, a.temperature ?? 0.2);
+      return run(reader, [...(a.system ? [{ role: 'system', content: a.system }] : []), { role: 'user', content }], a.maxTokens ?? 1500, a.temperature ?? 0.2, READ_MS);
     },
     async write(a) {
       return run(writer, [...(a.system ? [{ role: 'system', content: a.system }] : []), { role: 'user', content: a.prompt }], a.maxTokens ?? 6000, a.temperature ?? 0.6);
@@ -64,14 +65,22 @@ export function openAiCompatible(env: Env, fetcher: typeof fetch = fetch): Model
 
 export class ModelError extends Error { constructor(msg: string, public cause?: unknown) { super(msg); } }
 
+// a model that never answers must not hold a piece forever: every call has a deadline
+export const READ_MS = 45_000, WRITE_MS = 90_000;
+export function within<T>(p: Promise<T>, ms: number, what: string): Promise<T> {
+  let t: ReturnType<typeof setTimeout>;
+  return Promise.race([p, new Promise<never>((_, rej) => { t = setTimeout(() => rej(new ModelError(`${what} took too long`, 'timeout')), ms); })]).finally(() => clearTimeout(t));
+}
+const timedOut = (e: unknown) => e instanceof ModelError && e.cause === 'timeout';
+
 export function workersAi(env: Env): Models {
   const ai = env.AI as any;
   const reader = env.AI_READER || SCOUT, writer = env.AI_MODEL || OSS;
-  const run = async (model: string, input: Record<string, unknown>) => {
+  const run = async (model: string, input: Record<string, unknown>, ms = WRITE_MS) => {
     let last: unknown;
     for (let attempt = 0; attempt < 2; attempt++) {
-      try { return textOf(await ai.run(model, input)); }
-      catch (e) { last = e; await new Promise((r) => setTimeout(r, 400 + attempt * 800)); }
+      try { return textOf(await within(ai.run(model, input), ms, model.split('/').pop()!)); }
+      catch (e) { last = e; if (timedOut(e)) break; await new Promise((r) => setTimeout(r, 400 + attempt * 800)); }
     }
     throw new ModelError(`${model.split('/').pop()} is not answering right now`, last);
   };
@@ -84,17 +93,17 @@ export function workersAi(env: Env): Models {
         ? [{ type: 'text', text }, ...imgs.map((i) => ({ type: 'image_url', image_url: { url: `data:${i.mime};base64,${b64(i.bytes)}` } }))]
         : text;
       const messages = [...(a.system ? [{ role: 'system', content: a.system }] : []), { role: 'user', content }];
-      try { return await run(reader, { messages, max_tokens: a.maxTokens ?? 1500, temperature: a.temperature ?? 0.2 }); }
+      try { return await run(reader, { messages, max_tokens: a.maxTokens ?? 1500, temperature: a.temperature ?? 0.2 }, READ_MS); }
       catch (e) {
         if (!imgs.length) throw e;
         // a reader that will not take images still reads the brief
-        return run(reader, { messages: [...messages.slice(0, -1), { role: 'user', content: text + '\n\n(The images could not be shown to you; work from their names.)' }], max_tokens: a.maxTokens ?? 1500, temperature: a.temperature ?? 0.2 });
+        return run(reader, { messages: [...messages.slice(0, -1), { role: 'user', content: text + '\n\n(The images could not be shown to you; work from their names.)' }], max_tokens: a.maxTokens ?? 1500, temperature: a.temperature ?? 0.2 }, READ_MS);
       }
     },
     async write(a) {
       const messages = [...(a.system ? [{ role: 'system', content: a.system }] : []), { role: 'user', content: a.prompt }];
       try { return await run(writer, { messages, max_tokens: a.maxTokens ?? 6000, temperature: a.temperature ?? 0.6, reasoning: { effort: 'low' } }); }
-      catch { return run(writer, { messages, max_tokens: a.maxTokens ?? 6000, temperature: a.temperature ?? 0.6 }); }
+      catch (e) { if (timedOut(e)) throw e; return run(writer, { messages, max_tokens: a.maxTokens ?? 6000, temperature: a.temperature ?? 0.6 }); }
     },
   };
 }
