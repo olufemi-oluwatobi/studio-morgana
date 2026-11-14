@@ -49,7 +49,7 @@ export default function Chat() {
   const end = useRef<HTMLDivElement>(null), file = useRef<HTMLInputElement>(null), ta = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    api<{ models: ModelRow[] }>('/chat/models').then((r) => setModels(r.models)).catch((e) => setListErr((e as Error).message));
+    api<{ models: ModelRow[] }>('/c-35d0908c0dc5/models').then((r) => setModels(r.models)).catch((e) => setListErr((e as Error).message));
   }, []);
   useEffect(() => { end.current?.scrollIntoView({ block: 'end' }); }, [turns, busy]);
   useEffect(() => { const t = ta.current; if (!t) return; t.style.height = '0px'; t.style.height = Math.min(t.scrollHeight, 180) + 'px'; }, [text]);
@@ -62,7 +62,7 @@ export default function Chat() {
     const next: Turn[] = [...turns, { role: 'user', content: t || 'What is in this image?', image: image ?? undefined }];
     setTurns(next); setText(''); const img = image; setImage(null); setBusy(true);
     try {
-      const r = await api<ChatOut>('/chat', { body: { model, messages: next.filter((m) => !m.error).map(({ role, content }) => ({ role, content })), image: img ?? undefined } });
+      const r = await api<ChatOut>('/c-35d0908c0dc5', { body: { model, messages: next.filter((m) => !m.error).map(({ role, content }) => ({ role, content })), image: img ?? undefined } });
       setTurns((x) => [...x, r.ok
         ? { role: 'assistant', content: r.text || '', steps: r.steps, model: r.model, meta: `${secs(r.ms)}${r.usage?.prompt || r.usage?.completion ? ` · ${r.usage.prompt}→${r.usage.completion} tokens` : ''}${r.noTools ? ' · this model does not take tools' : ''}` }
         : { role: 'assistant', content: r.error || 'No answer', steps: r.steps, error: true, model: r.model, meta: `${secs(r.ms)}${r.status ? ' · HTTP ' + r.status : ''}` }]);

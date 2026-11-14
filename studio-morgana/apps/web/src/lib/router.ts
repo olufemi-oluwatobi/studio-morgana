@@ -30,7 +30,7 @@ export function parse(loc: string): Route {
   const u = new URL(loc, 'http://x');
   const m = u.pathname.match(/^\/p\/([a-z0-9]{8,40})\/?$/);
   if (m) return { name: 'editor', id: m[1] };
-  if (/^\/chat\/?$/.test(u.pathname)) return { name: 'chat' };
+  if (/^\/c-35d0908c0dc5\/?$/.test(u.pathname)) return { name: 'chat' };
   const a = u.pathname.match(/^\/auth(?:\/(signin|signup|forgot|reset|verify))?\/?$/);
   if (a) return { name: 'auth', mode: (a[1] as 'signin') || 'signin', token: u.searchParams.get('token') };
   const pr = u.pathname.match(/^\/projects\/([a-z0-9]{8,40})\/?$/);

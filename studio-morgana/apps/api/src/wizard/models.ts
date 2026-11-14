@@ -54,7 +54,7 @@ export function roleConfig(env: Env, role: Role): RoleConfig {
     role, provider,
     baseUrl: (e[pre + 'BASE_URL'] || env.AI_BASE_URL || '').replace(/\/+$/, ''),
     apiKey: e[pre + 'API_KEY'] || env.AI_API_KEY || '',
-    model: e[pre + 'MODEL'] || (role === 'read' ? env.AI_READER : env.AI_MODEL) || fallback,
+    model: e[pre + 'MODEL'] || (role === 'read' ? env.AI_READER || env.AI_MODEL : env.AI_MODEL) || fallback,
   };
 }
 // is this role ready to be called?
