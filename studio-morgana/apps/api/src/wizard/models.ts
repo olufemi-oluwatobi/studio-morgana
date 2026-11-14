@@ -35,33 +35,57 @@ function b64(bytes: Uint8Array): string {
   return btoa(s);
 }
 
-export function openAiCompatible(env: Env, fetcher: typeof fetch = fetch): Models {
-  const base = (env.AI_BASE_URL || '').replace(/\/+$/, ''), key = env.AI_API_KEY || '';
-  const reader = env.AI_READER || 'gpt-4o-mini', writer = env.AI_MODEL || 'gpt-4o';
-  const run = async (model: string, messages: unknown[], max: number, temperature: number, ms = WRITE_MS): Promise<string> => {
-    let last: unknown;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const ctl = new AbortController();
-        const r = await within(fetcher(base + '/chat/completions', { method: 'POST', signal: ctl.signal, headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` }, body: JSON.stringify({ model, messages, max_tokens: max, temperature }) }), ms, 'the generator').catch((e) => { ctl.abort(); throw e; });
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return textOf(await within(r.json(), ms, 'the generator'));
-      } catch (e) { last = e; if (timedOut(e)) break; await new Promise((res) => setTimeout(res, 400 + attempt * 800)); }
-    }
-    throw new ModelError('the generator is not answering right now', last);
-  };
+// ── providers ─────────────────────────────────────────────────────────────────────────────────────────────────────
+// Each role (reader, writer) is served by one provider, configured on its own:
+//   READER_PROVIDER / READER_BASE_URL / READER_API_KEY / READER_MODEL     (and WRITER_…)
+// and anything not set there falls back to the shared AI_PROVIDER / AI_BASE_URL / AI_API_KEY (and AI_READER / AI_MODEL
+// for the model names), so one setting can serve both. A provider turns a role's settings into `ask → text`. To add a
+// service, register a factory below; most services speak the OpenAI chat format and need only a base URL and a key.
+export type Role = 'read' | 'write';
+export interface RoleConfig { role: Role; provider: string; baseUrl: string; apiKey: string; model: string }
+export type Backend = (a: Ask) => Promise<string>;
+export type ProviderFactory = (c: RoleConfig, env: Env, fetcher: typeof fetch) => Backend;
+
+export function roleConfig(env: Env, role: Role): RoleConfig {
+  const e = env as unknown as Record<string, string | undefined>, pre = role === 'read' ? 'READER_' : 'WRITER_';
+  const provider = (e[pre + 'PROVIDER'] || env.AI_PROVIDER || 'workers-ai').toLowerCase();
+  const fallback = provider === 'workers-ai' ? (role === 'read' ? SCOUT : OSS) : role === 'read' ? 'gpt-4o-mini' : 'gpt-4o';
   return {
-    names: { reader, writer },
-    async read(a) {
-      const imgs = (a.images || []).filter((i) => i.bytes.length <= MAX_IMAGE && /^image\/(png|jpe?g|webp|gif)$/.test(i.mime));
-      const content = imgs.length ? [{ type: 'text', text: a.prompt }, ...imgs.map((i) => ({ type: 'image_url', image_url: { url: `data:${i.mime};base64,${b64(i.bytes)}` } }))] : a.prompt;
-      return run(reader, [...(a.system ? [{ role: 'system', content: a.system }] : []), { role: 'user', content }], a.maxTokens ?? 1500, a.temperature ?? 0.2, READ_MS);
-    },
-    async write(a) {
-      return run(writer, [...(a.system ? [{ role: 'system', content: a.system }] : []), { role: 'user', content: a.prompt }], a.maxTokens ?? 6000, a.temperature ?? 0.6);
-    },
+    role, provider,
+    baseUrl: (e[pre + 'BASE_URL'] || env.AI_BASE_URL || '').replace(/\/+$/, ''),
+    apiKey: e[pre + 'API_KEY'] || env.AI_API_KEY || '',
+    model: e[pre + 'MODEL'] || (role === 'read' ? env.AI_READER : env.AI_MODEL) || fallback,
   };
 }
+// is this role ready to be called?
+export function roleReady(env: Env, role: Role): boolean {
+  const c = roleConfig(env, role);
+  return c.provider === 'workers-ai' ? !!env.AI : !!(c.baseUrl && c.apiKey);
+}
+
+const imagesOf = (a: Ask) => (a.images || []).filter((i) => i.bytes.length <= MAX_IMAGE && /^image\/(png|jpe?g|webp|gif)$/.test(i.mime));
+const dataUrl = (i: Img) => `data:${i.mime};base64,${b64(i.bytes)}`;
+const noteTooBig = (a: Ask, shown: Img[]) => (a.images || []).length > shown.length ? `\n\n(Some images were too large to show: ${(a.images || []).filter((i) => !shown.includes(i)).map((i) => i.name).join(', ')}.)` : '';
+
+// any service that speaks the OpenAI chat format: OpenAI, OpenRouter, Together, Groq, a vLLM of your own …
+export const openAiBackend: ProviderFactory = (c, _env, fetcher) => async (a) => {
+  const reading = c.role === 'read', ms = reading ? READ_MS : WRITE_MS;
+  const shown = reading ? imagesOf(a) : [];
+  const text = a.prompt + (reading ? noteTooBig(a, shown) : '');
+  const content = shown.length ? [{ type: 'text', text }, ...shown.map((i) => ({ type: 'image_url', image_url: { url: dataUrl(i) } }))] : text;
+  const messages = [...(a.system ? [{ role: 'system', content: a.system }] : []), { role: 'user', content }];
+  const body = JSON.stringify({ model: c.model, messages, max_tokens: a.maxTokens ?? (reading ? 1500 : 6000), temperature: a.temperature ?? (reading ? 0.2 : 0.6) });
+  let last: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const ctl = new AbortController();
+      const r = await within(fetcher(c.baseUrl + '/chat/completions', { method: 'POST', signal: ctl.signal, headers: { 'content-type': 'application/json', authorization: `Bearer ${c.apiKey}` }, body }), ms, 'the generator').catch((e) => { ctl.abort(); throw e; });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return textOf(await within(r.json(), ms, 'the generator'));
+    } catch (e) { last = e; if (timedOut(e)) break; await new Promise((res) => setTimeout(res, 400 + attempt * 800)); }
+  }
+  throw new ModelError('the generator is not answering right now', last);
+};
 
 export class ModelError extends Error { constructor(msg: string, public cause?: unknown) { super(msg); } }
 
@@ -73,40 +97,52 @@ export function within<T>(p: Promise<T>, ms: number, what: string): Promise<T> {
 }
 const timedOut = (e: unknown) => e instanceof ModelError && e.cause === 'timeout';
 
-export function workersAi(env: Env): Models {
-  const ai = env.AI as any;
-  const reader = env.AI_READER || SCOUT, writer = env.AI_MODEL || OSS;
-  const run = async (model: string, input: Record<string, unknown>, ms = WRITE_MS) => {
+// Cloudflare Workers AI (the AI binding)
+export const workersAiBackend: ProviderFactory = (c, env) => {
+  const ai = env.AI as any, reading = c.role === 'read', ms = reading ? READ_MS : WRITE_MS;
+  const run = async (input: Record<string, unknown>) => {
     let last: unknown;
     for (let attempt = 0; attempt < 2; attempt++) {
-      try { return textOf(await within(ai.run(model, input), ms, model.split('/').pop()!)); }
+      try { return textOf(await within(ai.run(c.model, input), ms, c.model.split('/').pop()!)); }
       catch (e) { last = e; if (timedOut(e)) break; await new Promise((r) => setTimeout(r, 400 + attempt * 800)); }
     }
-    throw new ModelError(`${model.split('/').pop()} is not answering right now`, last);
+    throw new ModelError(`${c.model.split('/').pop()} is not answering right now`, last);
   };
-  return {
-    names: { reader, writer },
-    async read(a) {
-      const imgs = (a.images || []).filter((i) => i.bytes.length <= MAX_IMAGE && /^image\/(png|jpe?g|webp|gif)$/.test(i.mime));
-      const text = a.prompt + ((a.images || []).length > imgs.length ? `\n\n(Some images were too large to show: ${(a.images || []).filter((i) => !imgs.includes(i)).map((i) => i.name).join(', ')}.)` : '');
-      const content = imgs.length
-        ? [{ type: 'text', text }, ...imgs.map((i) => ({ type: 'image_url', image_url: { url: `data:${i.mime};base64,${b64(i.bytes)}` } }))]
-        : text;
-      const messages = [...(a.system ? [{ role: 'system', content: a.system }] : []), { role: 'user', content }];
-      try { return await run(reader, { messages, max_tokens: a.maxTokens ?? 1500, temperature: a.temperature ?? 0.2 }, READ_MS); }
-      catch (e) {
-        if (!imgs.length) throw e;
-        // a reader that will not take images still reads the brief
-        return run(reader, { messages: [...messages.slice(0, -1), { role: 'user', content: text + '\n\n(The images could not be shown to you; work from their names.)' }], max_tokens: a.maxTokens ?? 1500, temperature: a.temperature ?? 0.2 }, READ_MS);
-      }
-    },
-    async write(a) {
+  return async (a) => {
+    const max = a.maxTokens ?? (reading ? 1500 : 6000), temperature = a.temperature ?? (reading ? 0.2 : 0.6);
+    if (!reading) {
       const messages = [...(a.system ? [{ role: 'system', content: a.system }] : []), { role: 'user', content: a.prompt }];
-      try { return await run(writer, { messages, max_tokens: a.maxTokens ?? 6000, temperature: a.temperature ?? 0.6, reasoning: { effort: 'low' } }); }
-      catch (e) { if (timedOut(e)) throw e; return run(writer, { messages, max_tokens: a.maxTokens ?? 6000, temperature: a.temperature ?? 0.6 }); }
-    },
+      try { return await run({ messages, max_tokens: max, temperature, reasoning: { effort: 'low' } }); }
+      catch (e) { if (timedOut(e)) throw e; return run({ messages, max_tokens: max, temperature }); }
+    }
+    const imgs = imagesOf(a), text = a.prompt + noteTooBig(a, imgs);
+    const content = imgs.length ? [{ type: 'text', text }, ...imgs.map((i) => ({ type: 'image_url', image_url: { url: dataUrl(i) } }))] : text;
+    const messages = [...(a.system ? [{ role: 'system', content: a.system }] : []), { role: 'user', content }];
+    try { return await run({ messages, max_tokens: max, temperature }); }
+    catch (e) {
+      if (!imgs.length) throw e;
+      // a reader that will not take images still reads the brief
+      return run({ messages: [...messages.slice(0, -1), { role: 'user', content: text + '\n\n(The images could not be shown to you; work from their names.)' }], max_tokens: max, temperature });
+    }
   };
+};
+
+// the registry: provider name → factory. Add a service here (or call registerProvider) and select it with *_PROVIDER.
+const PROVIDERS: Record<string, ProviderFactory> = { 'workers-ai': workersAiBackend, openai: openAiBackend };
+export const registerProvider = (name: string, f: ProviderFactory) => { PROVIDERS[name.toLowerCase()] = f; };
+
+export function buildModels(env: Env, fetcher: typeof fetch = fetch): Models {
+  const make = (role: Role): { backend: Backend; cfg: RoleConfig } => {
+    const cfg = roleConfig(env, role), f = PROVIDERS[cfg.provider];
+    if (!f) throw new ModelError(`the AI provider "${cfg.provider}" is not set up (known: ${Object.keys(PROVIDERS).join(', ')})`);
+    return { backend: f(cfg, env, fetcher), cfg };
+  };
+  const r = make('read'), w = make('write');
+  return { read: r.backend, write: w.backend, names: { reader: `${r.cfg.provider}:${r.cfg.model}`, writer: `${w.cfg.provider}:${w.cfg.model}` } };
 }
+// kept for callers that name a provider outright
+export const workersAi = (env: Env) => buildModels({ ...env, AI_PROVIDER: 'workers-ai', READER_PROVIDER: undefined, WRITER_PROVIDER: undefined } as Env);
+export const openAiCompatible = (env: Env, fetcher: typeof fetch = fetch) => buildModels({ ...env, AI_PROVIDER: 'openai', READER_PROVIDER: undefined, WRITER_PROVIDER: undefined } as Env, fetcher);
 
 // AI_MODE=scripted: the real wizards (plan, manual, write, compile, fix, patch, review) with stand-in models, so the
 // whole path can run in `wrangler dev` without Workers AI. The writer's first piece carries one mistake on purpose

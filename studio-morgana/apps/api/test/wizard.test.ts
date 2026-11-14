@@ -3,7 +3,7 @@
 import { planBrief, writeOption } from '../src/wizard/create';
 import { editPiece, parsePatch, applyPatch, reviewRender } from '../src/wizard/edit';
 import { MANUAL } from '../src/manual.gen';
-import { openAiCompatible, type Ask, type Models } from '../src/wizard/models';
+import { openAiCompatible, buildModels, roleConfig, roleReady, type Ask, type Models } from '../src/wizard/models';
 
 let pass = 0, failn = 0;
 const ok = (name: string, cond: boolean, detail = '') => { cond ? pass++ : failn++; console.log(`${cond ? '✓' : '✗'} ${name}${!cond && detail ? ' · ' + detail : ''}`); };
@@ -145,6 +145,21 @@ const plan = { kind: 'canvas', title: 'sale', size: [1080, 1350], flat: true, mo
   const m = openAiCompatible({ AI_BASE_URL: 'https://llm.example/v1/', AI_API_KEY: 'k', AI_READER: 'r-model', AI_MODEL: 'w-model' } as any, fake);
   const a = await m.read({ prompt: 'look', images: [{ mime: 'image/png', bytes: new Uint8Array([1]) }] }), b = await m.write({ prompt: 'write', system: 'sys' });
   ok('an OpenAI-compatible provider serves the reader (with images) and the writer', a === 'hello' && b === 'hello' && sent[0].url === 'https://llm.example/v1/chat/completions' && sent[0].body.model === 'r-model' && sent[0].body.messages[0].content[1].type === 'image_url' && sent[1].body.model === 'w-model' && sent[1].auth === 'Bearer k');
+}
+
+// 6. providers: each role is configured on its own and falls back to the shared settings
+{
+  const e = { AI_PROVIDER: 'openai', AI_BASE_URL: 'https://a.example/v1/', AI_API_KEY: 'k', READER_MODEL: 'seer', WRITER_PROVIDER: 'openai', WRITER_BASE_URL: 'https://b.example/v1', WRITER_API_KEY: 'k2', WRITER_MODEL: 'scribe' } as any;
+  const r = roleConfig(e, 'read'), w = roleConfig(e, 'write');
+  ok('a role falls back to the shared settings', r.baseUrl === 'https://a.example/v1' && r.apiKey === 'k' && r.model === 'seer');
+  ok('a role can name its own service', w.baseUrl === 'https://b.example/v1' && w.apiKey === 'k2' && w.model === 'scribe');
+  ok('a role without a key is not ready', !roleReady({ AI_PROVIDER: 'openai', AI_BASE_URL: 'https://a.example/v1' } as any, 'write') && roleReady(e, 'read'));
+  let msg = ''; try { buildModels({ AI_PROVIDER: 'nonesuch' } as any); } catch (x) { msg = (x as Error).message; }
+  ok('an unknown provider is named in the error', /nonesuch/.test(msg) && /openai/.test(msg), msg);
+  const seen: string[] = [];
+  const m = buildModels(e, (async (url: string) => { seen.push(url); return new Response(JSON.stringify({ choices: [{ message: { content: 'ok' } }] })); }) as any);
+  await m.read({ prompt: 'a' }); await m.write({ prompt: 'b' });
+  ok('the reader and writer call their own services', seen[0] === 'https://a.example/v1/chat/completions' && seen[1] === 'https://b.example/v1/chat/completions', seen.join(' '));
 }
 
 console.log(`\n${pass} passed, ${failn} failed`);
