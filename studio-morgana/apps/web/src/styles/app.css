@@ -132,9 +132,11 @@ a { color: inherit; }
 .composer-more-inner { overflow: hidden; }
 .refs { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 0 16px 12px 40px; }
 .refs-hint { font-size: 12px; color: var(--muted); }
-.ref { position: relative; width: 40px; height: 56px; flex: none; }
+.ref { position: relative; width: 40px; height: 56px; flex: none; margin-bottom: 8px; }
 .ref img, .ref-blank { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 6px; background: var(--raised); }
 .ref.busy img { opacity: .5; }
+.ref-role { position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); font: 600 9px/1 var(--sans, inherit); letter-spacing: .04em; text-transform: uppercase; padding: 3px 6px; border-radius: 999px; border: 1px solid var(--line, rgba(128,128,128,.35)); background: var(--bg); color: var(--ink); cursor: pointer; }
+.ref-role:disabled { cursor: default; color: var(--muted); }
 .ref-x { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; border: 0; display: flex; align-items: center; justify-content: center; background: var(--ink); color: var(--bg); padding: 0; }
 .tabs { display: flex; gap: 28px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--pad)); padding: 0 var(--pad); }
 .tabs::-webkit-scrollbar { display: none; }

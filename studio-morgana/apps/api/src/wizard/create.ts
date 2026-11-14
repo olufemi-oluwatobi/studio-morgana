@@ -11,6 +11,7 @@ export interface Brief {
   prompt: string;
   refs: string[];                                   // sources of pieces to take the style from
   images: Img[];                                    // the person's uploads, which the piece may print (by name)
+  looksLike: Img[];                                 // pictures to take the style from: finished pieces and loose inspiration (never printed)
 }
 export interface Plan {
   kind: 'canvas' | 'card' | 'stage' | 'video';
@@ -41,18 +42,22 @@ export function planWizard(models: Models, fonts: string[]) {
   w.addComputeStep({
     id: 'look',
     handler: async ({ state, setState }) => {
-      const b: Brief = state.brief;
-      if (!b.images.length) return w.signal.skip;
+      const b: Brief = { ...state.brief, looksLike: state.brief.looksLike ?? [] };
+      const all = [...b.images, ...b.looksLike];
+      if (!all.length) return w.signal.skip;
       const t0 = Date.now();
       const looks = await models.read({
         prompt: [
           `A designer was given these images for this brief: "${b.prompt}".`,
-          `The images, in order: ${b.images.map((i) => '@' + i.name).join(', ')}.`,
-          'For each image say, in two or three lines: what it shows, its main colours as hex, its light and mood, where the subject sits (so text can avoid it), and how it could be used in the piece.',
-        ].join('\n'),
-        images: b.images, maxTokens: 900,
+          b.images.length ? `Images the piece will print, in order: ${b.images.map((i) => '@' + i.name).join(', ')}.` : '',
+          b.looksLike.length ? `Style references (the piece must not print them, only match their look), in order: ${b.looksLike.map((i) => i.name).join(', ')}.` : '',
+          'The images follow in that order: printed images first, then style references.',
+          'For each printed image say, in two or three lines: what it shows, its main colours as hex, its light and mood, where the subject sits (so text can avoid it), and how it could be used in the piece.',
+          'For each style reference say, in two or three lines: its layout and composition, type (weight, case, size against the page), colours as hex, materials and finish, and the mood, as instructions a designer could follow.',
+        ].filter(Boolean).join('\n'),
+        images: all, maxTokens: 1200,
       });
-      setState((s: any) => ({ ...s, looks, trail: stamp(s, 'look', 'reader', t0, `looked at ${b.images.length} image${b.images.length > 1 ? 's' : ''}`) }));
+      setState((s: any) => ({ ...s, looks, trail: stamp(s, 'look', 'reader', t0, `looked at ${all.length} image${all.length > 1 ? 's' : ''}`) }));
       return w.signal.skip;
     },
   });
@@ -67,7 +72,7 @@ export function planWizard(models: Models, fonts: string[]) {
     ].join('\n\n'),
     context: (s) => ({
       prompt: s.brief.prompt,
-      looks: s.looks ? 'What the images show:\n' + s.looks : '',
+      looks: s.looks ? 'What the images show (style references are to be matched, not printed):\n' + s.looks : '',
       refs: s.brief.refs.length ? 'Reference pieces to match in style (godtongue sources, shortened):\n' + s.brief.refs.map((r: string) => r.slice(0, 1500)).join('\n---\n') : '',
     }),
     handler: ({ json, setState }) => {

@@ -5,7 +5,8 @@ import type { App, Env, Who } from './env';
 import { spend } from './auth';
 import { HTTPException } from 'hono/http-exception';
 import { log } from './wizard/common';
-import { editFor, makeOption, planFor, repairFor, reviewFor, type Diagnostic, type FileRef, type PartBrief } from './ai';
+import { editFor, makeOption, pictureOf, planFor, readFiles, repairFor, reviewFor, type Diagnostic, type FileRef, type PartBrief } from './ai';
+import type { Img } from './wizard/models';
 import { fail, id, now, sha256hex, str, titleOf } from './util';
 import { isPieceType } from './types';
 import { refreshIfDue } from './jobs';
@@ -136,15 +137,19 @@ pieces.get('/wall', async (c) => {
 // ── generate: one line of NDJSON per option as soon as it is written, so the wall fills in as they arrive
 pieces.post('/generate', async (c) => {
   const who = c.get('who');
-  const body = await json<{ prompt?: string; refs?: string[]; uploads?: string[]; n?: number; projectId?: string }>(c);
+  const body = await json<{ prompt?: string; refs?: string[]; uploads?: string[]; inspiration?: string[]; n?: number; projectId?: string }>(c);
   const prompt = str(body.prompt, 'prompt', 2000);
   const n = Math.min(4, Math.max(1, Number(body.n) || 4));
   await spend(c.env, who, 'generate', n);
   const refIds = (Array.isArray(body.refs) ? body.refs : []).filter((x) => typeof x === 'string').slice(0, 4);
-  const refs: string[] = [];
+  const refs: string[] = [], looksLike: Img[] = [];
   for (const rid of refIds) {
-    const v = await c.env.DB.prepare("SELECT v.source FROM pieces p JOIN versions v ON v.id = p.version_id WHERE p.id = ? AND p.deleted = 0 AND (p.owner = ? OR p.visibility = 'public')").bind(rid, who.owner).first<{ source: string }>();
-    if (v) refs.push(v.source);
+    const v = await c.env.DB.prepare("SELECT v.id AS vid, v.source FROM pieces p JOIN versions v ON v.id = p.version_id WHERE p.id = ? AND p.deleted = 0 AND (p.owner = ? OR p.visibility = 'public')").bind(rid, who.owner).first<{ vid: string; source: string }>();
+    if (!v) continue;
+    refs.push(v.source);
+    // the reader sees the piece as it looks, not only its code
+    const pic = await pictureOf(c.env, v.vid).catch(() => null);
+    if (pic) looksLike.push({ ...pic, name: `reference piece ${refs.length}` });
   }
   // made from a project's wall: the new pieces are pinned to it
   const project = typeof body.projectId === 'string'
@@ -156,6 +161,14 @@ pieces.post('/generate', async (c) => {
     const u = await c.env.DB.prepare('SELECT key, name, type, bytes FROM uploads WHERE key = ? AND owner = ?').bind(k, who.owner).first<{ key: string; name: string; type: string; bytes: number }>();
     if (u) uploads.push(u);
   }
+  // loose inspiration: images to match in style, never printed and never attached to the piece
+  const inspoKeys = (Array.isArray(body.inspiration) ? body.inspiration : []).filter((x) => typeof x === 'string').slice(0, 4);
+  const inspo: FileRef[] = [];
+  for (const k of inspoKeys) {
+    const u = await c.env.DB.prepare('SELECT key, name, type FROM uploads WHERE key = ? AND owner = ?').bind(k, who.owner).first<FileRef>();
+    if (u) inspo.push(u);
+  }
+  if (inspo.length) (await readFiles(c.env, inspo)).images.forEach((im, i) => looksLike.push({ ...im, name: `style image ${i + 1}` }));
   const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
   const w = writable.getWriter(), enc = new TextEncoder();
   const send = (o: unknown) => w.write(enc.encode(JSON.stringify(o) + '\n'));
@@ -163,7 +176,7 @@ pieces.post('/generate', async (c) => {
   const run = async () => {
     await send({ type: 'start', n });
     // one plan for all the options (the reader looks at the images and picks the manual's chapters), then one write each
-    const planned = await planFor(env, { prompt, refs, files: uploads.map((u) => ({ name: u.name, key: u.key, type: u.type })) }).catch((e) => { console.error(e); return null; });
+    const planned = await planFor(env, { prompt, refs, files: uploads.map((u) => ({ name: u.name, key: u.key, type: u.type })), looksLike }).catch((e) => { console.error(e); return null; });
     if (planned) log('plan', { n, kind: planned.planned.plan.kind, chapters: planned.planned.chapters.map((c) => c.id), trail: planned.planned.trail });
     await Promise.all(Array.from({ length: n }, async (_, i) => {
       try {

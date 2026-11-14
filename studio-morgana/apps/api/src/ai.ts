@@ -44,7 +44,7 @@ export async function readFiles(env: Env, refs: FileRef[]): Promise<{ images: Im
   }));
   return { images: images.sort((a, b) => a.name!.localeCompare(b.name!)), bytes };
 }
-async function pictureOf(env: Env, versionId: string): Promise<Img | null> {
+export async function pictureOf(env: Env, versionId: string): Promise<Img | null> {
   for (const name of ['poster-1200', 'poster-480']) {
     const o = await env.DB.prepare('SELECT key, type FROM outputs WHERE version_id = ? AND name = ?').bind(versionId, name).first<{ key: string; type: string }>();
     const obj = o && (await env.BUCKET.get(o.key));
@@ -55,10 +55,10 @@ async function pictureOf(env: Env, versionId: string): Promise<Img | null> {
 
 // ── making pieces: one plan, then one write per option ─────────────────────────────────────────────────────────────
 export interface Made { source: string; ok: boolean; trail: Step[] }
-export async function planFor(env: Env, o: { prompt: string; refs: string[]; files: FileRef[] }): Promise<{ planned: Planned; brief: Brief; bytes: Record<string, Uint8Array> } | null> {
+export async function planFor(env: Env, o: { prompt: string; refs: string[]; files: FileRef[]; looksLike?: Img[] }): Promise<{ planned: Planned; brief: Brief; bytes: Record<string, Uint8Array> } | null> {
   if (aiMode(env) === 'local') return null;
   const { images, bytes } = await readFiles(env, o.files);
-  const brief: Brief = { prompt: o.prompt, refs: o.refs, images };
+  const brief: Brief = { prompt: o.prompt, refs: o.refs, images, looksLike: o.looksLike ?? [] };
   try { return { planned: await planBrief(models(env), brief, [...FACTS.fonts]), brief, bytes }; }
   catch (e) {
     // no plan is not the end: the writer works from the brief alone

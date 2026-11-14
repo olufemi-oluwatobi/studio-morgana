@@ -1,7 +1,7 @@
 // The composer: a bar that opens into a panel. Type, add references (drop a piece, upload or paste an image), Make.
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useSyncExternalStore, type ClipboardEvent, type DragEvent, type KeyboardEvent } from 'react';
 import { useStore } from '../lib/store';
-import { addPieceRef, addUpload, composerStore, generate, removeRef, wallStore, type Ref } from '../lib/wall';
+import { addPieceRef, addUpload, composerStore, generate, removeRef, toggleRole, wallStore, type Ref } from '../lib/wall';
 import { ArrowUp, Plus, X } from './Icons';
 
 // phones get a shorter placeholder, so it never wraps
@@ -14,6 +14,8 @@ const RefChip = memo(function RefChip({ r }: { r: Ref }) {
   return (
     <span className={'ref' + (r.kind === 'upload' && r.uploading ? ' busy' : '')} title={label}>
       {r.thumb ? <img src={r.thumb} alt="" decoding="async" /> : <span className="ref-blank" />}
+      <button className="ref-role" title={r.kind === 'piece' ? 'The look of this piece is matched' : r.role === 'use' ? 'Put this image in the piece. Click to only match its look.' : 'Only its look is matched. Click to put the image in the piece.'}
+        disabled={r.kind === 'piece'} onClick={() => toggleRole(r)}>{r.kind === 'piece' || r.role === 'style' ? 'Style' : 'Use'}</button>
       <button className="ref-x" aria-label={`Remove reference ${label}`} onClick={() => removeRef(r)}><X size={10} /></button>
     </span>
   );

@@ -90,7 +90,7 @@ export async function loadWall(opts: { tab?: Tab; scope?: Scope; more?: boolean 
 }
 
 // ── composer
-export type Ref = { kind: 'piece'; id: string; title: string; thumb: string | null } | { kind: 'upload'; key: string; name: string; thumb: string; uploading?: boolean };
+export type Ref = { kind: 'piece'; id: string; title: string; thumb: string | null } | { kind: 'upload'; key: string; name: string; thumb: string; uploading?: boolean; role: 'use' | 'style' };
 interface ComposerState { open: boolean; text: string; refs: Ref[]; busy: boolean }
 export const composerStore = createStore<ComposerState>({ open: false, text: '', refs: [], busy: false });
 const refKey = (r: Ref) => (r.kind === 'piece' ? 'p:' + r.id : 'u:' + r.key);
@@ -102,14 +102,18 @@ export function addPieceRef(t: { id: string; title: string; thumb: string | null
 export function removeRef(r: Ref) {
   composerStore.set((c) => ({ ...c, refs: c.refs.filter((x) => refKey(x) !== refKey(r)) }));
 }
+// an uploaded image is either put in the piece ("use") or only matched in look ("style")
+export function toggleRole(r: Ref) {
+  composerStore.set((c) => ({ ...c, refs: c.refs.map((x) => (x.kind === 'upload' && r.kind === 'upload' && x.key === r.key ? { ...x, role: x.role === 'use' ? 'style' : 'use' } : x)) }));
+}
 export async function addUpload(file: File) {
   if (!/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type)) { toast('Use a PNG, JPEG, WebP or SVG image'); return; }
   if (composerStore.get().refs.length >= 4) { toast('Up to four references'); return; }
   const local = URL.createObjectURL(file), tmp = 'tmp-' + Math.random().toString(36).slice(2);
-  composerStore.set((c) => ({ ...c, open: true, refs: [...c.refs, { kind: 'upload', key: tmp, name: file.name, thumb: local, uploading: true }] }));
+  composerStore.set((c) => ({ ...c, open: true, refs: [...c.refs, { kind: 'upload', key: tmp, name: file.name, thumb: local, uploading: true, role: 'use' }] }));
   try {
     const u = await api<{ key: string; name: string; url: string }>('/uploads', { method: 'POST', raw: file, headers: { 'content-type': file.type, 'x-file-name': encodeURIComponent(file.name) } });
-    composerStore.set((c) => ({ ...c, refs: c.refs.map((r) => (r.kind === 'upload' && r.key === tmp ? { kind: 'upload', key: u.key, name: u.name, thumb: u.url } : r)) }));
+    composerStore.set((c) => ({ ...c, refs: c.refs.map((r) => (r.kind === 'upload' && r.key === tmp ? { ...r, key: u.key, name: u.name, thumb: u.url, uploading: false } : r)) }));
   } catch (e) {
     toast((e as Error).message);
     composerStore.set((c) => ({ ...c, refs: c.refs.filter((r) => !(r.kind === 'upload' && r.key === tmp)) }));
@@ -170,7 +174,8 @@ export async function generate() {
     await streamLines('/generate', {
       prompt, n, projectId,
       refs: c.refs.filter((r) => r.kind === 'piece').map((r) => (r as { id: string }).id),
-      uploads: c.refs.filter((r) => r.kind === 'upload').map((r) => (r as { key: string }).key),
+      uploads: c.refs.filter((r) => r.kind === 'upload' && r.role === 'use').map((r) => (r as { key: string }).key),
+      inspiration: c.refs.filter((r) => r.kind === 'upload' && r.role === 'style').map((r) => (r as { key: string }).key),
     }, (line) => {
       if (line.type === 'plan' && line.plan?.title) {
         // the reader has planned the piece: the drafts take its name while the writer works

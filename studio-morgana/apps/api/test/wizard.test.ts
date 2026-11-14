@@ -40,13 +40,13 @@ const plan = { kind: 'canvas', title: 'sale', size: [1080, 1350], flat: true, mo
     [[/plan a piece/i, JSON.stringify(plan)], [/Pick the chapters/i, '{"chapters": ["verb:write", "words", "example:a-launch-poster-duotone-photo", "not-a-chapter"]}']],
     [[/does not compile/, gt(GOOD)], [/Write the piece/, gt(GOOD.replace('glow in', 'glowy in').replace('Make the sub white.', 'Make the sub sparkly.'))]],
   );
-  const planned = await planBrief(m, { prompt: 'a weekend sale poster', refs: [], images: [] }, ['Lilita One', 'Jost']);
+  const planned = await planBrief(m, { prompt: 'a weekend sale poster', refs: [], images: [], looksLike: [] }, ['Lilita One', 'Jost']);
   ok('the reader plans the piece', planned.plan.kind === 'canvas' && planned.plan.palette.length === 2 && planned.plan.elements[0].name === 'headline');
   const ids = planned.chapters.map((c) => c.id);
   ok('the reader picks chapters; unknown ids are dropped; what every canvas needs is added', ids.includes('verb:write') && ids.includes('layout') && ids.includes('names') && !ids.includes('not-a-chapter'), ids.join(','));
   ok('no look step without images', !m.calls.some((c) => /designer was given these images/.test(c.a.prompt)));
   const sys = MANUAL.filter((c) => c.core).length;
-  const w = await writeOption(m, { brief: { prompt: 'a weekend sale poster', refs: [], images: [] }, planned, files: {}, i: 0, n: 2, rounds: 3 });
+  const w = await writeOption(m, { brief: { prompt: 'a weekend sale poster', refs: [], images: [], looksLike: [] }, planned, files: {}, i: 0, n: 2, rounds: 3 });
   ok('the writer gets the core and the picked chapters, not the whole guide', sys === 2 && m.calls.filter((c) => c.who === 'writer')[0].a.system!.length < 30000, String(m.calls.filter((c) => c.who === 'writer')[0].a.system!.length));
   ok('the compiler fixes "glowy" itself; the writer fixes "sparkly"; then it compiles', w.ok && w.rounds === 1 && /glow in/.test(w.source) && !/sparkly/.test(w.source), JSON.stringify(w.trail));
   const fixPrompt = m.calls.find((c) => /does not compile/.test(c.a.prompt))!.a.prompt;
@@ -58,7 +58,7 @@ const plan = { kind: 'canvas', title: 'sale', size: [1080, 1350], flat: true, mo
 {
   const bad = GOOD.replace('Make the sub white.', 'Make the sub sparkly.');
   const m = scripted([], [[/./, gt(bad)]]);
-  const w = await writeOption(m, { brief: { prompt: 'x', refs: [], images: [] }, planned: { plan: plan as any, chapters: [], looks: '', trail: [] }, files: {}, i: 0, n: 1, rounds: 2 });
+  const w = await writeOption(m, { brief: { prompt: 'x', refs: [], images: [], looksLike: [] }, planned: { plan: plan as any, chapters: [], looks: '', trail: [] }, files: {}, i: 0, n: 1, rounds: 2 });
   ok('the loop stops after its rounds and says it did not compile', !w.ok && w.rounds === 2 && m.calls.length === 3, `${w.rounds} rounds, ${m.calls.length} calls`);
 }
 
@@ -72,6 +72,14 @@ const plan = { kind: 'canvas', title: 'sale', size: [1080, 1350], flat: true, mo
   const p = await planBrief(m, { prompt: 'a travel post', refs: [], images: [img] }, []);
   ok('the reader sees the images', m.calls[0].a.images?.length === 1 && /blue sea/.test(p.looks));
   ok('the plan keeps only images it was given', p.plan.images.length === 1 && p.plan.images[0].file === 'beach.jpg');
+}
+
+// 3b. style references are seen too, and are marked as not to be printed
+{
+  const sty = { name: 'reference piece 1', mime: 'image/png', bytes: new Uint8Array([137, 80]) };
+  const m = scripted([[/designer was given these images/, 'reference piece 1: big condensed type, #d33.'], [/plan a piece/i, JSON.stringify(plan)], [/Pick the chapters/, '{"chapters":[]}']], []);
+  const p = await planBrief(m, { prompt: 'like this', refs: [], images: [], looksLike: [sty] }, []);
+  ok('the reader sees a style reference and is told not to print it', m.calls[0].a.images?.length === 1 && /must not print/.test(m.calls[0].a.prompt) && /condensed/.test(p.looks));
 }
 
 // 4. patches
