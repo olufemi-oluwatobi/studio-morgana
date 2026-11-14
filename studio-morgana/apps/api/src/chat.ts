@@ -81,53 +81,81 @@ chat.post('/', async (c) => {
   const messages: any[] = [{ role: 'system', content: SYSTEM }, ...turns.map((m) => ({ role: m.role, content: m.content.slice(0, 20000) }))];
   if (image) { const last = messages[messages.length - 1]; messages[messages.length - 1] = { role: 'user', content: [{ type: 'text', text: last.content }, { type: 'image_url', image_url: { url: image } }] }; }
 
-  const t0 = Date.now(), steps: Step[] = [];
-  if (workers) {
-    // Workers AI: plain chat (no tools, no images)
+  // the answer streams back as lines of JSON: {t: text so far}, {tool: a finished tool call}, then {done} or {error}
+  const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
+  const w = writable.getWriter(), enc = new TextEncoder();
+  const send = (o: unknown) => w.write(enc.encode(JSON.stringify(o) + '\n')).catch(() => { /* the client went away */ });
+  const t0 = Date.now();
+  const run = async () => {
+    const steps: Step[] = [], usage = { prompt: 0, completion: 0 };
+    let useTools = true, noTools = false;
     try {
-      const out: any = await within((c.env.AI as any).run(model, { messages: messages.map((m) => ({ role: m.role, content: typeof m.content === 'string' ? m.content : m.content[0]?.text ?? '' })), max_tokens: 2000 }), 90_000, model);
-      const text = out?.response ?? out?.choices?.[0]?.message?.content ?? '';
-      log('chat', { model, ms: Date.now() - t0, ok: !!text });
-      return c.json({ ok: !!text, text, steps, ms: Date.now() - t0, model, noTools: true, error: text ? undefined : 'the model sent an empty answer' });
-    } catch (e) { return c.json({ ok: false, status: 0, ms: Date.now() - t0, steps, model, error: (e as Error).message }); }
-  }
-  let useTools = true, noTools = false, usage = { prompt: 0, completion: 0 };
-  const post = async (): Promise<{ status: number; j: any; raw: string }> => {
-    const ctl = new AbortController();
-    const r = await within(fetch(base + '/chat/completions', { method: 'POST', signal: ctl.signal, headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` }, body: JSON.stringify({ model, messages, max_tokens: 4000, temperature: 0.6, ...(useTools ? { tools: TOOLS } : {}) }) }), 90_000, model).catch((e) => { ctl.abort(); throw e; });
-    const raw = await within(r.text(), 90_000, model);
-    let j: any = null; try { j = JSON.parse(raw); } catch { /* not JSON */ }
-    return { status: r.status, j, raw };
-  };
-  try {
-    for (let round = 0; round < 8; round++) {
-      let r = await post();
-      // a model that does not take tools still chats
-      if (r.status >= 400 && useTools && round === 0 && /tool|function/i.test(r.raw)) { useTools = false; noTools = true; r = await post(); }
-      if (r.status >= 400 || !r.j?.choices?.[0]) {
-        log('chat', { model, ms: Date.now() - t0, status: r.status, ok: false });
-        return c.json({ ok: false, status: r.status, ms: Date.now() - t0, steps, model, error: (r.j?.error?.message || r.j?.error || r.raw || 'no answer').toString().slice(0, 600) });
+      if (workers) {
+        // Workers AI: the whole answer at once (no tools, no images)
+        const out: any = await within((c.env.AI as any).run(model, { messages: messages.map((m) => ({ role: m.role, content: typeof m.content === 'string' ? m.content : m.content[0]?.text ?? '' })), max_tokens: 2000 }), 90_000, model);
+        const text = out?.response ?? out?.choices?.[0]?.message?.content ?? '';
+        if (!text) throw new Error('the model sent an empty answer');
+        await send({ t: text }); await send({ done: { ms: Date.now() - t0, model, noTools: true } });
+        return;
       }
-      usage.prompt += r.j.usage?.prompt_tokens ?? 0; usage.completion += r.j.usage?.completion_tokens ?? 0;
-      const msg = r.j.choices[0].message ?? {};
-      const calls: any[] = Array.isArray(msg.tool_calls) ? msg.tool_calls : [];
-      if (!calls.length) {
-        const text = msg.content ?? r.j.choices[0].text ?? '';
-        log('chat', { model, ms: Date.now() - t0, ok: !!text, tools: steps.map((s) => s.tool), image: !!image });
-        return c.json({ ok: !!text, text, steps, ms: Date.now() - t0, usage, model, noTools, error: text ? undefined : 'the model sent an empty answer' });
+      for (let round = 0; round < 8; round++) {
+        const ctl = new AbortController();
+        const post = () => within(fetch(base + '/chat/completions', { method: 'POST', signal: ctl.signal, headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` }, body: JSON.stringify({ model, messages, stream: true, max_tokens: 4000, temperature: 0.6, ...(useTools ? { tools: TOOLS } : {}) }) }), 60_000, model);
+        let r = await post();
+        // a model that does not take tools still chats
+        if (r.status >= 400 && useTools && round === 0 && /tool|function/i.test(await r.clone().text())) { useTools = false; noTools = true; r = await post(); }
+        if (!r.ok || !r.body) {
+          const raw = await r.text().catch(() => ''); let j: any = null; try { j = JSON.parse(raw); } catch { /* not JSON */ }
+          throw Object.assign(new Error((j?.error?.message || j?.error || raw || `HTTP ${r.status}`).toString().slice(0, 600)), { status: r.status });
+        }
+        // read the stream: text arrives as deltas, tool calls arrive in pieces by index
+        let text = '', done = false, buf = '';
+        const calls: { id: string; name: string; args: string }[] = [];
+        const reader = r.body.getReader(), dec = new TextDecoder();
+        while (!done) {
+          const { done: end, value } = await within(reader.read(), 60_000, model);   // quiet for a minute: stuck
+          if (end) break;
+          buf += dec.decode(value, { stream: true });
+          let nl: number;
+          while ((nl = buf.indexOf('\n')) >= 0) {
+            const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1);
+            if (!line.startsWith('data:')) continue;
+            const data = line.slice(5).trim();
+            if (data === '[DONE]') { done = true; break; }
+            let j: any; try { j = JSON.parse(data); } catch { continue; }
+            if (j.usage) { usage.prompt += j.usage.prompt_tokens ?? 0; usage.completion += j.usage.completion_tokens ?? 0; }
+            const d = j.choices?.[0]?.delta ?? j.choices?.[0]?.message;
+            if (d?.content) { text += d.content; await send({ t: d.content }); }
+            for (const tc of d?.tool_calls ?? []) {
+              const k = tc.index ?? 0; calls[k] ??= { id: '', name: '', args: '' };
+              if (tc.id) calls[k].id = tc.id; if (tc.function?.name) calls[k].name += tc.function.name; if (tc.function?.arguments) calls[k].args += tc.function.arguments;
+            }
+          }
+        }
+        ctl.abort();
+        const used = calls.filter(Boolean);
+        if (!used.length) {
+          if (!text && !steps.length) throw new Error('the model sent an empty answer');
+          log('chat', { model, ms: Date.now() - t0, ok: true, tools: steps.map((x) => x.tool) });
+          await send({ done: { ms: Date.now() - t0, usage, model, noTools } });
+          return;
+        }
+        messages.push({ role: 'assistant', content: text || null, tool_calls: used.map((u, n) => ({ id: u.id || `call_${round}_${n}`, type: 'function', function: { name: u.name, arguments: u.args || '{}' } })) });
+        for (const [n, u] of used.entries()) {
+          const t1 = Date.now();
+          let args: any = {}; try { args = JSON.parse(u.args || '{}'); } catch { /* the model sent broken arguments */ }
+          const result = callTool(u.name, args);
+          const step: Step = { tool: u.name, args, result: result.slice(0, 6000), ms: Date.now() - t1 };
+          steps.push(step); await send({ tool: step });
+          messages.push({ role: 'tool', tool_call_id: u.id || `call_${round}_${n}`, content: result });
+        }
       }
-      messages.push({ role: 'assistant', content: msg.content ?? null, tool_calls: calls });
-      for (const call of calls) {
-        const t1 = Date.now();
-        let args: any = {}; try { args = JSON.parse(call.function?.arguments || '{}'); } catch { /* the model sent broken arguments */ }
-        const result = callTool(String(call.function?.name), args);
-        steps.push({ tool: String(call.function?.name), args, result: result.slice(0, 6000), ms: Date.now() - t1 });
-        messages.push({ role: 'tool', tool_call_id: call.id, content: result });
-      }
+      throw new Error('the model kept calling tools and never answered');
+    } catch (e) {
+      log('chat', { model, ms: Date.now() - t0, ok: false, error: (e as Error).message });
+      await send({ error: (e as Error).message, status: (e as any).status ?? 0, ms: Date.now() - t0, model });
     }
-    return c.json({ ok: false, status: 0, ms: Date.now() - t0, steps, model, error: 'the model kept calling tools and never answered' });
-  } catch (e) {
-    log('chat', { model, ms: Date.now() - t0, ok: false, error: (e as Error).message });
-    return c.json({ ok: false, status: 0, ms: Date.now() - t0, steps, model, error: (e as Error).message });
-  }
+  };
+  c.executionCtx.waitUntil(run().finally(() => w.close().catch(() => { })));
+  return new Response(readable, { headers: { 'content-type': 'application/x-ndjson; charset=utf-8', 'cache-control': 'no-store' } });
 });

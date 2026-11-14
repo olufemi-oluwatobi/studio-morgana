@@ -1,13 +1,14 @@
 // A plain chat with the app's own model service: pick a model, add an image, watch tool calls, download the chat.
 import { useEffect, useRef, useState } from 'react';
-import { api, ApiError } from '../lib/api';
+import { api, ApiError, streamLines } from '../lib/api';
 import { toast } from '../lib/session';
 import { ArrowUp, Download, Plus, X } from '../components/Icons';
 
 interface ModelRow { id: string; vision: boolean | null; free: boolean | null }
 interface Step { tool: string; args: unknown; result: string; ms: number }
-interface Turn { role: 'user' | 'assistant'; content: string; image?: string; steps?: Step[]; meta?: string; error?: boolean; model?: string }
-interface ChatOut { ok: boolean; text?: string; steps: Step[]; ms: number; usage?: { prompt: number; completion: number }; error?: string; status?: number; noTools?: boolean; model: string }
+type Part = { t: string } | { tool: Step };
+interface Turn { role: 'user' | 'assistant'; content: string; image?: string; parts?: Part[]; meta?: string; error?: boolean; streaming?: boolean; model?: string }
+const textOf = (parts: Part[]) => parts.map((p) => ('t' in p ? p.t : '')).join('');
 
 const load = (k: string) => { try { return localStorage.getItem('chat-' + k) ?? ''; } catch { return ''; } };
 const save = (k: string, v: string) => { try { localStorage.setItem('chat-' + k, v); } catch { /* private window */ } };
@@ -61,28 +62,37 @@ export default function Chat() {
   useEffect(() => { const t = ta.current; if (!t) return; t.style.height = '0px'; t.style.height = Math.min(t.scrollHeight, 180) + 'px'; }, [text]);
 
 
+  const stop = useRef<AbortController | null>(null);
+  const patchLast = (f: (t: Turn) => Turn) => setTurns((x) => x.map((t, i) => (i === x.length - 1 ? f(t) : t)));
+
   async function send() {
     const t = text.trim();
     if ((!t && !image) || busy) return;
     if (!model) { toast('Choose a model first'); return; }
-    const next: Turn[] = [...turns, { role: 'user', content: t || 'What is in this image?', image: image ?? undefined }];
-    setTurns(next); setText(''); const img = image; setImage(null); setBusy(true);
+    const sent: Turn[] = [...turns, { role: 'user', content: t || 'What is in this image?', image: image ?? undefined }];
+    setTurns([...sent, { role: 'assistant', content: '', parts: [], streaming: true, model }]);
+    setText(''); const img = image; setImage(null); setBusy(true);
+    const ctl = new AbortController(); stop.current = ctl;
+    const history = sent.filter((m) => !m.error).map(({ role, content }) => ({ role, content }));
     try {
-      const r = await api<ChatOut>('/c-35d0908c0dc5', { body: { model, messages: next.filter((m) => !m.error).map(({ role, content }) => ({ role, content })), image: img ?? undefined } });
-      setTurns((x) => [...x, r.ok
-        ? { role: 'assistant', content: r.text || '', steps: r.steps, model: r.model, meta: `${secs(r.ms)}${r.usage?.prompt || r.usage?.completion ? ` · ${r.usage.prompt}→${r.usage.completion} tokens` : ''}${r.noTools ? ' · this model does not take tools' : ''}` }
-        : { role: 'assistant', content: r.error || 'No answer', steps: r.steps, error: true, model: r.model, meta: `${secs(r.ms)}${r.status ? ' · HTTP ' + r.status : ''}` }]);
+      await streamLines('/c-35d0908c0dc5', { model, messages: history, image: img ?? undefined }, (l) => {
+        if (typeof l.t === 'string') patchLast((m) => { const ps = [...(m.parts ?? [])]; const last = ps[ps.length - 1]; if (last && 't' in last) ps[ps.length - 1] = { t: last.t + l.t }; else ps.push({ t: l.t }); return { ...m, parts: ps, content: textOf(ps) }; });
+        else if (l.tool) patchLast((m) => { const ps = [...(m.parts ?? []), { tool: l.tool as Step }]; return { ...m, parts: ps }; });
+        else if (l.done) patchLast((m) => ({ ...m, streaming: false, meta: `${secs(l.done.ms)}${l.done.usage?.prompt || l.done.usage?.completion ? ` · ${l.done.usage.prompt}→${l.done.usage.completion} tokens` : ''}${l.done.noTools ? ' · this model does not take tools' : ''}` }));
+        else if (l.error) patchLast((m) => ({ ...m, streaming: false, error: true, meta: `${secs(l.ms ?? 0)}${l.status ? ' · HTTP ' + l.status : ''}`, parts: [...(m.parts ?? []), { t: (m.content ? '\n\n' : '') + l.error }], content: m.content }));
+      }, ctl.signal, 60_000);
     } catch (e) {
-      setTurns((x) => [...x, { role: 'assistant', content: e instanceof ApiError ? e.message : 'The request failed', error: true, model }]);
+      const stopped = ctl.signal.aborted && !(e instanceof ApiError);
+      patchLast((m) => ({ ...m, streaming: false, error: !stopped, meta: stopped ? 'stopped' : m.meta, parts: stopped ? m.parts : [...(m.parts ?? []), { t: (m.content ? '\n\n' : '') + (e instanceof ApiError ? e.message : 'The request failed') }] }));
     }
-    setBusy(false);
+    patchLast((m) => (m.streaming ? { ...m, streaming: false } : m));
+    stop.current = null; setBusy(false);
   }
 
   function download() {
     const md = [`# Chat`, `Saved ${new Date().toISOString()}`, '', ...turns.flatMap((t) => [
       t.role === 'user' ? `## You${t.image ? ' (with an image)' : ''}` : `## ${t.model ?? 'Assistant'}${t.error ? ' (error)' : ''}${t.meta ? ' · ' + t.meta : ''}`,
-      ...(t.steps ?? []).map((s) => `<tool ${s.tool} ${secs(s.ms)}>\ninput: ${JSON.stringify(s.args)}\nresult: ${s.result}\n</tool>`),
-      t.content, '']),
+      ...(t.role === 'user' ? [t.content] : (t.parts ?? []).map((p) => ('t' in p ? p.t : `<tool ${p.tool.tool} ${secs(p.tool.ms)}>\ninput: ${JSON.stringify(p.tool.args)}\nresult: ${p.tool.result}\n</tool>`))), '']),
     ].join('\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([md], { type: 'text/markdown' }));
@@ -105,12 +115,12 @@ export default function Chat() {
           <div key={i} className="chat-user">{t.image && <img src={t.image} alt="Attached" />}<p>{t.content}</p></div>
         ) : (
           <div key={i} className={'chat-ai' + (t.error ? ' err' : '')}>
-            {t.steps?.map((s, k) => <Tool key={k} s={s} />)}
-            <div className="chat-text">{t.content}</div>
+            {t.parts?.map((p, k) => ('t' in p ? <div key={k} className="chat-text">{p.t}</div> : <Tool key={k} s={p.tool} />))}
+            {t.streaming && !t.parts?.some((p) => 't' in p ? p.t : false) && !t.parts?.length && <span className="chat-dots" aria-label="Waiting for the model"><i /><i /><i /></span>}
+            {t.streaming && !!t.parts?.length && <span className="chat-caret" aria-hidden="true" />}
             {t.meta && <small>{t.meta}</small>}
           </div>
         ))}
-        {busy && <div className="chat-ai"><span className="chat-dots" aria-label="Waiting for the model"><i /><i /><i /></span></div>}
         <div ref={end} />
       </div>
       <div className="chat-composer">
@@ -118,7 +128,9 @@ export default function Chat() {
         <div className="chat-box">
           <button className="chat-round" aria-label="Add an image" onClick={() => file.current?.click()}><Plus size={18} /></button>
           <textarea ref={ta} rows={1} value={text} placeholder="Message" onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(); } }} />
-          <button className="chat-round go" aria-label="Send" onClick={() => void send()} disabled={busy || (!text.trim() && !image)}><ArrowUp size={18} /></button>
+          {busy
+            ? <button className="chat-round go" aria-label="Stop" onClick={() => stop.current?.abort()}><span className="chat-stop" /></button>
+            : <button className="chat-round go" aria-label="Send" onClick={() => void send()} disabled={!text.trim() && !image}><ArrowUp size={18} /></button>}
         </div>
         <input ref={file} type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (!f) return; try { setImage(await shrink(f)); } catch { toast('That image could not be read'); } }} />
       </div>
