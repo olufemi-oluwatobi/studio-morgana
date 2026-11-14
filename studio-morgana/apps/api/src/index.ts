@@ -25,6 +25,13 @@ app.use('/api/*', async (c, next) => {
   }
   await next();
 });
+// the browser reports a crash here, so it shows up in the logs next to the Worker's own
+app.post('/api/client-error', async (c) => {
+  const b = await c.req.json().catch(() => ({})) as Record<string, unknown>;
+  const cut = (v: unknown, n: number) => String(v ?? '').slice(0, n);
+  console.error(JSON.stringify({ event: 'client-error', message: cut(b.message, 500), where: cut(b.where, 20), path: cut(b.path, 200), stack: cut(b.stack, 1500), ua: cut(c.req.header('user-agent'), 160) }));
+  return c.body(null, 204);
+});
 app.use('/api/*', identify);
 app.route('/api', account);
 app.route('/api', pieces);
