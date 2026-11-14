@@ -30,6 +30,10 @@
   "vars": {
     "AI_MODE": "live",
     "AI_MODEL": "@cf/openai/gpt-oss-120b",
+    // the lab (/lab, admins only): "on" opens it, anything else closes it. It reaches CrowLLM with the LAB_API_KEY secret
+    // and never changes what the app itself uses.
+    "LAB": "on",
+    "LAB_BASE_URL": "https://crowllm.com/v1",
     "APP_URL": "https://www.studiomorgana.xyz",
     "EMAIL_FROM": "Studio Morgana <studio@studiomorgana.xyz>",
     "ANON_DAILY_GENERATIONS": "12",

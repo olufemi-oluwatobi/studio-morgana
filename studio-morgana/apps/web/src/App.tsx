@@ -9,6 +9,7 @@ import Wall from './pages/Wall';
 
 const Editor = lazy(() => import('./pages/Editor'));
 const Auth = lazy(() => import('./pages/Auth'));
+const Lab = lazy(() => import('./pages/Lab'));
 
 export default function App() {
   const route = parse(useLocation());
@@ -27,7 +28,7 @@ export default function App() {
       <Sidebar />
       <div className="main">
         <ErrorBoundary key={route.name === 'editor' ? route.id : route.name}>
-          {route.name === 'wall' ? <Wall scope={route.scope} /> : <Suspense fallback={<div className="page editor-page" aria-busy="true"><div className="art skeleton" style={{ aspectRatio: '592 / 914', maxWidth: 520, margin: '72px auto' }} /></div>}><Editor id={route.id} /></Suspense>}
+          {route.name === 'wall' ? <Wall scope={route.scope} /> : route.name === 'lab' ? <Suspense fallback={null}><Lab /></Suspense> : <Suspense fallback={<div className="page editor-page" aria-busy="true"><div className="art skeleton" style={{ aspectRatio: '592 / 914', maxWidth: 520, margin: '72px auto' }} /></div>}><Editor id={route.id} /></Suspense>}
         </ErrorBoundary>
       </div>
       <DragTray />

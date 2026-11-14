@@ -184,3 +184,14 @@ GET  /files/<key>                             R2, immutable, supports Range
 - In local development, Workers AI needs a Cloudflare account, so `npm run dev` uses the built-in generator;
   `npm -w @morgana/api run dev:ai` uses the real model once you are logged in.
 - Rooms and holo, crystal and pearl finishes are not drawn by the web engine yet, and the model is told not to use them.
+
+## The model lab and CrowLLM
+
+The app's models are set by `AI_PROVIDER` and friends (see `apps/api/src/env.ts`); by default Workers AI. Any OpenAI-compatible service works:
+`AI_PROVIDER=openai`, `AI_BASE_URL=https://crowllm.com/v1`, `READER_MODEL` and `WRITER_MODEL`, and the key as a secret (`wrangler secret put AI_API_KEY`).
+
+`/lab` is an admin-only page for trying models by hand before changing that: a plain chat with a model picked from the service's list, an image button, and the studio's own tools in reach (the manual and the compiler), each call shown. "Download chat" saves the whole thing as Markdown. It is behind the `LAB` variable (`"on"` in `wrangler.jsonc`; any other value hides the page and its API), reaches the service with `LAB_BASE_URL` and the secret `LAB_API_KEY` (falls back to `AI_API_KEY`), and never changes what the app uses.
+
+```
+cd apps/api && npx wrangler secret put LAB_API_KEY
+```

@@ -4,6 +4,7 @@ import type { App } from './env';
 import { adoptVisitorWork, checkPassword, endSession, hashPassword, makeToken, startSession, useToken, validEmail, validPassword } from './auth';
 import { resetMail, sendEmail, verifyMail } from './email';
 import { fail, id, now, str } from './util';
+import { labOn } from './lab';
 
 export const account = new Hono<App>();
 
@@ -11,7 +12,7 @@ account.get('/me', async (c) => {
   const who = c.get('who');
   let user = null;
   if (who.userId) user = await c.env.DB.prepare('SELECT id, email, role, verified FROM users WHERE id = ?').bind(who.userId).first();
-  return c.json({ user, email: !!c.env.RESEND_API_KEY }, 200, { 'cache-control': 'no-store' });
+  return c.json({ user, email: !!c.env.RESEND_API_KEY, features: { lab: labOn(c.env, who) } }, 200, { 'cache-control': 'no-store' });
 });
 
 account.post('/auth/signup', async (c) => {

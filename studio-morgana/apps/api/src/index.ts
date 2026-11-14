@@ -7,6 +7,7 @@ import { identify } from './auth';
 import { account } from './account';
 import { pieces } from './pieces';
 import { projects } from './projects';
+import { lab } from './lab';
 import { admin } from './admin';
 
 const app = new Hono<App>();
@@ -37,6 +38,7 @@ app.route('/api', account);
 app.route('/api', pieces);
 app.route('/api', projects);
 app.route('/api/admin', admin);
+app.route('/api/lab', lab);
 app.all('/api/*', (c) => c.json({ error: 'not found' }, 404));
 
 // files in R2: posters, videos and uploaded images; keys are content- or version-addressed, so they never change
