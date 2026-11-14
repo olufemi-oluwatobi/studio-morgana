@@ -11,12 +11,12 @@ import { log } from './wizard/common';
 export const chat = new Hono<App>();
 
 // the service the app itself uses: AI_PROVIDER, AI_BASE_URL, AI_API_KEY
-const svc = (env: Env) => { const c = roleConfig(env, 'write'); return { workers: c.provider === 'workers-ai', base: c.baseUrl, key: c.apiKey }; };
+const svc = (env: Env) => { const c = roleConfig(env, 'write'); return { workers: c.provider === 'workers-ai', base: c.baseUrl, key: c.apiKey, model: c.model }; };
 
 // what the service offers, with what it says about images and price when it says
 chat.get('/models', async (c) => {
-  const { workers, base, key } = svc(c.env);
-  if (workers) return c.json({ models: [{ id: OSS, vision: false, free: null }, { id: SCOUT, vision: true, free: null }] });
+  const { workers, base, key, model } = svc(c.env);
+  if (workers) return c.json({ models: [{ id: OSS, vision: false, free: null }, { id: SCOUT, vision: true, free: null }], default: OSS });
   if (!base || !key) fail(409, 'the AI service is not set up: set AI_BASE_URL and the AI_API_KEY secret');
   const r = await within(fetch(base + '/models', { headers: { authorization: `Bearer ${key}` } }), 20_000, 'the model list').catch((e) => { fail(502, (e as Error).message); });
   if (!r!.ok) fail(502, `the service answered ${r!.status} to the model list`);
@@ -31,7 +31,7 @@ chat.get('/models', async (c) => {
       free: price !== undefined ? Number(price) === 0 : /:free\b|\bfree\b/.test(String(m.id).toLowerCase()) ? true : null,
     };
   }).sort((a, b) => a.id.localeCompare(b.id));
-  return c.json({ models });
+  return c.json({ models, default: model || null });
 });
 
 // what the model can call: small, harmless tools, only to see tool calls work

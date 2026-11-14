@@ -74,12 +74,19 @@ export const openAiBackend: ProviderFactory = (c, _env, fetcher) => async (a) =>
   const text = a.prompt + (reading ? noteTooBig(a, shown) : '');
   const content = shown.length ? [{ type: 'text', text }, ...shown.map((i) => ({ type: 'image_url', image_url: { url: dataUrl(i) } }))] : text;
   const messages = [...(a.system ? [{ role: 'system', content: a.system }] : []), { role: 'user', content }];
-  const body = JSON.stringify({ model: c.model, messages, max_tokens: a.maxTokens ?? (reading ? 1500 : 6000), temperature: a.temperature ?? (reading ? 0.2 : 0.6) });
-  let last: unknown;
+  const bodyFor = (model: string) => JSON.stringify({ model, messages, max_tokens: a.maxTokens ?? (reading ? 1500 : 6000), temperature: a.temperature ?? (reading ? 0.2 : 0.6) });
+  let body = bodyFor(c.model), matched = false, last: unknown;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const ctl = new AbortController();
       const r = await within(fetcher(c.baseUrl + '/chat/completions', { method: 'POST', signal: ctl.signal, headers: { 'content-type': 'application/json', authorization: `Bearer ${c.apiKey}` }, body }), ms, 'the generator').catch((e) => { ctl.abort(); throw e; });
+      // the service may name the model with a prefix ("deepseek/deepseek-flash"): look it up once and retry with its own id
+      if ((r.status === 400 || r.status === 404) && !matched) {
+        matched = true;
+        const list = await fetcher(c.baseUrl + '/models', { headers: { authorization: `Bearer ${c.apiKey}` } }).then((x) => x.json()).catch(() => null) as any;
+        const id = (list?.data ?? []).map((m: any) => String(m.id)).find((x: string) => x.toLowerCase().split('/').pop() === c.model.toLowerCase());
+        if (id && id !== c.model) { body = bodyFor(id); attempt--; continue; }
+      }
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return textOf(await within(r.json(), ms, 'the generator'));
     } catch (e) { last = e; if (timedOut(e)) break; await new Promise((res) => setTimeout(res, 400 + attempt * 800)); }

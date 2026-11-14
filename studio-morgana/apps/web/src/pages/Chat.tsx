@@ -49,7 +49,13 @@ export default function Chat() {
   const end = useRef<HTMLDivElement>(null), file = useRef<HTMLInputElement>(null), ta = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    api<{ models: ModelRow[] }>('/c-35d0908c0dc5/models').then((r) => setModels(r.models)).catch((e) => setListErr((e as Error).message));
+    api<{ models: ModelRow[]; default?: string | null }>('/c-35d0908c0dc5/models').then((r) => {
+      setModels(r.models);
+      // start on the app's own model (the service may prefix its ids, so a match on the end counts)
+      const want = (r.default || '').toLowerCase();
+      const hit = r.models.find((m) => m.id === r.default) || r.models.find((m) => m.id.toLowerCase().split('/').pop() === want);
+      if (hit) setModel(hit.id);
+    }).catch((e) => setListErr((e as Error).message));
   }, []);
   useEffect(() => { end.current?.scrollIntoView({ block: 'end' }); }, [turns, busy]);
   useEffect(() => { const t = ta.current; if (!t) return; t.style.height = '0px'; t.style.height = Math.min(t.scrollHeight, 180) + 'px'; }, [text]);

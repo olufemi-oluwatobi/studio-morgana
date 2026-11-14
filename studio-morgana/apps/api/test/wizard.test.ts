@@ -147,6 +147,19 @@ const plan = { kind: 'canvas', title: 'sale', size: [1080, 1350], flat: true, mo
   ok('an OpenAI-compatible provider serves the reader (with images) and the writer', a === 'hello' && b === 'hello' && sent[0].url === 'https://llm.example/v1/chat/completions' && sent[0].body.model === 'r-model' && sent[0].body.messages[0].content[1].type === 'image_url' && sent[1].body.model === 'w-model' && sent[1].auth === 'Bearer k');
 }
 
+// 5b. a service that prefixes its model ids still gets called with the id it knows
+{
+  const seen: string[] = [];
+  const f = (async (url: string, init: any) => {
+    if (url.endsWith('/models')) return new Response(JSON.stringify({ data: [{ id: 'x/other' }, { id: 'deepseek/deepseek-flash' }] }));
+    const m = JSON.parse(init.body).model; seen.push(m);
+    return m === 'deepseek-flash' ? new Response('{"error":"unknown model"}', { status: 404 }) : new Response(JSON.stringify({ choices: [{ message: { content: 'ok' } }] }));
+  }) as any;
+  const m = openAiCompatible({ AI_BASE_URL: 'https://s.example/v1', AI_API_KEY: 'k', AI_MODEL: 'deepseek-flash' } as any, f);
+  const out = await m.write({ prompt: 'x' });
+  ok('a prefixed model id is found and retried', out === 'ok' && seen.join() === 'deepseek-flash,deepseek/deepseek-flash', seen.join());
+}
+
 // 6. providers: each role is configured on its own and falls back to the shared settings
 {
   const e = { AI_PROVIDER: 'openai', AI_BASE_URL: 'https://a.example/v1/', AI_API_KEY: 'k', READER_MODEL: 'seer', WRITER_PROVIDER: 'openai', WRITER_BASE_URL: 'https://b.example/v1', WRITER_API_KEY: 'k2', WRITER_MODEL: 'scribe' } as any;
