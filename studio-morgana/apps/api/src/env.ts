@@ -3,9 +3,12 @@ export interface Env {
   BUCKET: R2Bucket;
   AI?: Ai;
   ASSETS: Fetcher;
-  AI_MODE?: string;            // workers-ai (default) | local (no model: a small built-in generator, for offline work)
+  AI_MODE?: string;            // live (default; a model answers) | local (no model: a small built-in generator, for offline work)
   AI_MODEL?: string;           // the writer; default @cf/openai/gpt-oss-120b
   AI_READER?: string;          // the reader (sees images); default @cf/meta/llama-4-scout-17b-16e-instruct
+  AI_PROVIDER?: string;        // workers-ai (default) | openai: any OpenAI-compatible chat endpoint (OpenAI, Together, Groq, a vLLM of your own …)
+  AI_BASE_URL?: string;        // openai provider: e.g. https://api.openai.com/v1
+  AI_API_KEY?: string;         // openai provider: secret (wrangler secret put AI_API_KEY)
   AI_ROUNDS?: string;          // how many times the writer may fix what the compiler rejects (default 3)
   APP_URL?: string;
   EMAIL_FROM?: string;

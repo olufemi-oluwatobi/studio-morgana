@@ -3,7 +3,7 @@
 import { planBrief, writeOption } from '../src/wizard/create';
 import { editPiece, parsePatch, applyPatch, reviewRender } from '../src/wizard/edit';
 import { MANUAL } from '../src/manual.gen';
-import type { Ask, Models } from '../src/wizard/models';
+import { openAiCompatible, type Ask, type Models } from '../src/wizard/models';
 
 let pass = 0, failn = 0;
 const ok = (name: string, cond: boolean, detail = '') => { cond ? pass++ : failn++; console.log(`${cond ? '✓' : '✗'} ${name}${!cond && detail ? ' · ' + detail : ''}`); };
@@ -119,6 +119,15 @@ const plan = { kind: 'canvas', title: 'sale', size: [1080, 1350], flat: true, mo
   const m = scripted([[/Does the image do what they asked/, 'Sure! {"ok": false, "issues": ["the subtitle overlaps the headline"], "summary": "close"}']], []);
   const rv = await reviewRender(m, { text: 'move the subtitle down', picture: { mime: 'image/webp', bytes: new Uint8Array([1]) }, source: GOOD });
   ok('a review reads JSON out of a chatty reply', !rv.ok && rv.issues[0] === 'the subtitle overlaps the headline');
+}
+
+// 9. any OpenAI-compatible endpoint can stand in for either model
+{
+  const sent: any[] = [];
+  const fake = (async (url: string, init: any) => { sent.push({ url, body: JSON.parse(init.body), auth: init.headers.authorization }); return new Response(JSON.stringify({ choices: [{ message: { content: 'hello' } }] })); }) as unknown as typeof fetch;
+  const m = openAiCompatible({ AI_BASE_URL: 'https://llm.example/v1/', AI_API_KEY: 'k', AI_READER: 'r-model', AI_MODEL: 'w-model' } as any, fake);
+  const a = await m.read({ prompt: 'look', images: [{ mime: 'image/png', bytes: new Uint8Array([1]) }] }), b = await m.write({ prompt: 'write', system: 'sys' });
+  ok('an OpenAI-compatible provider serves the reader (with images) and the writer', a === 'hello' && b === 'hello' && sent[0].url === 'https://llm.example/v1/chat/completions' && sent[0].body.model === 'r-model' && sent[0].body.messages[0].content[1].type === 'image_url' && sent[1].body.model === 'w-model' && sent[1].auth === 'Bearer k');
 }
 
 console.log(`\n${pass} passed, ${failn} failed`);

@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { parse, useLocation } from './lib/router';
 import { loadMe } from './lib/session';
 import { warmCompiler } from './render/compiler';
@@ -20,12 +21,14 @@ export default function App() {
   }, []);
   useEffect(() => { window.scrollTo(0, 0); }, [route.name, route.name === 'editor' ? route.id : '']);
 
-  if (route.name === 'auth') return <Suspense fallback={null}><Auth mode={route.mode} token={route.token} /><Toasts /></Suspense>;
+  if (route.name === 'auth') return <ErrorBoundary><Suspense fallback={null}><Auth mode={route.mode} token={route.token} /><Toasts /></Suspense></ErrorBoundary>;
   return (
     <div className="app">
       <Sidebar />
       <div className="main">
-        {route.name === 'wall' ? <Wall scope={route.scope} /> : <Suspense fallback={<div className="page" />}><Editor id={route.id} /></Suspense>}
+        <ErrorBoundary key={route.name === 'editor' ? route.id : route.name}>
+          {route.name === 'wall' ? <Wall scope={route.scope} /> : <Suspense fallback={<div className="page editor-page" aria-busy="true"><div className="art skeleton" style={{ aspectRatio: '592 / 914', maxWidth: 520, margin: '72px auto' }} /></div>}><Editor id={route.id} /></Suspense>}
+        </ErrorBoundary>
       </div>
       <DragTray />
       <Toasts />

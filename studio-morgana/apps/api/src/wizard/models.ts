@@ -35,6 +35,33 @@ function b64(bytes: Uint8Array): string {
   return btoa(s);
 }
 
+export function openAiCompatible(env: Env, fetcher: typeof fetch = fetch): Models {
+  const base = (env.AI_BASE_URL || '').replace(/\/+$/, ''), key = env.AI_API_KEY || '';
+  const reader = env.AI_READER || 'gpt-4o-mini', writer = env.AI_MODEL || 'gpt-4o';
+  const run = async (model: string, messages: unknown[], max: number, temperature: number): Promise<string> => {
+    let last: unknown;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const r = await fetcher(base + '/chat/completions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` }, body: JSON.stringify({ model, messages, max_tokens: max, temperature }) });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return textOf(await r.json());
+      } catch (e) { last = e; await new Promise((res) => setTimeout(res, 400 + attempt * 800)); }
+    }
+    throw new ModelError('the generator is not answering right now', last);
+  };
+  return {
+    names: { reader, writer },
+    async read(a) {
+      const imgs = (a.images || []).filter((i) => i.bytes.length <= MAX_IMAGE && /^image\/(png|jpe?g|webp|gif)$/.test(i.mime));
+      const content = imgs.length ? [{ type: 'text', text: a.prompt }, ...imgs.map((i) => ({ type: 'image_url', image_url: { url: `data:${i.mime};base64,${b64(i.bytes)}` } }))] : a.prompt;
+      return run(reader, [...(a.system ? [{ role: 'system', content: a.system }] : []), { role: 'user', content }], a.maxTokens ?? 1500, a.temperature ?? 0.2);
+    },
+    async write(a) {
+      return run(writer, [...(a.system ? [{ role: 'system', content: a.system }] : []), { role: 'user', content: a.prompt }], a.maxTokens ?? 6000, a.temperature ?? 0.6);
+    },
+  };
+}
+
 export class ModelError extends Error { constructor(msg: string, public cause?: unknown) { super(msg); } }
 
 export function workersAi(env: Env): Models {

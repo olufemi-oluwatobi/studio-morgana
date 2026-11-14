@@ -7,6 +7,12 @@ import type { Models } from './models';
 
 export { extractJson };
 
+// The wizard engine narrates every step with console.log; in production that is noise in the logs. Drop those lines and
+// keep our own: one structured line per piece or edit (see `log`).
+const keep = console.log.bind(console);
+console.log = (...a: unknown[]) => { if (typeof a[0] === 'string' && /^\s*[\u25B6\u25C7] /.test(a[0])) return; keep(...a); };
+export function log(event: string, data: Record<string, unknown>) { keep(JSON.stringify({ event, ...data })); }
+
 // ── the manual ────────────────────────────────────────────────────────────────────────────────────────────────────
 const BY_ID = new Map(MANUAL.map((c) => [c.id, c]));
 export const CORE = MANUAL.filter((c) => c.core);

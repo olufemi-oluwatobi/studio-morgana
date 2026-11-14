@@ -110,7 +110,7 @@ export default function Wall({ scope }: { scope: Scope }) {
       <main className="wall">
         {scope.kind === 'project' && <ProjectHead id={scope.id} />}
         {scope.kind === 'mine' && <VisFilter_ />}
-        {error && <p className="note">Could not load the wall: {error}</p>}
+        {error && <p className="note" role="alert">Could not load the wall. <button className="link" onClick={() => void loadWall({ scope })}>Try again</button></p>}
         {!items.length && !loading && !error && <p className="note">{empty}</p>}
         <Masonry items={items} onEnd={hasMore ? more : undefined} />
       </main>

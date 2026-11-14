@@ -28,7 +28,7 @@
   "triggers": { "crons": ["17 */6 * * *"] },
   "observability": { "enabled": true },
   "vars": {
-    "AI_MODE": "workers-ai",
+    "AI_MODE": "live",
     "AI_MODEL": "@cf/openai/gpt-oss-120b",
     "APP_URL": "https://www.studiomorgana.xyz",
     "EMAIL_FROM": "Studio Morgana <studio@studiomorgana.xyz>",

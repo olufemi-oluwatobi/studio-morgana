@@ -5,7 +5,7 @@ import type { Env } from './env';
 import { FACTS } from './guide.gen';
 import { localGenerate, localEdit } from './local-gen';
 import { fail } from './util';
-import { workersAi, scriptedModels, type Img, type Models, ModelError } from './wizard/models';
+import { workersAi, openAiCompatible, scriptedModels, type Img, type Models, ModelError } from './wizard/models';
 import { planBrief, tidyPlan, writeOption, type Brief, type Planned } from './wizard/create';
 import { editPiece, reviewRender, type Edited, type PartBrief, type Review } from './wizard/edit';
 import { addCheckLoop, chaptersFor, runToEnd, systemFor, wizardOf, type LoopState, type Step } from './wizard/common';
@@ -14,12 +14,13 @@ import { check } from './gt/checker.gen.js';
 export type { PartBrief };
 export interface Diagnostic { level: string; line?: number; msg: string; hint?: string }
 
-export const aiMode = (env: Env): 'workers-ai' | 'local' | 'scripted' =>
-  env.AI_MODE === 'scripted' ? 'scripted' : env.AI_MODE === 'local' || !env.AI ? 'local' : 'workers-ai';
+// 'live' = a real model answers; 'local' = the built-in generator (offline work); 'scripted' = stand-ins (tests)
+export const aiMode = (env: Env): 'live' | 'local' | 'scripted' =>
+  env.AI_MODE === 'scripted' ? 'scripted' : env.AI_MODE === 'local' || !(env.AI_PROVIDER === 'openai' ? env.AI_BASE_URL && env.AI_API_KEY : env.AI) ? 'local' : 'live';
 const rounds = (env: Env) => Math.max(0, Math.min(6, Number(env.AI_ROUNDS ?? 3) | 0));
 let modelsOverride: ((env: Env) => Models) | null = null;
 export function useModels(f: ((env: Env) => Models) | null) { modelsOverride = f; }          // tests script the models
-const models = (env: Env) => (modelsOverride ? modelsOverride(env) : aiMode(env) === 'scripted' ? scripted : workersAi(env));
+const models = (env: Env) => (modelsOverride ? modelsOverride(env) : aiMode(env) === 'scripted' ? scripted : env.AI_PROVIDER === 'openai' ? openAiCompatible(env) : workersAi(env));
 const scripted = scriptedModels((prompt, i, parts) => {
   if (!prompt.startsWith('edit:')) return localGenerate(prompt, i, []);
   const [ask, ...rest] = prompt.slice(5).split('\n');

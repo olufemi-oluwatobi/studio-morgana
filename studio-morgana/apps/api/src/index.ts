@@ -55,10 +55,20 @@ app.get('/files/*', async (c) => {
   return new Response(obj.body, { headers: h });
 });
 
+// Errors the person caused (HTTPException: a bad request, a limit) say what to do; anything else is ours: log it with a
+// reference and show only the reference.
 app.onError((err, c) => {
   if (err instanceof HTTPException) return c.json({ error: err.message }, err.status);
-  console.error(err);
-  return c.json({ error: 'something went wrong on our side' }, 500);
+  const ref = (c.req.header('cf-ray') || crypto.randomUUID()).slice(0, 8);
+  console.error(JSON.stringify({ event: 'error', ref, path: new URL(c.req.url).pathname, message: String((err as Error)?.message || err), stack: (err as Error)?.stack?.split('\n').slice(0, 6) }));
+  return c.json({ error: `Something went wrong on our side. Please try again. (ref ${ref})` }, 500);
+});
+
+// the same safe defaults on every API and file response
+app.use('*', async (c, next) => {
+  await next();
+  c.res.headers.set('x-content-type-options', 'nosniff');
+  c.res.headers.set('referrer-policy', 'strict-origin-when-cross-origin');
 });
 
 export default {

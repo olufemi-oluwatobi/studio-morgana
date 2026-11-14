@@ -3,7 +3,9 @@ import { Hono } from 'hono';
 import type { Context } from 'hono';
 import type { App, Env, Who } from './env';
 import { spend } from './auth';
-import { aiMode, editFor, makeOption, planFor, repairFor, reviewFor, type Diagnostic, type FileRef, type PartBrief } from './ai';
+import { HTTPException } from 'hono/http-exception';
+import { log } from './wizard/common';
+import { editFor, makeOption, planFor, repairFor, reviewFor, type Diagnostic, type FileRef, type PartBrief } from './ai';
 import { fail, id, now, sha256hex, str, titleOf } from './util';
 import { isPieceType } from './types';
 import { refreshIfDue } from './jobs';
@@ -159,23 +161,25 @@ pieces.post('/generate', async (c) => {
   const send = (o: unknown) => w.write(enc.encode(JSON.stringify(o) + '\n'));
   const env = c.env;
   const run = async () => {
-    await send({ type: 'start', n, ai: aiMode(env) });
+    await send({ type: 'start', n });
     // one plan for all the options (the reader looks at the images and picks the manual's chapters), then one write each
     const planned = await planFor(env, { prompt, refs, files: uploads.map((u) => ({ name: u.name, key: u.key, type: u.type })) }).catch((e) => { console.error(e); return null; });
-    if (planned) await send({ type: 'plan', plan: planned.planned.plan, chapters: planned.planned.chapters.map((c) => c.id), trail: planned.planned.trail });
+    if (planned) log('plan', { n, kind: planned.planned.plan.kind, chapters: planned.planned.chapters.map((c) => c.id), trail: planned.planned.trail });
     await Promise.all(Array.from({ length: n }, async (_, i) => {
       try {
         const made = await makeOption(env, planned, { prompt, uploads: uploads.map((u) => u.name), i, n });
         const source = made.source;
+        log('option', { i, ok: made.ok, lines: source.split('\n').length, trail: made.trail });
         const pid = id(), t = now();
         await env.DB.prepare(`INSERT INTO pieces (id, owner, title, status, prompt, created, updated) VALUES (?, ?, ?, 'draft', ?, ?, ?)`)
           .bind(pid, who.owner, titleOf(source, prompt.slice(0, 40)), prompt, t, t).run();
         if (uploads.length) await env.DB.batch(uploads.map((u) => env.DB.prepare('INSERT INTO piece_files (piece_id, name, key, type, bytes) VALUES (?, ?, ?, ?, ?)').bind(pid, u.name, u.key, u.type, u.bytes)));
         const v = await addVersion(env, pid, source, 'ai', null, null);
         if (project) await env.DB.prepare('INSERT OR IGNORE INTO project_pins (project_id, piece_id, pinned) VALUES (?, ?, ?)').bind(project.id, pid, now()).run();
-        await send({ type: 'piece', index: i, piece: { id: pid, title: titleOf(source, prompt.slice(0, 40)) }, version: versionOut(v), files: await filesOf(env, pid), ok: made.ok, trail: made.trail });
+        await send({ type: 'piece', index: i, piece: { id: pid, title: titleOf(source, prompt.slice(0, 40)) }, version: versionOut(v), files: await filesOf(env, pid) });
       } catch (e) {
-        await send({ type: 'error', index: i, message: (e as { message?: string })?.message || 'this option failed' });
+        console.error('option failed', e);
+        await send({ type: 'error', index: i, message: e instanceof HTTPException ? e.message : 'this option could not be made' });
       }
     }));
     await send({ type: 'done' });
@@ -195,7 +199,7 @@ pieces.get('/pieces/:id', async (c) => {
   ).bind(p.id, who.owner).all<{ id: string }>();
   return c.json({
     piece: { ...card(p, who), prompt: p.prompt, parentId: p.parent_id, versionId: p.version_id, pinnedIn: pins.map((x) => x.id) },
-    version: versionOut(v), versions: vs, files: await filesOf(c.env, p.id), ai: aiMode(c.env),
+    version: versionOut(v), versions: vs, files: await filesOf(c.env, p.id),
   }, 200, { 'cache-control': 'no-store' });
 });
 
@@ -213,9 +217,10 @@ pieces.post('/pieces/:id/command', async (c) => {
   }));
   const r = await editFor(c.env, { source: base.source, parts, text, versionId: base.id, files: await fileRefs(c.env, p.id) });
   // a question gets an answer and no new version
-  if (r.answer) return c.json({ pieceId: p.id, answer: r.answer, understood: r.understood, trail: r.trail });
+  log('command', { piece: p.id, intent: r.understood.intent, ok: r.ok, rounds: r.rounds, trail: r.trail });
+  if (r.answer) return c.json({ pieceId: p.id, answer: r.answer });
   const v = await addVersion(c.env, p.id, r.source, 'ai', text, base.id);
-  return c.json({ pieceId: p.id, version: versionOut(v), files: await filesOf(c.env, p.id), ok: r.ok, understood: r.understood, trail: r.trail });
+  return c.json({ pieceId: p.id, version: versionOut(v), files: await filesOf(c.env, p.id) });
 });
 
 // ── a hand edit from the code box
@@ -243,7 +248,8 @@ pieces.post('/pieces/:id/repair', async (c) => {
   await spend(c.env, who, 'command');
   const r = await repairFor(c.env, { source: v.source, files: await fileRefs(c.env, p.id) });
   const nv = await addVersion(c.env, p.id, r.source, 'repair', null, v.id);
-  return c.json({ pieceId: p.id, version: versionOut(nv), ok: r.ok, trail: r.trail });
+  log('repair', { piece: p.id, ok: r.ok, trail: r.trail });
+  return c.json({ pieceId: p.id, version: versionOut(nv) });
 });
 
 // ── a version the browser has drawn: the reader looks at the picture and says whether it does what was asked
@@ -255,7 +261,8 @@ pieces.post('/pieces/:id/review', async (c) => {
   const v = await getVersion(c.env, p.id, str(body.versionId, 'versionId', 64));
   const text = body.text ? str(body.text, 'text', 1000) : v.command || p.prompt || '';
   const review = await reviewFor(c.env, { versionId: v.id, text, source: v.source });
-  return c.json({ review });
+  log('review', { piece: p.id, ok: review?.ok, issues: review?.issues });
+  return c.json({ review: review && !review.ok && review.issues.length ? { ok: false, issues: review.issues } : null });
 });
 
 // ── the browser rendered a version and uploaded its posters: make it the current one

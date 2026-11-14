@@ -4,7 +4,7 @@ import { PIECE_TYPES, typeOfCompiled, type PieceType } from './types';
 import { sameScope, type Scope } from './router';
 import { bumpProject, pin } from './projects';
 import { createStore } from './store';
-import { meStore, toast } from './session';
+import { toast } from './session';
 import { commit, encodePreview, render } from '../render/pipeline';
 import { PRIORITY } from '../render/host';
 
@@ -84,7 +84,8 @@ export async function loadWall(opts: { tab?: Tab; scope?: Scope; more?: boolean 
     }));
   } catch (e) {
     if ((e as Error).name === 'AbortError') return;
-    wallStore.set((w) => ({ ...w, loading: false, error: (e as Error).message }));
+    console.warn('wall failed to load:', (e as Error).message);
+    wallStore.set((w) => ({ ...w, loading: false, error: 'load' }));
   }
 }
 
@@ -124,16 +125,15 @@ const dropDraft = (key: string) => draftsStore.set((ds) => ds.filter((d) => d.ke
 const preload = (url: string) => new Promise<void>((res) => { const i = new Image(); i.decoding = 'async'; i.src = url; i.decode().then(() => res(), () => res()); });
 
 async function finishOption(key: string, pieceId: string, version: Version, files: PieceFile[], projectId: string | null) {
-  const ai = meStore.get()?.ai;
   patchDraft(key, { id: pieceId, state: 'rendering' });
   let v = version;
   let res = await render(pieceId, v.source, files, PRIORITY.wall);
-  if (!res.ok && ai && ai !== 'local') {
-    const fixed = await api<{ version: Version }>(`/pieces/${pieceId}/repair`, { body: { versionId: v.id, diagnostics: res.diagnostics } });
-    v = fixed.version;
-    res = await render(pieceId, v.source, files, PRIORITY.wall);
+  if (!res.ok) {
+    // the server has already checked what it wrote; if the browser still cannot draw it, ask for one repair
+    const fixed = await api<{ version: Version }>(`/pieces/${pieceId}/repair`, { body: { versionId: v.id, diagnostics: res.diagnostics } }).catch(() => null);
+    if (fixed) { v = fixed.version; res = await render(pieceId, v.source, files, PRIORITY.wall); }
   }
-  if (!res.ok) throw new Error(res.diagnostics.find((d) => d.level === 'error')?.msg || 'this option did not compile');
+  if (!res.ok) throw new Error('This option could not be drawn');
   const r = res.r;
   patchDraft(key, { src: r.sm, w: r.w, h: r.h, category: r.compiled.category, type: typeOfCompiled(r.compiled), title: r.compiled.name });
   const card = await commit(pieceId, v, r);

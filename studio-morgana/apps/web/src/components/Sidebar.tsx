@@ -138,7 +138,6 @@ export const Sidebar = memo(function Sidebar() {
           ) : (
             <a className="side-link" href="/auth" onClick={linkHandler('/auth')}><User /> Sign in</a>
           )}
-          {me?.ai === 'local' && <p className="side-note">Offline generator: AI_MODE is local.</p>}
         </div>
       </nav>
     </>

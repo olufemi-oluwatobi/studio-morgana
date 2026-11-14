@@ -1,8 +1,7 @@
 // Page 2: the editor. The piece in the middle; on the right its godtongue and, under it, the command input.
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent } from 'react';
 import { api, type PieceDetail, type PieceFile, type Version } from '../lib/api';
-import { useStore } from '../lib/store';
-import { meStore, toast } from '../lib/session';
+import { toast } from '../lib/session';
 import { linkHandler, navigate } from '../lib/router';
 import { changedLines } from '../lib/diff';
 import { deletePiece, patchPiece, upsertPiece } from '../lib/wall';
@@ -18,20 +17,16 @@ import { elementAt, hitAt, indexOf, type Hit, type Index } from '../lib/inspect'
 import { Player } from '../components/Player';
 import { ArrowLeft, Download, Pins, Send, Trash, Undo } from '../components/Icons';
 
-interface TrailStep { step: string; by: 'reader' | 'writer' | 'compiler'; ms: number; note: string }
-interface Review { ok: boolean; issues: string[]; summary: string }
-interface Note { kind: 'answer' | 'trail' | 'review'; text: string; issues?: string[]; round?: number; checked?: string }
+interface Review { ok: boolean; issues: string[] }
+interface Note { kind: 'answer'; text: string }
 const REVIEW_ROUNDS = 1;   // after a change is drawn, the reader may send it back once
-const WHO = { reader: 'Scout', writer: 'GPT-OSS', compiler: 'compiler' } as const;
-const trailText = (t?: TrailStep[]) => (t?.length ? t.map((s) => `${WHO[s.by]}: ${s.note}`).join(' → ') : 'written by the offline generator');
 type Phase = 'idle' | 'writing' | 'repairing' | 'rendering' | 'saving' | 'exporting' | 'reviewing';
-const PHASE_TEXT: Record<Phase, string> = { idle: '', writing: 'Writing the change', reviewing: 'Looking at the result', repairing: 'Fixing the source', rendering: 'Rendering', saving: 'Saving', exporting: 'Exporting' };
+const PHASE_TEXT: Record<Phase, string> = { idle: '', writing: 'Making your change', reviewing: 'Checking the result', repairing: 'Polishing', rendering: 'Drawing', saving: 'Saving', exporting: 'Exporting' };
 const NONE: ReadonlySet<number> = new Set();
 const EXPORT_LABEL = { png: 'Image (PNG)', svg: 'Vector (SVG)', mp4: 'Video (MP4)', gt: 'Godtongue (.gt)' } as const;
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'piece';
 
 export default function Editor({ id }: { id: string }) {
-  const ai = useStore(meStore, (m) => m?.ai);
   const [d, setD] = useState<PieceDetail | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [source, setSource] = useState('');
@@ -46,7 +41,7 @@ export default function Editor({ id }: { id: string }) {
   const [progress, setProgress] = useState<number | null>(null);
   const [cmd, setCmd] = useState('');
   const [menu, setMenu] = useState(false);
-  const [note, setNote] = useState<Note | null>(null);              // what the models did with the last change
+  const [note, setNote] = useState<Note | null>(null);              // the answer to a question about the piece
   const [live, setLive] = useState<Diagnostic[]>([]);                       // what the compiler says about the text as it is now
   const [elements, setElements] = useState<Record<string, Elem> | null>(null);
   const [imgGeom, setImgGeom] = useState<Geom | null>(null);               // the picture on screen: its size and the part of the piece it shows
@@ -84,16 +79,18 @@ export default function Editor({ id }: { id: string }) {
     setPhase('rendering'); setDiags([]);
     let res = await render(pieceId, v.source, files, PRIORITY.interactive);
     if (!alive.current || current.current !== v0.id) return false;
-    if (!res.ok && ai && ai !== 'local' && (v.by === 'ai' || v.by === 'repair')) {
+    if (!res.ok && (v.by === 'ai' || v.by === 'repair')) {
       setPhase('repairing');
-      const fixed = await api<{ version: Version }>(`/pieces/${pieceId}/repair`, { body: { versionId: v.id, diagnostics: res.diagnostics } });
+      const fixed = await api<{ version: Version }>(`/pieces/${pieceId}/repair`, { body: { versionId: v.id, diagnostics: res.diagnostics } }).catch(() => null);
       if (!alive.current) return false;
+      if (fixed) {
       setChanged(changedLines(v.source, fixed.version.source));
       v = fixed.version; current.current = v.id; setSource(v.source);
       setD((p) => (p ? { ...p, version: v } : p));
       setPhase('rendering');
       res = await render(pieceId, v.source, files, PRIORITY.interactive);
       if (!alive.current || current.current !== v.id) return false;
+      } else setPhase('rendering');
     }
     if (!res.ok) { setDiags(res.diagnostics); setPhase('idle'); return false; }
     const r = res.r;
@@ -110,7 +107,7 @@ export default function Editor({ id }: { id: string }) {
     setPhase('idle');
     if (r.compiled.video && save) void makeVideo(pieceId, v, files);
     return true;
-  }, [ai, makeVideo]);
+  }, [makeVideo]);
 
   // load the piece (not when the id changed because we just made our own copy of it)
   useEffect(() => {
@@ -165,24 +162,19 @@ export default function Editor({ id }: { id: string }) {
       // "p1" means nothing without the parts: if the piece has not compiled yet, compile it first
       let ps = parts;
       if (!ps) { const c = await compile('/p/' + det.piece.id, det.version.source, det.files); ps = c.ok ? c.parts : []; if (alive.current && c.ok) setParts(c.parts); }
-      const r = await api<{ pieceId: string; version?: Version; files?: PieceFile[]; answer?: string; trail?: TrailStep[]; ok?: boolean }>(`/pieces/${det.piece.id}/command`, {
+      const r = await api<{ pieceId: string; version?: Version; files?: PieceFile[]; answer?: string }>(`/pieces/${det.piece.id}/command`, {
         body: { text, versionId: det.version.id, parts: ps.map((p) => ({ n: p.n, name: p.name, face: p.face, lines: p.lines })) },
       });
       if (!alive.current) return;
       setCmd('');
       if (r.answer || !r.version) { setNote({ kind: 'answer', text: r.answer || 'Nothing to change.' }); setPhase('idle'); return; }
-      setNote({ kind: 'trail', text: trailText(r.trail), round });
       const drawn = await adopt({ pieceId: r.pieceId, version: r.version, files: r.files }, det.version.source);
-      if (!drawn || !alive.current || ai === 'local' || round >= REVIEW_ROUNDS) return;
+      if (!drawn || !alive.current || round >= REVIEW_ROUNDS) return;
+      // a second look at the result; if it missed what was asked, one more pass. A failed look never blocks the change.
       setPhase('reviewing');
-      const { review } = await api<{ review: Review | null }>(`/pieces/${r.pieceId}/review`, { body: { versionId: r.version.id, text } });
+      const { review } = await api<{ review: Review | null }>(`/pieces/${r.pieceId}/review`, { body: { versionId: r.version.id, text } }).catch(() => ({ review: null }));
       if (!alive.current) return;
-      if (review && !review.ok && review.issues.length) {
-        setNote({ kind: 'review', text: review.summary, issues: review.issues, round });
-        await runCommand(`${text}. Also fix: ${review.issues.join('; ')}`, round + 1);
-        return;
-      }
-      setNote((n) => (n ? { ...n, checked: review?.summary || 'looks as asked' } : n));
+      if (review && !review.ok && review.issues.length) { await runCommand(`${text}. Also fix: ${review.issues.join('; ')}`, round + 1); return; }
       setPhase('idle');
     } catch (err) { toast((err as Error).message); if (alive.current) setPhase('idle'); }
   };
@@ -366,20 +358,19 @@ export default function Editor({ id }: { id: string }) {
           <div className="codepanel">
             <div className="panel-head">
               <span className="panel-title">Godtongue</span>
-              <span className="panel-meta">{d ? `v${d.version.n}${d.version.command ? ' · ' + d.version.command : d.version.by === 'human' ? ' · edited by hand' : ''}` : ''}</span>
+              <span className="panel-meta">{d?.version.command ?? ''}</span>
               <span className={'status ' + (errors.length ? 'bad' : warns.length ? 'warn' : 'ok')} role="status" aria-live="polite">
-                {errors.length ? `${errors.length} ${errors.length === 1 ? 'error' : 'errors'}` : warns.length ? `${warns.length} ${warns.length === 1 ? 'warning' : 'warnings'}` : d ? 'Reads cleanly' : ''}
+                {errors.length ? `${errors.length} ${errors.length === 1 ? 'error' : 'errors'}` : warns.length ? `${warns.length} ${warns.length === 1 ? 'warning' : 'warnings'}` : ''}
               </span>
               <button className="run" onClick={run} disabled={!d || busy} title="Run (⌘↵)">Run <kbd>⌘↵</kbd></button>
             </div>
-            <CodeBox ref={code} value={source} onChange={setSource} onRun={run} changed={changed} errors={errorLines} disabled={!d} marks={all} onPoint={onPoint} />
+            {!d && <div className="code-skel" aria-hidden="true">{[62, 80, 0, 48, 74, 66, 38, 0, 70, 54].map((w, i) => <span key={i} style={{ width: `${w}%` }} />)}</div>}
+            {d && <CodeBox ref={code} value={source} onChange={setSource} onRun={run} changed={changed} errors={errorLines} disabled={!d} marks={all} onPoint={onPoint} />}
             {all.length > 0 && <Problems all={all} goTo={(n) => code.current?.goToLine(n)} fix={env.fix} />}
             {note && (
               <div className={'cmd-note ' + note.kind} role="status">
                 <button className="cmd-note-x" onClick={() => setNote(null)} aria-label="Dismiss">×</button>
-                {note.kind === 'answer' && <p>{note.text}</p>}
-                {note.kind === 'trail' && <p><b>{note.round ? 'Second round' : 'How it was made'}</b> {note.text}{note.checked && <><br /><b>Scout looked at it:</b> {note.checked}</>}</p>}
-                {note.kind === 'review' && <p><b>Scout saw:</b> {note.issues?.join('; ')}. Fixing it…</p>}
+                <p>{note.text}</p>
               </div>
             )}
             <form className="command" onSubmit={submitCommand}>
@@ -395,6 +386,12 @@ export default function Editor({ id }: { id: string }) {
   );
 }
 
+// what the person is shown for a problem: their own sentences' errors as they are; anything from inside the studio
+// (the drawing engine, the compiler's own faults) as one calm line, the detail going to the console for support
+function plain(x: Diagnostic): string {
+  if (x.internal || !x.line || /^(internal|engine):/.test(x.msg)) { console.warn('studio problem:', x.msg); return 'This piece could not be drawn. Try changing it, or press Run again.'; }
+  return x.msg;
+}
 // the problems list: the cause of each, with what follows from it folded in; errors first, then warnings
 function Problems({ all, goTo, fix }: { all: Diagnostic[]; goTo(n: number): void; fix: Env['fix'] }) {
   const causes = all.filter((x) => !x.follows);
@@ -404,8 +401,8 @@ function Problems({ all, goTo, fix }: { all: Diagnostic[]; goTo(n: number): void
     <ul className="diags" aria-label="Problems">
       {rows.slice(0, 8).map((x, i) => (
         <li key={i} className={x.level === 'error' ? 'err' : 'warn'}>
-          <button onClick={() => x.line && goTo(x.line)}>{x.line ? <b>Line {x.line}</b> : <b>Render</b>} {x.msg.replace(/^internal: /, '')}</button>
-          {x.hint && <span>{x.hint}</span>}
+          <button onClick={() => x.line && goTo(x.line)}>{x.line ? <b>Line {x.line}</b> : null} {plain(x)}</button>
+          {x.hint && !x.internal && <span>{x.hint}</span>}
           {follow(x.line) > 0 && <span className="muted">{follow(x.line)} more below {follow(x.line) === 1 ? 'follows' : 'follow'} from this one.</span>}
           {x.fix && <button className="fixit" onClick={() => fix(x)}>Change to “{x.fix.replace}”</button>}
         </li>

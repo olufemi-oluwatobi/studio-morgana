@@ -12,9 +12,9 @@ const errs = []; page.on('pageerror', (e) => errs.push(e.message));
 let id = process.argv.find((a) => /^[a-z0-9]{16}$/.test(a));
 if (!id) { const w = await (await fetch(BASE + '/api/wall')).json(); id = w.featured.find((p) => p.title === 'post')?.id || w.featured.find((p) => p.type === 'image')?.id; }
 await page.goto(BASE + '/p/' + id); await page.waitForSelector('.art img'); await page.waitForSelector('.code textarea:not([disabled])');
-await page.waitForFunction(() => document.querySelector('.status')?.textContent?.length > 0, null, { timeout: 20000 });
+await page.waitForSelector('.code-hl', { timeout: 30000 });
 await page.waitForTimeout(2500);
-check('a clean piece reads cleanly', /Reads cleanly/.test(await page.locator('.status').innerText()));
+check('a clean piece shows no problems', (await page.locator('.status').innerText()) === '' && (await page.locator('.diags').count()) === 0);
 
 // the position of a word in the code, found from the text
 const where = async (needle, nth = 0) => page.evaluate(([needle, nth]) => {
@@ -73,7 +73,7 @@ await page.screenshot({ path: path.join(OUT, 'hover-error.png') });
 if (await card().locator('.hc-fix').count()) { await card().locator('.hc-fix').click(); await page.waitForTimeout(700); check('one click applies the fix', !/glowy/.test(await ta.inputValue())); }
 await page.evaluate(() => { const t = document.querySelector('.code textarea'); const set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set; set.call(t, t.value.replace(/\nMake the headline glowy\.|\nLet there be a cirle[^\n]*|\nMake the oops red\./g, '')); t.dispatchEvent(new Event('input', { bubbles: true })); });
 await page.waitForTimeout(700);
-check('removing the mistakes leaves it reading cleanly', /Reads cleanly|warning/.test(await page.locator('.status').innerText()), await page.locator('.status').innerText());
+check('removing the mistakes leaves no problems', (await page.locator('.status').innerText()) === '');
 await page.screenshot({ path: path.join(OUT, 'after-fix.png') });
 check('no page errors', errs.length === 0, errs.join(' | '));
 await browser.close();
