@@ -1,25 +1,26 @@
-// The lab: an admin-only page for trying models by hand (feature flag LAB=on): a plain chat with any model the service
-// offers, with the studio's own tools in reach (the manual and the godtongue compiler) so tool use can be watched. It reaches the service with LAB_BASE_URL / LAB_API_KEY (falling back to AI_BASE_URL / AI_API_KEY), so
-// trying a model never changes what the app itself uses.
+// The lab: a plain chat with any model the service offers, with a few harmless tools so tool calls can be watched.
+// It lives at a secret address (LAB=on and LAB_TOKEN) and reaches the service with LAB_BASE_URL / LAB_API_KEY
+// (falling back to AI_BASE_URL / AI_API_KEY), so trying a model never changes what the app itself uses.
 import { Hono } from 'hono';
-import type { App, Env, Who } from './env';
-import { FACTS } from './guide.gen';
+import type { App, Env } from './env';
 import { fail } from './util';
 import { within } from './wizard/models';
-import { contents, log } from './wizard/common';
-import { MANUAL } from './manual.gen';
-import { check } from './gt/checker.gen.js';
+import { log } from './wizard/common';
 
-export const labOn = (env: Env, who: Who) => env.LAB === 'on' && who.role === 'admin';
 const cfg = (env: Env) => ({ base: (env.LAB_BASE_URL || env.AI_BASE_URL || '').replace(/\/+$/, ''), key: env.LAB_API_KEY || env.AI_API_KEY || '' });
 
 export const lab = new Hono<App>();
-// not an admin, or the flag is off: the page does not exist
-lab.use('*', async (c, next) => { if (!labOn(c.env, c.get('who'))) fail(404, 'not found'); await next(); });
-
-lab.get('/config', (c) => {
-  const { base, key } = cfg(c.env);
-  return c.json({ service: base ? new URL(base).host : null, keySet: !!key, app: { provider: c.env.AI_PROVIDER || 'workers-ai', reader: c.env.READER_MODEL || c.env.AI_READER || null, writer: c.env.WRITER_MODEL || c.env.AI_MODEL || null } });
+// no sign-in: the page lives at a secret address (/lab/<LAB_TOKEN>) and every call must carry that token. Without the flag
+// or the token the lab does not exist.
+function sameToken(a: string, b: string) {
+  if (a.length !== b.length) return false;
+  let d = 0; for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return d === 0;
+}
+lab.use('*', async (c, next) => {
+  const want = c.env.LAB_TOKEN || '';
+  if (c.env.LAB !== 'on' || want.length < 16 || !sameToken(c.req.header('x-lab-token') || '', want)) fail(404, 'not found');
+  await next();
 });
 
 // what the service offers, with what it says about images and price when it says
@@ -43,27 +44,36 @@ lab.get('/models', async (c) => {
   return c.json({ models });
 });
 
-// what the model can call: the manual, and the compiler
+// what the model can call: small, harmless tools, only to see tool calls work
 const TOOLS = [
-  { type: 'function', function: { name: 'list_manual', description: 'List the chapters of the godtongue manual (id and title).', parameters: { type: 'object', properties: {} } } },
-  { type: 'function', function: { name: 'read_manual', description: 'Read chapters of the godtongue manual by id.', parameters: { type: 'object', properties: { ids: { type: 'array', items: { type: 'string' } } }, required: ['ids'] } } },
-  { type: 'function', function: { name: 'compile_godtongue', description: 'Compile godtongue source and get back whether it compiles, with each error, its line and the compiler\'s suggestion.', parameters: { type: 'object', properties: { source: { type: 'string' } }, required: ['source'] } } },
+  { type: 'function', function: { name: 'get_current_time', description: 'Get the current date and time (UTC).', parameters: { type: 'object', properties: {} } } },
+  { type: 'function', function: { name: 'calculator', description: 'Evaluate an arithmetic expression such as "(12 + 8) * 3 / 4".', parameters: { type: 'object', properties: { expression: { type: 'string' } }, required: ['expression'] } } },
+  { type: 'function', function: { name: 'random_number', description: 'Pick a random whole number between min and max (inclusive).', parameters: { type: 'object', properties: { min: { type: 'number' }, max: { type: 'number' } }, required: ['min', 'max'] } } },
 ];
-const BY_ID = new Map(MANUAL.map((c) => [c.id, c]));
+// a small arithmetic parser (Workers do not allow eval): + - * / % ( ) and unary minus
+function calc(src: string): number {
+  const t = src.replace(/\s+/g, ''); let i = 0;
+  const num = (): number => { const m = /^\d*\.?\d+/.exec(t.slice(i)); if (!m) throw new Error('number'); i += m[0].length; return Number(m[0]); };
+  const atom = (): number => { if (t[i] === '(') { i++; const v = sum(); if (t[i++] !== ')') throw new Error(')'); return v; } if (t[i] === '-') { i++; return -atom(); } if (t[i] === '+') { i++; return atom(); } return num(); };
+  const prod = (): number => { let v = atom(); while (t[i] === '*' || t[i] === '/' || t[i] === '%') { const o = t[i++], r = atom(); v = o === '*' ? v * r : o === '/' ? v / r : v % r; } return v; };
+  const sum = (): number => { let v = prod(); while (t[i] === '+' || t[i] === '-') { const o = t[i++], r = prod(); v = o === '+' ? v + r : v - r; } return v; };
+  const v = sum(); if (i !== t.length) throw new Error('end'); return v;
+}
 function callTool(name: string, args: any): string {
-  if (name === 'list_manual') return contents();
-  if (name === 'read_manual') {
-    const ids: string[] = (Array.isArray(args?.ids) ? args.ids : []).map(String).slice(0, 8);
-    const out = ids.map((id) => BY_ID.get(id)?.text ?? `(no chapter called ${id})`).join('\n\n');
-    return out.length > 14000 ? out.slice(0, 14000) + '\n…(cut)' : out;
+  if (name === 'get_current_time') return new Date().toISOString();
+  if (name === 'calculator') {
+    const e = String(args?.expression ?? '');
+    if (!/^[\d\s+\-*/().%]+$/.test(e) || e.length > 200) return 'error: only numbers and + - * / % ( ) are allowed';
+    try { const v = calc(e); return Number.isFinite(v) ? String(v) : 'error: not a finite number'; } catch { return 'error: could not evaluate that'; }
   }
-  if (name === 'compile_godtongue') {
-    const r = check(String(args?.source ?? ''), {});
-    return JSON.stringify({ compiles: r.ok, kind: r.kind, errors: r.diagnostics.filter((d) => d.level === 'error').slice(0, 10).map((d) => ({ line: d.line, error: d.msg, hint: d.hint, suggestion: d.fix?.replace })), things: Object.keys(r.elements ?? {}) });
+  if (name === 'random_number') {
+    const lo = Math.ceil(Number(args?.min)), hi = Math.floor(Number(args?.max));
+    if (!Number.isFinite(lo) || !Number.isFinite(hi) || hi < lo) return 'error: give a min and a max, min first';
+    return String(lo + Math.floor(Math.random() * (hi - lo + 1)));
   }
   return `no tool called ${name}`;
 }
-const SYSTEM = 'You are being tested inside Studio Morgana, a studio that makes designs by writing godtongue: plain English that compiles to a picture. You may answer anything. When asked to make or change a design, learn the words with list_manual and read_manual, write godtongue, and check it with compile_godtongue before you answer. Show the final source in a ```gt block.';
+const SYSTEM = 'You are a helpful assistant. You may use the tools you are given when they help.';
 
 interface ChatBody { model?: string; messages?: { role: string; content: string }[]; image?: string }
 export interface Step { tool: string; args: unknown; result: string; ms: number }

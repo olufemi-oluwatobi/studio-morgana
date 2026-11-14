@@ -77,4 +77,4 @@ export interface PieceDetail {
   files: PieceFile[];
 }
 export interface Project { id: string; name: string; updated: number; count: number; cover: string | null }
-export interface Me { user: { id: string; email: string; role: 'user' | 'admin'; verified: number } | null; email: boolean; features?: { lab: boolean } }
+export interface Me { user: { id: string; email: string; role: 'user' | 'admin'; verified: number } | null; email: boolean }

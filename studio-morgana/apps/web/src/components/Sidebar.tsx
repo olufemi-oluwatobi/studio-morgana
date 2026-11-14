@@ -7,7 +7,7 @@ import { linkHandler, navigate, parse, useLocation } from '../lib/router';
 import { dragStore, loadWall, seedWall } from '../lib/wall';
 import { createProject, loadProjects, pin, projectsStore } from '../lib/projects';
 import { api, type Project } from '../lib/api';
-import { Folder, Grid, Mine, Moon, Plus, Refresh, Sparkle, Sun, User, X } from './Icons';
+import { Folder, Grid, Mine, Moon, Plus, Refresh, Sun, User, X } from './Icons';
 
 export const drawerStore = createStore(false);
 
@@ -124,7 +124,6 @@ export const Sidebar = memo(function Sidebar() {
           <button className="side-link" onClick={toggleTheme} aria-label={theme === 'light' ? 'Switch to dark' : 'Switch to light'}>
             {theme === 'light' ? <Moon /> : <Sun />} {theme === 'light' ? 'Dark' : 'Light'}
           </button>
-          {me?.features?.lab && <a className="side-link" href="/lab" onClick={linkHandler('/lab')}><Sparkle /> Model lab</a>}
           {me?.user?.role === 'admin' && (
             <button className="side-link" onClick={() => void refreshShowcase()} disabled={refreshing}><Refresh /> {refreshing ? 'Refreshing…' : 'Refresh showcase'}</button>
           )}

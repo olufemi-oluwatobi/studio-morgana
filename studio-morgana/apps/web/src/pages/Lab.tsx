@@ -1,9 +1,8 @@
-// The model lab (admins, feature flag LAB): a plain chat with a model of your choice. The studio's own tools (the manual
-// and the compiler) are in reach, and each call is shown. "Download chat" saves everything, to paste back.
+// The model lab (feature flag LAB, at a secret address): a plain chat with a model of your choice, with a few small
+// tools so tool calls can be watched. "Download chat" saves everything, to paste back.
 import { useEffect, useRef, useState } from 'react';
 import { api, ApiError } from '../lib/api';
-import { useStore } from '../lib/store';
-import { meStore, toast } from '../lib/session';
+import { toast } from '../lib/session';
 import { ArrowUp, Download, Plus, X } from '../components/Icons';
 
 interface ModelRow { id: string; vision: boolean | null; free: boolean | null }
@@ -23,17 +22,26 @@ async function shrink(file: File, max = 1280): Promise<string> {
   return c.toDataURL('image/jpeg', 0.86);
 }
 
+const prettyResult = (r: string) => { try { return JSON.stringify(JSON.parse(r), null, 2); } catch { return r; } };
 function Tool({ s }: { s: Step }) {
+  const args = JSON.stringify(s.args);
+  const bad = /^error/i.test(s.result);
   return (
     <details className="lab-tool">
-      <summary><span className="lab-tool-name">{s.tool}</span><small>{secs(s.ms)}</small></summary>
-      <div><b>Input</b><pre>{JSON.stringify(s.args, null, 2)}</pre><b>Result</b><pre>{s.result}</pre></div>
+      <summary>
+        <span className={'lab-dot' + (bad ? ' bad' : '')} aria-hidden="true" />
+        <span className="lab-tool-name">{s.tool}</span>
+        <span className="lab-tool-args">{args === '{}' ? '' : args}</span>
+        <small>{secs(s.ms)}</small>
+      </summary>
+      <div><b>Input</b><pre>{JSON.stringify(s.args, null, 2)}</pre><b>Result</b><pre>{prettyResult(s.result)}</pre></div>
     </details>
   );
 }
 
-export default function Lab() {
-  const me = useStore(meStore, (m) => m);
+export default function Lab({ token }: { token: string }) {
+  const hdr = { 'x-lab-token': token };
+  const [denied, setDenied] = useState(false);
   const [models, setModels] = useState<ModelRow[]>([]);
   const [listErr, setListErr] = useState('');
   const [model, setModel] = useState(load('model'));
@@ -42,17 +50,17 @@ export default function Lab() {
   const [image, setImage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const end = useRef<HTMLDivElement>(null), file = useRef<HTMLInputElement>(null), ta = useRef<HTMLTextAreaElement>(null);
-  const allowed = !!me?.features?.lab;
 
   useEffect(() => {
-    if (!allowed) return;
-    api<{ models: ModelRow[] }>('/lab/models').then((r) => setModels(r.models)).catch((e) => setListErr((e as Error).message));
-  }, [allowed]);
+    let m = document.querySelector('meta[name=robots]') as HTMLMetaElement | null;
+    if (!m) { m = document.createElement('meta'); m.name = 'robots'; document.head.appendChild(m); }
+    m.content = 'noindex, nofollow';
+    api<{ models: ModelRow[] }>('/lab/models', { headers: hdr }).then((r) => setModels(r.models)).catch((e) => { if (e instanceof ApiError && e.status === 404) setDenied(true); else setListErr((e as Error).message); });
+  }, []);
   useEffect(() => { end.current?.scrollIntoView({ block: 'end' }); }, [turns, busy]);
   useEffect(() => { const t = ta.current; if (!t) return; t.style.height = '0px'; t.style.height = Math.min(t.scrollHeight, 180) + 'px'; }, [text]);
 
-  if (!me) return <div className="page lab" aria-busy="true" />;
-  if (!allowed) return <div className="page"><div className="empty"><h2>Not available</h2><p>This page is switched off.</p><p><a className="link" href="/">Back to the wall</a></p></div></div>;
+  if (denied) return <div className="page"><div className="empty"><h2>Not available</h2><p>This page is switched off.</p><p><a className="link" href="/">Back to the wall</a></p></div></div>;
 
   async function send() {
     const t = text.trim();
@@ -61,7 +69,7 @@ export default function Lab() {
     const next: Turn[] = [...turns, { role: 'user', content: t || 'What is in this image?', image: image ?? undefined }];
     setTurns(next); setText(''); const img = image; setImage(null); setBusy(true);
     try {
-      const r = await api<ChatOut>('/lab/chat', { body: { model, messages: next.filter((m) => !m.error).map(({ role, content }) => ({ role, content })), image: img ?? undefined } });
+      const r = await api<ChatOut>('/lab/chat', { headers: hdr, body: { model, messages: next.filter((m) => !m.error).map(({ role, content }) => ({ role, content })), image: img ?? undefined } });
       setTurns((x) => [...x, r.ok
         ? { role: 'assistant', content: r.text || '', steps: r.steps, model: r.model, meta: `${secs(r.ms)}${r.usage?.prompt || r.usage?.completion ? ` · ${r.usage.prompt}→${r.usage.completion} tokens` : ''}${r.noTools ? ' · this model does not take tools' : ''}` }
         : { role: 'assistant', content: r.error || 'No answer', steps: r.steps, error: true, model: r.model, meta: `${secs(r.ms)}${r.status ? ' · HTTP ' + r.status : ''}` }]);

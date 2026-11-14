@@ -22,13 +22,14 @@ export default function App() {
   }, []);
   useEffect(() => { window.scrollTo(0, 0); }, [route.name, route.name === 'editor' ? route.id : '']);
 
+  if (route.name === 'lab') return <ErrorBoundary><Suspense fallback={null}><Lab token={route.token} /></Suspense></ErrorBoundary>;
   if (route.name === 'auth') return <ErrorBoundary><Suspense fallback={null}><Auth mode={route.mode} token={route.token} /><Toasts /></Suspense></ErrorBoundary>;
   return (
     <div className="app">
       <Sidebar />
       <div className="main">
         <ErrorBoundary key={route.name === 'editor' ? route.id : route.name}>
-          {route.name === 'wall' ? <Wall scope={route.scope} /> : route.name === 'lab' ? <Suspense fallback={null}><Lab /></Suspense> : <Suspense fallback={<div className="page editor-page" aria-busy="true"><div className="art skeleton" style={{ aspectRatio: '592 / 914', maxWidth: 520, margin: '72px auto' }} /></div>}><Editor id={route.id} /></Suspense>}
+          {route.name === 'wall' ? <Wall scope={route.scope} /> : <Suspense fallback={<div className="page editor-page" aria-busy="true"><div className="art skeleton" style={{ aspectRatio: '592 / 914', maxWidth: 520, margin: '72px auto' }} /></div>}><Editor id={route.id} /></Suspense>}
         </ErrorBoundary>
       </div>
       <DragTray />

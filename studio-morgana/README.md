@@ -190,8 +190,10 @@ GET  /files/<key>                             R2, immutable, supports Range
 The app's models are set by `AI_PROVIDER` and friends (see `apps/api/src/env.ts`); by default Workers AI. Any OpenAI-compatible service works:
 `AI_PROVIDER=openai`, `AI_BASE_URL=https://crowllm.com/v1`, `READER_MODEL` and `WRITER_MODEL`, and the key as a secret (`wrangler secret put AI_API_KEY`).
 
-`/lab` is an admin-only page for trying models by hand before changing that: a plain chat with a model picked from the service's list, an image button, and the studio's own tools in reach (the manual and the compiler), each call shown. "Download chat" saves the whole thing as Markdown. It is behind the `LAB` variable (`"on"` in `wrangler.jsonc`; any other value hides the page and its API), reaches the service with `LAB_BASE_URL` and the secret `LAB_API_KEY` (falls back to `AI_API_KEY`), and never changes what the app uses.
+`/lab/<LAB_TOKEN>` is a plain chat for trying models by hand before changing that: pick a model from the service's list, add an image, watch tool calls (a few harmless tools: time, calculator, random number), and "Download chat" to save it all as Markdown. There is no sign-in; the secret address is the access. It exists only when `LAB` is `"on"` (in `wrangler.jsonc`) and the secret `LAB_TOKEN` is set (16+ characters); every API call must carry that token, otherwise the answer is 404. It reaches the service with `LAB_BASE_URL` and the secret `LAB_API_KEY` (falls back to `AI_API_KEY`), and never changes what the app uses. Rotate by setting a new `LAB_TOKEN`.
 
 ```
-cd apps/api && npx wrangler secret put LAB_API_KEY
+cd apps/api
+npx wrangler secret put LAB_API_KEY      # your CrowLLM key
+npx wrangler secret put LAB_TOKEN        # the secret in the address, e.g. from: openssl rand -hex 16
 ```
