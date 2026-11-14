@@ -1,0 +1,23 @@
+-- Swiss type poster: one huge stacked headline on a strict grid, small mono labels, one red circle.
+Let there be a flat canvas called swiss-type-poster, 1080 by 1350.
+Let bone be #efe9df.
+Let ink be #111111.
+Let signal be #e63b2e.
+Make the card bone.
+Let a label be Martian Mono, size 20, tracking 4, aligned left, ink.
+
+Let there be a circle called sun, 520 big, at 760 470.
+Make the sun signal.
+
+Write "FORM" called line-1 in Big Shoulders Display, at 72 560, size 300, aligned left.
+Write "FOLLOWS" called line-2 in Big Shoulders Display, at 72 820, size 300, aligned left.
+Write "FEELING" called line-3 in Big Shoulders Display, at 72 1080, size 300, aligned left.
+Make the line-1, the line-2 and the line-3 ink.
+
+Let there be a rectangle called rule-top, 936 by 3, at 540 150.
+Let there be a rectangle called rule-bottom, 936 by 3, at 540 1180.
+Make the rule-top and the rule-bottom ink.
+
+Write "N° 07 — DESIGN WEEK" called kicker as a label, at 72 120.
+Write "LECTURES · WORKSHOPS · NIGHTS" called topic as a label, at 72 1220.
+Write "12—16 MAY 2027" called dates as a label, at 1008 1220, aligned right.

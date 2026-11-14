@@ -6,7 +6,7 @@ import { FACTS } from './guide.gen';
 import { localGenerate, localEdit } from './local-gen';
 import { fail } from './util';
 import { buildModels, roleReady, scriptedModels, type Img, type Models, ModelError } from './wizard/models';
-import { planBrief, tidyPlan, writeOption, type Brief, type Planned } from './wizard/create';
+import { docketsOf, planBrief, tidyPlan, writeOption, type Brief, type Planned } from './wizard/create';
 import { editPiece, reviewRender, type Edited, type PartBrief, type Review } from './wizard/edit';
 import { addCheckLoop, chaptersFor, runToEnd, systemFor, wizardOf, type LoopState, type Step } from './wizard/common';
 import { check } from './gt/checker.gen.js';
@@ -55,15 +55,16 @@ export async function pictureOf(env: Env, versionId: string): Promise<Img | null
 
 // ── making pieces: one plan, then one write per option ─────────────────────────────────────────────────────────────
 export interface Made { source: string; ok: boolean; trail: Step[] }
-export async function planFor(env: Env, o: { prompt: string; refs: string[]; files: FileRef[]; looksLike?: Img[] }): Promise<{ planned: Planned; brief: Brief; bytes: Record<string, Uint8Array> } | null> {
+export async function planFor(env: Env, o: { prompt: string; refs: string[]; files: FileRef[]; looksLike?: Img[]; dockets?: string[] }): Promise<{ planned: Planned; brief: Brief; bytes: Record<string, Uint8Array> } | null> {
   if (aiMode(env) === 'local') return null;
   const { images, bytes } = await readFiles(env, o.files);
-  const brief: Brief = { prompt: o.prompt, refs: o.refs, images, looksLike: o.looksLike ?? [] };
+  const brief: Brief = { prompt: o.prompt, refs: o.refs, images, looksLike: o.looksLike ?? [], dockets: o.dockets };
   try { return { planned: await planBrief(models(env), brief, [...FACTS.fonts]), brief, bytes }; }
   catch (e) {
     // no plan is not the end: the writer works from the brief alone
     console.error('planning failed', e);
-    return { planned: { plan: tidyPlan({}, brief), chapters: chaptersFor([], {}), looks: '', trail: [{ step: 'plan', by: 'reader', ms: 0, note: 'the reader did not answer; writing from the brief' }] }, brief, bytes };
+    const plan = tidyPlan({}, brief);
+    return { planned: { plan, dockets: docketsOf(plan.dockets), chapters: chaptersFor([], {}), looks: '', trail: [{ step: 'plan', by: 'reader', ms: 0, note: 'the reader did not answer; writing from the brief' }] }, brief, bytes };
   }
 }
 export async function makeOption(env: Env, p: Awaited<ReturnType<typeof planFor>>, o: { prompt: string; uploads: string[]; i: number; n: number }): Promise<Made> {

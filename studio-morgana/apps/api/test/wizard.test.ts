@@ -91,6 +91,21 @@ const plan = { kind: 'canvas', title: 'sale', size: [1080, 1350], flat: true, mo
   ok('a call that answers in time is untouched', (await within(Promise.resolve('ok'), 30, 'x')) === 'ok');
 }
 
+// 3d. dockets: the reader sees the looks we make well, picks one, and the writer gets it whole
+{
+  const { DOCKETS } = await import('../src/dockets.gen');
+  const d = DOCKETS[0];
+  const m = scripted([[/plan a piece/i, JSON.stringify({ ...plan, dockets: [d.id, 'not-a-look'], slots: { headline: 'BUILD SLOWLY' }, missing: ['a date'] })], [/Pick the chapters/, '{"chapters":[]}']], [[/./, gt(GOOD)]]);
+  const p = await planBrief(m, { prompt: 'a talk poster', refs: [], images: [], looksLike: [] }, []);
+  ok('the reader is shown the looks', m.calls[0].a.prompt.includes(d.id) && m.calls[0].a.prompt.includes(d.use));
+  ok('it keeps only looks that exist', p.dockets.length === 1 && p.dockets[0].id === d.id && p.plan.missing[0] === 'a date');
+  await writeOption(m, { brief: { prompt: 'a talk poster', refs: [], images: [], looksLike: [] }, planned: p, files: {}, i: 1, n: 4, rounds: 0 });
+  const w = m.calls.find((c) => c.who === 'writer')!.a;
+  ok('the writer gets the whole docket, its example, the slots and what is missing', w.system!.includes(d.text.slice(0, 200)) && w.system!.includes(d.source.split('\n')[1]) && /BUILD SLOWLY/.test(w.prompt) && /a date/.test(w.prompt) && /another of its palettes/.test(w.prompt));
+  const chosen = await planBrief(scripted([[/plan a piece/i, JSON.stringify(plan)], [/Pick the chapters/, '{"chapters":[]}']], []), { prompt: 'x', refs: [], images: [], looksLike: [], dockets: [d.id] }, []);
+  ok('a look the person chose wins', chosen.dockets[0]?.id === d.id);
+}
+
 // 4. patches
 {
   const src = 'a\nb\nc\nd\ne\n';

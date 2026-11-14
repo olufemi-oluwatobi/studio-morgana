@@ -3,6 +3,7 @@
 //   write (once per option): write (writer, from the plan and the chapters) → check → fix → check … → done
 // The options share one plan and differ by direction, so four options cost one plan and four writes.
 import type { Chapter } from '../manual.gen';
+import { DOCKETS, type Docket } from '../dockets.gen';
 import type { GtChecked } from '../gt/checker.gen.js';
 import type { Img, Models } from './models';
 import { addCheckLoop, chaptersFor, codeOf, contents, errorsOf, extractJson, runToEnd, stamp, systemFor, wizardOf, type LoopState, type Step } from './common';
@@ -12,6 +13,7 @@ export interface Brief {
   refs: string[];                                   // sources of pieces to take the style from
   images: Img[];                                    // the person's uploads, which the piece may print (by name)
   looksLike: Img[];                                 // pictures to take the style from: finished pieces and loose inspiration (never printed)
+  dockets?: string[];                               // looks the person chose themselves (docket ids); otherwise the reader picks
 }
 export interface Plan {
   kind: 'canvas' | 'card' | 'stage' | 'video';
@@ -20,8 +22,11 @@ export interface Plan {
   elements: { name: string; what: string; where: string }[];
   images: { file: string; use: string }[];
   notes: string;
+  dockets: string[];                                // the looks to build on (docket ids), best first
+  slots: Record<string, string>;                    // what the brief fills in each look
+  missing: string[];                                // what the brief does not say that the look needs
 }
-export interface Planned { plan: Plan; chapters: Chapter[]; looks: string; trail: Step[] }
+export interface Planned { plan: Plan; chapters: Chapter[]; looks: string; trail: Step[]; dockets: Docket[] }
 
 const PLAN_SHAPE = `{
   "kind": "canvas" | "card" | "stage" | "video",
@@ -34,8 +39,14 @@ const PLAN_SHAPE = `{
   "fonts": ["one to three font names from the list"],
   "elements": [{ "name": "hyphenated-name", "what": "what it is and how it looks", "where": "where it sits, in words (in, under, beside, at the top left …)" }, … in painting order, back first],
   "images": [{ "file": "name.jpg", "use": "where the image goes and how it is treated" }],
-  "notes": "anything else the writer must know: materials, effects, motion"
+  "notes": "anything else the writer must know: materials, effects, motion",
+  "dockets": ["one or two look ids from the list that fit the brief, best first; [] when none fits"],
+  "slots": { "headline": "…", "…": "what the brief gives for each thing the chosen look varies" },
+  "missing": ["anything the look needs that the brief does not say (a date, a name, a photo …)"]
 }`;
+
+// the looks we make well, one line each, for the reader to choose from
+export const docketIndex = () => DOCKETS.map((d) => `- ${d.id}: ${d.name}. Use when: ${d.use}. Kinds: ${d.kinds}. Size: ${d.size}. Tags: ${d.tags}.`).join('\n');
 
 export function planWizard(models: Models, fonts: string[]) {
   const w = wizardOf(models);
@@ -66,6 +77,7 @@ export function planWizard(models: Models, fonts: string[]) {
     instruction: [
       'You plan a piece for Studio Morgana, a studio that writes designs in godtongue (plain English that compiles to a picture).',
       'Brief: "{{prompt}}"', '{{looks}}', '{{refs}}',
+      '{{dockets}}',
       `Fonts you may use: ${fonts.join(', ')}.`,
       'Break the brief down into a plan the writer can follow. Prefer a flat canvas for posters, posts, brand pages and UI; a card for collectibles; a video when the brief asks for motion.',
       `Reply with JSON of this shape:\n${PLAN_SHAPE}`,
@@ -73,6 +85,7 @@ export function planWizard(models: Models, fonts: string[]) {
     context: (s) => ({
       prompt: s.brief.prompt,
       looks: s.looks ? 'What the images show (style references are to be matched, not printed):\n' + s.looks : '',
+      dockets: s.brief.dockets?.length ? `The person chose these looks: ${s.brief.dockets.join(', ')}. Use them.` : DOCKETS.length ? `Looks we make well, each written up with a finished example (choose the ones that fit; follow their grid, type and palette):\n${docketIndex()}` : '',
       refs: s.brief.refs.length ? 'Reference pieces to match in style (godtongue sources, shortened):\n' + s.brief.refs.map((r: string) => r.slice(0, 1500)).join('\n---\n') : '',
     }),
     handler: ({ json, setState }) => {
@@ -102,8 +115,11 @@ export function planWizard(models: Models, fonts: string[]) {
 
 export async function planBrief(models: Models, brief: Brief, fonts: string[]): Promise<Planned> {
   const out = await runToEnd(planWizard(models, fonts), { brief, trail: [] as Step[] } as any);
-  return { plan: out.plan, chapters: out.chapters ?? chaptersFor([], { kind: out.plan?.kind }), looks: out.looks || '', trail: out.trail };
+  const plan: Plan = out.plan ?? tidyPlan({}, brief);
+  return { plan, chapters: out.chapters ?? chaptersFor([], { kind: plan.kind }), looks: out.looks || '', trail: out.trail, dockets: docketsOf(plan.dockets) };
 }
+
+export const docketsOf = (ids: string[]) => ids.map((id) => DOCKETS.find((d) => d.id === id)).filter((d): d is Docket => !!d);
 
 // a plan the writer can rely on, whatever the reader sent
 export function tidyPlan(j: any, b: Brief): Plan {
@@ -118,6 +134,9 @@ export function tidyPlan(j: any, b: Brief): Plan {
     fonts: (Array.isArray(j?.fonts) ? j.fonts : []).map(String).slice(0, 3),
     elements: (Array.isArray(j?.elements) ? j.elements : []).slice(0, 40).map((e: any) => ({ name: String(e?.name || ''), what: String(e?.what || ''), where: String(e?.where || '') })),
     images: (Array.isArray(j?.images) ? j.images : []).filter((x: any) => b.images.some((i) => i.name === x?.file)).map((x: any) => ({ file: x.file, use: String(x.use || '') })),
+    dockets: (b.dockets?.length ? b.dockets : Array.isArray(j?.dockets) ? j.dockets : []).map(String).filter((id: string) => DOCKETS.some((d) => d.id === id)).slice(0, 2),
+    slots: Object.fromEntries(Object.entries(j?.slots && typeof j.slots === 'object' ? j.slots : {}).slice(0, 20).map(([k, v]) => [String(k), String(v)])),
+    missing: (Array.isArray(j?.missing) ? j.missing : []).map(String).slice(0, 8),
   };
   if (p.kind === 'card') { p.size = undefined; p.flat = false; }
   if (!p.size && p.kind !== 'card') p.size = [1080, 1350];
@@ -137,13 +156,18 @@ export interface Written { source: string; ok: boolean; checked: GtChecked; roun
 
 export async function writeOption(models: Models, o: { brief: Brief; planned: Planned; files: Record<string, Uint8Array>; i: number; n: number; rounds: number }): Promise<Written> {
   const { brief, planned } = o;
-  const system = systemFor(planned.chapters);
+  // each option builds on one chosen look; with two looks the options alternate between them
+  const picks = planned.dockets ?? [], slots = planned.plan.slots ?? {}, missing = planned.plan.missing ?? [];
+  const docket = picks.length ? picks[o.i % picks.length] : null;
+  const system = systemFor(planned.chapters) + (docket ? `\n\n# The look for this piece: ${docket.name}\nThis is one of our dockets: a look we make well, written down with a finished example. Build the piece on it: its grid, type, palette, signature and don'ts are the rules; its slots are what the brief changes. Do not copy the example's words or images; use the brief's.\n\n${docket.text}\n\n## Our example of this look\n\`\`\`gt\n${docket.source.trim()}\n\`\`\`` : '');
   const request = () => [
     `Brief: "${brief.prompt}"`,
     'Plan (from a designer who read the brief and looked at the images):', '```json', JSON.stringify(planned.plan, null, 1), '```',
     planned.looks ? 'What the images show:\n' + planned.looks : '',
     brief.images.length ? `Images you may print (and only these): ${brief.images.map((i) => '@' + i.name).join(', ')}` : 'You were given no images: do not print any.',
-    o.n > 1 ? `This is option ${o.i + 1} of ${o.n}: ${DIRECTIONS[o.i % DIRECTIONS.length]}.` : '',
+    docket && Object.keys(slots).length ? `What the brief gives for the look's slots:\n${Object.entries(slots).map(([k, v]) => `- ${k}: ${v}`).join('\n')}` : '',
+    docket && missing.length ? `The brief does not say: ${missing.join('; ')}. Choose something fitting and plausible for each; never leave a placeholder.` : '',
+    o.n > 1 ? (docket ? `This is option ${o.i + 1} of ${o.n} on the look "${docket.name}": keep its structure and vary within its slots (${['the first of its palettes', 'another of its palettes', 'another arrangement of its slots', 'its inverted or darkest palette'][Math.floor(o.i / Math.max(1, picks.length)) % 4]}).` : `This is option ${o.i + 1} of ${o.n}: ${DIRECTIONS[o.i % DIRECTIONS.length]}.`) : '',
   ].filter(Boolean).join('\n\n');
   const w = wizardOf(models);
   w.addComputeStep({

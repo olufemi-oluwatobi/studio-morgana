@@ -6,7 +6,8 @@
   "scripts": {
     "build:runtime": "node packages/renderer/build.mjs",
     "build:guide": "node apps/api/scripts/build-guide.mjs",
-    "build": "npm run build:runtime && npm run build:guide && npm -w @morgana/web run build",
+    "build:dockets": "node apps/api/scripts/build-dockets.mjs",
+    "build": "npm run build:runtime && npm run build:guide && npm run build:dockets && npm -w @morgana/web run build",
     "db:local": "npm -w @morgana/api run db:local",
     "dev": "npm run build && npm -w @morgana/api run dev",
     "seed": "node scripts/seed.mjs",
