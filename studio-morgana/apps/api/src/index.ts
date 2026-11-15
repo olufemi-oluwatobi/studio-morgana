@@ -9,6 +9,7 @@ import { pieces } from './pieces';
 import { projects } from './projects';
 import { chat } from './chat';
 import { admin } from './admin';
+import { library } from './library';
 
 const app = new Hono<App>();
 
@@ -38,6 +39,7 @@ app.route('/api', account);
 app.route('/api', pieces);
 app.route('/api', projects);
 app.route('/api/admin', admin);
+app.route('/api/library', library);
 app.route('/api/c-35d0908c0dc5', chat);
 app.all('/api/*', (c) => c.json({ error: 'not found' }, 404));
 

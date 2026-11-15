@@ -4,9 +4,11 @@ import type { App } from './env';
 import { requireAdmin } from './auth';
 import { runJobs, type JobName } from './jobs';
 import { fail, id, now, str, titleOf } from './util';
+import { libraryAdmin } from './library';
 
 export const admin = new Hono<App>();
 admin.use('*', async (c, next) => { requireAdmin(c); await next(); });
+admin.route('/library', libraryAdmin);
 
 // replace a collection's pieces, in order
 admin.put('/collections/:slug', async (c) => {

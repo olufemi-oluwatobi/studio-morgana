@@ -4,6 +4,7 @@
 // The options share one plan and differ by direction, so four options cost one plan and four writes.
 import type { Chapter } from '../manual.gen';
 import { DOCKETS, type Docket } from '../dockets.gen';
+import { stampList, withStamps, type LibStamp } from '../library';
 import type { GtChecked } from '../gt/checker.gen.js';
 import type { Img, Models } from './models';
 import type { AssetInfo } from '../ai';
@@ -248,7 +249,7 @@ const DIRECTIONS = [
 
 export interface Written { source: string; ok: boolean; checked: GtChecked; rounds: number; trail: Step[] }
 
-export async function writeOption(models: Models, o: { brief: Brief; planned: Planned; files: Record<string, Uint8Array>; i: number; n: number; rounds: number }): Promise<Written> {
+export async function writeOption(models: Models, o: { brief: Brief; planned: Planned; files: Record<string, Uint8Array>; i: number; n: number; rounds: number; stamps?: LibStamp[] }): Promise<Written> {
   const { brief, planned } = o;
   // each option builds on one chosen look; with two looks the options alternate between them
   const printable = brief.assets ?? brief.images.map((i) => ({ name: i.name!, type: i.mime, label: i.meta?.label ?? null, w: i.meta?.w ?? null, h: i.meta?.h ?? null, palette: i.meta?.palette ?? [] }));
@@ -263,6 +264,7 @@ export async function writeOption(models: Models, o: { brief: Brief; planned: Pl
     printable.length ? `Assets you may print (and only these):\n${printable.map((a) => `- @${a.name}${a.label ? ` (${a.label})` : ''}${a.w && a.h ? `, ${a.w} by ${a.h}` : ''}${a.palette.length ? `, colours ${a.palette.slice(0, 4).join(' ')}` : ''}`).join('\n')}` : 'You were given no assets: print no images.',
     (brief.looksLike ?? []).length ? 'The style references are for their look only: never print them, and do not copy their words.' : '',
     breakdowns.length ? `How the reference is built (rebuild this structure: the same proportions, layer order, type sizes and laws, with the brief's own words and assets; where a reference layer is a photo or illustration and the brief gives no asset for it, use shapes in its colours instead):\n${breakdowns.map((b) => breakdownFor(b, size)).join('\n\n')}` : '',
+    stampList(o.stamps ?? []),
     docket && Object.keys(slots).length ? `What the brief gives for the look's slots:\n${Object.entries(slots).map(([k, v]) => `- ${k}: ${v}`).join('\n')}` : '',
     docket && missing.length ? `The brief does not say: ${missing.join('; ')}. Choose something fitting and plausible for each; never leave a placeholder.` : '',
     o.n > 1 ? (docket ? `This is option ${o.i + 1} of ${o.n} on the look "${docket.name}": keep its structure and vary within its slots (${['the first of its palettes', 'another of its palettes', 'another arrangement of its slots', 'its inverted or darkest palette'][Math.floor(o.i / Math.max(1, picks.length)) % 4]}).` : `This is option ${o.i + 1} of ${o.n}: ${DIRECTIONS[o.i % DIRECTIONS.length]}.`) : '',
@@ -276,7 +278,8 @@ export async function writeOption(models: Models, o: { brief: Brief; planned: Pl
         system, prompt: request() + '\n\nWrite the piece in the plain-English style ("Let there be …"), placing things with words where you can. Reply with one godtongue piece in a single ```gt block and nothing else.',
         temperature: 0.7,
       });
-      const source = codeOf(reply);
+      const raw = codeOf(reply);
+      const source = raw ? withStamps(raw, o.stamps ?? []) : '';
       if (!source) {
         if ((state.tries ?? 0) >= 1) return w.signal.fail('the writer did not write a godtongue piece');
         setState((s: any) => ({ ...s, tries: (s.tries ?? 0) + 1, trail: stamp(s, 'write', 'writer', t0, 'the reply had no source in it; asking again') }));

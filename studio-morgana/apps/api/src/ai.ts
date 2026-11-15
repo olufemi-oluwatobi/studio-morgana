@@ -10,6 +10,7 @@ import { docketsOf, planBrief, tidyPlan, writeOption, type Brief, type Planned }
 import { editPiece, reviewRender, type Edited, type PartBrief, type Review } from './wizard/edit';
 import { addCheckLoop, chaptersFor, runToEnd, systemFor, wizardOf, type LoopState, type Step } from './wizard/common';
 import { check } from './gt/checker.gen.js';
+import { publishedStamps, stampsFor } from './library';
 
 export type { PartBrief };
 export interface Diagnostic { level: string; line?: number; msg: string; hint?: string }
@@ -71,7 +72,9 @@ export async function planFor(env: Env, o: { prompt: string; refs: string[]; fil
 }
 export async function makeOption(env: Env, p: Awaited<ReturnType<typeof planFor>>, o: { prompt: string; uploads: string[]; i: number; n: number }): Promise<Made> {
   if (!p) return { source: localGenerate(o.prompt, o.i, o.uploads), ok: true, trail: [] };
-  try { return await writeOption(models(env), { brief: p.brief, planned: p.planned, files: p.bytes, i: o.i, n: o.n, rounds: rounds(env) }); }
+  // the library's drawings that fit this plan: the writer may place them, and their definitions go in the piece
+  const stamps = stampsFor(await publishedStamps(env).catch(() => []), p.planned.plan.elements ?? []);
+  try { return await writeOption(models(env), { brief: p.brief, planned: p.planned, files: p.bytes, i: o.i, n: o.n, rounds: rounds(env), stamps }); }
   catch (e) { return busy(e); }
 }
 

@@ -24,6 +24,7 @@ export type Route =
   | { name: 'wall'; scope: Scope }
   | { name: 'editor'; id: string }
   | { name: 'chat' }
+  | { name: 'library' }
   | { name: 'auth'; mode: 'signin' | 'signup' | 'forgot' | 'reset' | 'verify'; token: string | null };
 
 export function parse(loc: string): Route {
@@ -31,6 +32,7 @@ export function parse(loc: string): Route {
   const m = u.pathname.match(/^\/p\/([a-z0-9]{8,40})\/?$/);
   if (m) return { name: 'editor', id: m[1] };
   if (/^\/c-35d0908c0dc5\/?$/.test(u.pathname)) return { name: 'chat' };
+  if (/^\/admin\/library\/?$/.test(u.pathname)) return { name: 'library' };
   const a = u.pathname.match(/^\/auth(?:\/(signin|signup|forgot|reset|verify))?\/?$/);
   if (a) return { name: 'auth', mode: (a[1] as 'signin') || 'signin', token: u.searchParams.get('token') };
   const pr = u.pathname.match(/^\/projects\/([a-z0-9]{8,40})\/?$/);
