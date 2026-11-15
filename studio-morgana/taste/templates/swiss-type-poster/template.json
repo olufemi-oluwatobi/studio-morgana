@@ -1,0 +1,27 @@
+{
+  "id": "swiss-type-poster",
+  "name": "Swiss type poster",
+  "description": "A swiss typographic poster, 1080 by 1350. Three huge stacked lines of type, flush left, the last one sitting on a hairline rule near the bottom; one big accent circle behind the type at the top right; tiny spaced labels above the top rule and below the bottom rule. Strict, confident, cultural.",
+  "use": "lectures, design weeks, conferences, launches, exhibitions, statements and slogans: three words that carry the whole message",
+  "tags": ["poster", "swiss", "typographic", "grid", "minimal", "serious", "cultural"],
+  "guide": "swiss-type-poster",
+  "size": [1080, 1350],
+  "fits": { "type": ["grotesk-poster", "condensed-tech", "didone-fashion"], "spacing": ["standard", "airy", "tight"] },
+  "sizes": {
+    "headline": { "role": "display", "default": 300, "max": 300, "width": "margins", "elements": ["headline-1", "headline-2", "headline-3"], "description": "the headline size; code shrinks it until the longest line fits between the margins" },
+    "labels":   { "role": "label", "default": 20, "max": 24, "width": 0.42, "elements": ["kicker-1", "topic-1", "dates-1"], "description": "the label size" }
+  },
+  "slots": [
+    { "name": "headline", "lines": 3, "max": 9, "description": "three single words, stacked, that carry the whole message (shorter is bigger)", "default": ["Form", "Follows", "Feeling"] },
+    { "name": "kicker", "lines": 1, "max": 26, "description": "above the top rule: a number and the name of the series or event", "default": ["N° 07 — Design week"] },
+    { "name": "topic", "lines": 1, "max": 30, "description": "below the bottom rule, left: what happens, as a short list joined with ·", "default": ["Lectures · Workshops · Nights"] },
+    { "name": "dates", "lines": 1, "max": 18, "description": "below the bottom rule, right: the dates", "default": ["12—16 May 2027"] }
+  ],
+  "art": {
+    "description": "one big accent shape behind the headline at the top right",
+    "shapes": "Let there be a circle called sun, 520 big, at 760 470.\nMake the sun signal.",
+    "stamp": "place a {{stamp}} at 760 470, size 260.",
+    "asset": "Let there be a circle called sun, 520 big, at 760 470.\nPrint @{{asset}} in the sun, inked {{c.accent}}.",
+    "stampInk": "accent"
+  }
+}

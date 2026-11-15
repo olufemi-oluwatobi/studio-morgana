@@ -181,13 +181,13 @@ pieces.post('/generate', async (c) => {
     const beat = setInterval(() => { void send({ type: 'ping' }); }, 8000);
     try {
     // one plan for all the options (the reader looks at the images and picks the manual's chapters), then one write each
-    const planned = await late(planFor(env, { prompt, refs, files: uploads.map((u) => ({ name: u.name, key: u.key, type: u.type, meta: metaOf(u) })), looksLike, dockets: (Array.isArray(body.dockets) ? body.dockets : []).map(String).slice(0, 2) }), 70_000).catch((e) => { console.error('planning failed', e); return null; });
-    if (planned) log('plan', { n, dockets: planned.planned.dockets.map((d) => d.id), kind: planned.planned.plan.kind, chapters: planned.planned.chapters.map((c) => c.id), trail: planned.planned.trail });
+    const planned = await late(planFor(env, { prompt, refs, files: uploads.map((u) => ({ name: u.name, key: u.key, type: u.type, meta: metaOf(u) })), looksLike, dockets: (Array.isArray(body.dockets) ? body.dockets : []).map(String).slice(0, 2), n }), 70_000).catch((e) => { console.error('planning failed', e); return null; });
+    if (planned) log('plan', { n, picks: planned.planned.picks, trail: planned.planned.trail });
     await Promise.all(Array.from({ length: n }, async (_, i) => {
       try {
         const made = await late(makeOption(env, planned, { prompt, uploads: uploads.map((u) => u.name), i, n }), 200_000);
         const source = made.source;
-        log('option', { i, ok: made.ok, lines: source.split('\n').length, trail: made.trail });
+        log('option', { i, ok: made.ok, lines: source.split('\n').length, trail: made.trail, steps: made.trace?.map((t) => ({ step: t.step, by: t.by, ms: t.ms, note: t.note })) });
         const pid = id(), t = now();
         await env.DB.prepare(`INSERT INTO pieces (id, owner, title, status, prompt, created, updated) VALUES (?, ?, ?, 'draft', ?, ?, ?)`)
           .bind(pid, who.owner, titleOf(source, prompt.slice(0, 40)), prompt, t, t).run();

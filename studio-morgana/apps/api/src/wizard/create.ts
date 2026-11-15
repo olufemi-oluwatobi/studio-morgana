@@ -8,6 +8,8 @@ import { stampList, withStamps, type LibStamp } from '../library';
 import type { GtChecked } from '../gt/checker.gen.js';
 import type { Img, Models } from './models';
 import type { AssetInfo } from '../ai';
+import type { Pick } from '../taste/fill';
+import type { Trace } from './taste';
 import { HOUSE, addCheckLoop, chaptersFor, codeOf, contents, errorsOf, extractJson, runToEnd, stamp, systemFor, wizardOf, type LoopState, type Step } from './common';
 
 export interface Brief {
@@ -29,7 +31,7 @@ export interface Plan {
   slots: Record<string, string>;                    // what the brief fills in each look
   missing: string[];                                // what the brief does not say that the look needs
 }
-export interface Planned { plan: Plan; chapters: Chapter[]; looks: string; trail: Step[]; dockets: Docket[]; breakdowns?: Breakdown[] }
+export interface Planned { plan: Plan; chapters: Chapter[]; looks: string; trail: Step[]; dockets: Docket[]; breakdowns?: Breakdown[]; picks?: Pick[]; tasteTrace?: Trace }
 
 const PLAN_SHAPE = `{
   "kind": "canvas" | "card" | "stage" | "video",

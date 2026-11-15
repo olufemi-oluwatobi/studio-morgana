@@ -1,0 +1,23 @@
+-- Swiss type poster: one huge stacked headline on a strict grid, small mono labels, one big accent shape.
+Let there be a flat canvas called swiss-type-poster, 1080 by 1350.
+Let bone be {{c.ground}}.
+Let ink be {{c.ink}}.
+Let signal be {{c.accent}}.
+Make the card bone.
+Let a label be {{font.label}} {{weight.label}}, size {{size.labels}}, tracking {{track.labels}}, aligned left, ink.
+
+{{art}}
+
+-- the headline: three lines, the last one sitting on the bottom rule
+Write "{{headline.1}}" called headline-1 in {{font.display}} {{weight.display}}, at {{margin}} {{1080 - size.headline * lead.display * 2}}, size {{size.headline}}, tracking {{track.headline}}, aligned left.
+Write "{{headline.2}}" called headline-2 in {{font.display}} {{weight.display}}, at {{margin}} {{1080 - size.headline * lead.display}}, size {{size.headline}}, tracking {{track.headline}}, aligned left.
+Write "{{headline.3}}" called headline-3 in {{font.display}} {{weight.display}}, at {{margin}} 1080, size {{size.headline}}, tracking {{track.headline}}, aligned left.
+Make the headline-1, the headline-2 and the headline-3 ink.
+
+Let there be a rectangle called rule-top, {{W - margin * 2}} by 3, at {{W / 2}} 150.
+Let there be a rectangle called rule-bottom, {{W - margin * 2}} by 3, at {{W / 2}} 1180.
+Make the rule-top and the rule-bottom ink.
+
+Write "{{kicker.1}}" called kicker-1 as a label, at {{margin}} 120.
+Write "{{topic.1}}" called topic-1 as a label, at {{margin}} 1220.
+Write "{{dates.1}}" called dates-1 as a label, at {{W - margin}} 1220, aligned right.

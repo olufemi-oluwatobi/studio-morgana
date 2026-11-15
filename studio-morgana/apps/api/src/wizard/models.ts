@@ -162,6 +162,18 @@ export function scriptedModels(gen: (prompt: string, i: number, parts?: { n: num
   return {
     names: { reader: 'scripted-reader', writer: 'scripted-writer' },
     async read(a) {
+      // the taste step: options alternate between the templates the book lists, each in its own palette
+      if (/art director at Studio Morgana/.test(a.prompt)) {
+        const n = Number(quoted(a.prompt, /Make (\d+) option/)) || 1;
+        const section = (h: string) => a.prompt.split('## ' + h)[1]?.split('\n## ')[0] ?? '';
+        const templates = [...section('Templates (our designs)').matchAll(/^- ([a-z0-9-]+):/gm)].map((m) => m[1]);
+        const palettes = [...section('Palettes').matchAll(/^- ([a-z0-9-]+):/gm)].map((m) => m[1]);
+        const takes = (t: string, what: string) => (a.prompt.split(`- ${t}:`)[1]?.match(new RegExp(`Takes ${what}: ([^.]+)\\.`))?.[1] ?? '').split(', ');
+        return JSON.stringify({ picks: Array.from({ length: n }, (_, i) => {
+          const t = templates[i % templates.length];
+          return { option: i + 1, template: t, palette: palettes[(i * 3) % palettes.length], type: takes(t, 'type systems')[0], spacing: takes(t, 'spacing')[0], why: 'scripted: alternating templates and palettes' };
+        }) });
+      }
       if (/designer was given these images/.test(a.prompt)) return 'The images: strong light, deep shadows, subject centred.';
       if (/plan a piece/i.test(a.prompt)) return JSON.stringify({ kind: 'canvas', title: 'piece', size: [1080, 1350], flat: true, mood: 'bold', palette: [], fonts: [], elements: [], images: [], notes: '' });
       if (/Pick the chapters/.test(a.prompt)) return '{"chapters":["verb:write","words"]}';
@@ -173,6 +185,18 @@ export function scriptedModels(gen: (prompt: string, i: number, parts?: { n: num
       return '{}';
     },
     async write(a) {
+      // the spec step: the brief's own words for the headline, the template's examples for the rest
+      if (/You write the spec for option/.test(a.prompt)) {
+        const words = quoted(a.prompt, /The brief: "([^"]*)"/).split(/[^A-Za-z]+/).filter((w) => w.length > 2);
+        const texts: Record<string, string[]> = {};
+        for (const m of a.prompt.matchAll(/^- ([a-z][a-z0-9-]*): exactly (\d+) lines?, each at most (\d+) characters.*Our example: (\[.*\])$/gm)) {
+          const [, name, lines, max, example] = m;
+          texts[name] = name === 'headline'
+            ? Array.from({ length: +lines }, (_, k) => { const w = words[k] ?? JSON.parse(example)[k] ?? 'Hello'; return (w[0].toUpperCase() + w.slice(1).toLowerCase()).slice(0, +max); })
+            : JSON.parse(example);
+        }
+        return JSON.stringify({ texts, sizes: {}, art: { use: 'shapes' }, why: 'scripted: the brief\'s words in the template' });
+      }
       const brief = quoted(a.prompt, /Brief: "([^"]*)"/), opt = Number(quoted(a.prompt, /option (\d+) of/)) || 1;
       if (/does not compile/.test(a.prompt)) {
         const src = (a.prompt.match(/```\n([\s\S]*?)```/) || [, ''])[1]!.split('\n').map((l) => l.replace(/^\s*\d+\| ?/, '')).join('\n');

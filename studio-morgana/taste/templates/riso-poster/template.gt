@@ -1,0 +1,28 @@
+-- Riso poster: two spot inks on cream paper. The accent ink carries the headline and one big flat shape; the second
+-- ink carries the image zone and the labels. Where they cross they multiply into a third colour.
+Let there be a flat canvas called riso-poster, 1080 by 1666.
+Let paper be {{c.ground}}.
+Let warm be {{c.accent}}.
+Let cool be {{c.second}}.
+Let small be {{c.ink}}.
+Make the card paper, grainy 0.3, coarse.
+
+-- the image zone: from 38% down to the bottom, bleeding off the bottom and the right
+{{art}}
+
+-- the headline zone: flush left on the margin, set tight, three lines on a step of the leading
+Let a line be {{font.display}} {{weight.display}}, size {{size.headline}}, tracking {{track.headline}}, aligned left, warm.
+Write "{{headline.1}}" called headline-1 as a line, at {{margin}} {{margin + size.headline * 0.86}}.
+Write "{{headline.2}}" called headline-2 as a line, at {{margin}} {{margin + size.headline * 0.86 + size.headline * lead.display}}.
+Write "{{headline.3}}" called headline-3 as a line, at {{margin}} {{margin + size.headline * 0.86 + size.headline * lead.display * 2}}.
+Make the headline-1, the headline-2 and the headline-3 multiply.
+
+-- labels: a right-hand column in three groups, ending on the right margin
+Let a label be {{font.label}} {{weight.label}}, size {{size.labels}}, tracking {{track.labels}}, aligned left, small.
+Write "{{about.1}}" called about-1 as a label, at {{W - margin - 216}} 92.
+Write "{{about.2}}" called about-2 as a label, at {{W - margin - 216}} {{92 + size.labels * lead.label}}.
+Write "{{about.3}}" called about-3 as a label, at {{W - margin - 216}} {{92 + size.labels * lead.label * 2}}.
+Write "{{where.1}}" called where-1 as a label, at {{W - margin - 216}} 370.
+Write "{{where.2}}" called where-2 as a label, at {{W - margin - 216}} {{370 + size.labels * lead.label}}.
+Write "{{when.1}}" called when-1 as a label, at {{W - margin - 216}} 482.
+Write "{{when.2}}" called when-2 as a label, at {{W - margin - 216}} {{482 + size.labels * lead.label}}.

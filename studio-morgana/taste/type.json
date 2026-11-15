@@ -1,0 +1,56 @@
+[
+  {
+    "id": "editorial-serif",
+    "name": "Editorial serif with a geometric label",
+    "description": "A tall bold serif (Newsreader) set tight for the headline, with small Jost caps for labels. Literary, warm and confident: a magazine cover or a gallery poster. Pairs with riso and earthy palettes.",
+    "tags": ["serif", "editorial", "warm", "literary", "magazine"],
+    "display": { "font": "Newsreader", "weight": 700, "tracking": -0.07, "leading": 0.95, "case": "as written" },
+    "label":   { "font": "Jost", "weight": 500, "tracking": 0.07, "leading": 1.4, "case": "upper" },
+    "scale": [20, 24, 29, 40, 72, 110, 140, 158, 200]
+  },
+  {
+    "id": "grotesk-poster",
+    "name": "Condensed grotesk with a mono label",
+    "description": "Big Shoulders Display bold in capitals, stacked and huge, with Martian Mono labels spaced wide. Industrial, loud, architectural: the swiss poster voice. Pairs with swiss and night palettes.",
+    "tags": ["sans", "condensed", "swiss", "industrial", "loud", "uppercase"],
+    "display": { "font": "Big Shoulders Display", "weight": 700, "tracking": 0, "leading": 0.87, "case": "upper" },
+    "label":   { "font": "Martian Mono", "weight": 400, "tracking": 0.2, "leading": 1.5, "case": "upper" },
+    "scale": [16, 20, 24, 29, 120, 160, 200, 240, 300]
+  },
+  {
+    "id": "didone-fashion",
+    "name": "Didone with spaced caps",
+    "description": "Bodoni Moda bold, high contrast and slightly tight, with widely spaced Jost caps. Fashion, luxury, beauty, perfume, editorial elegance. Pairs with bone, white and night palettes.",
+    "tags": ["serif", "didone", "fashion", "luxury", "elegant"],
+    "display": { "font": "Bodoni Moda", "weight": 700, "tracking": -0.04, "leading": 0.92, "case": "as written" },
+    "label":   { "font": "Jost", "weight": 400, "tracking": 0.14, "leading": 1.5, "case": "upper" },
+    "scale": [18, 20, 24, 29, 72, 110, 140, 180, 220]
+  },
+  {
+    "id": "condensed-tech",
+    "name": "Condensed sans with a mono label",
+    "description": "Saira Condensed bold in capitals with Martian Mono labels. Technical, fast and sporty: dashboards, motorsport, tech launches, sport events. Pairs with white-blue and night palettes.",
+    "tags": ["sans", "condensed", "tech", "sport", "fast", "uppercase"],
+    "display": { "font": "Saira Condensed", "weight": 700, "tracking": -0.02, "leading": 0.9, "case": "upper" },
+    "label":   { "font": "Martian Mono", "weight": 500, "tracking": 0.15, "leading": 1.5, "case": "upper" },
+    "scale": [16, 20, 24, 29, 120, 160, 200, 240, 280]
+  },
+  {
+    "id": "friendly-round",
+    "name": "Rounded heavy display with a geometric label",
+    "description": "Lilita One, round and heavy, with Jost labels. Friendly, cheerful and approachable: kids, food, community, casual brands, sales that should smile. Pairs with riso and sunny palettes.",
+    "tags": ["sans", "rounded", "friendly", "playful", "kids", "food"],
+    "display": { "font": "Lilita One", "weight": 400, "tracking": -0.01, "leading": 0.95, "case": "as written" },
+    "label":   { "font": "Jost", "weight": 500, "tracking": 0.06, "leading": 1.4, "case": "upper" },
+    "scale": [20, 24, 29, 40, 72, 110, 140, 158, 190]
+  },
+  {
+    "id": "retro-bold",
+    "name": "Retro display with a bold label",
+    "description": "Shrikhand, a fat retro display with swing, with bold Jost labels. Nostalgic and fun: diners, vintage markets, record fairs, summer parties. Pairs with riso and forest palettes.",
+    "tags": ["display", "retro", "vintage", "fun", "warm"],
+    "display": { "font": "Shrikhand", "weight": 400, "tracking": -0.02, "leading": 1.0, "case": "as written" },
+    "label":   { "font": "Jost", "weight": 700, "tracking": 0.08, "leading": 1.4, "case": "upper" },
+    "scale": [20, 24, 29, 40, 72, 100, 120, 140, 160]
+  }
+]

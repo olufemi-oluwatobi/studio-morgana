@@ -1,0 +1,106 @@
+[
+  {
+    "id": "riso-pink-blue",
+    "name": "Riso fluorescent pink and medium blue",
+    "description": "The classic two-drum risograph pairing: fluorescent pink and medium blue on warm cream paper. Where the inks cross they multiply into a deep violet. Loud, playful and arty; reads as printed, not digital. Good for events, studios, exhibitions, zines, nightlife with a craft feel.",
+    "tags": ["risograph", "print", "two-colour", "fluorescent", "playful", "arty", "warm"],
+    "roles": {
+      "ground": { "hex": "#f1e9da", "share": 0.55, "use": "the paper: the whole background, left bare around the type" },
+      "ink":    { "hex": "#2343c2", "share": 0.10, "use": "small text: labels, dates, places" },
+      "accent": { "hex": "#ff4fa3", "share": 0.20, "use": "the headline and one big flat shape" },
+      "second": { "hex": "#2343c2", "share": 0.15, "use": "the image zone: shapes, stamps or the photo's shadows" }
+    },
+    "rules": ["two inks only: accent and second (ink is the same blue)", "overprint with multiply, never cover", "no black anywhere"]
+  },
+  {
+    "id": "riso-orange-green",
+    "name": "Riso orange and green",
+    "description": "Bright orange with a deep fresh green on cream: the colours of fruit and leaves. Warm, generous and edible. Good for food, markets, cooking, gardens, community events and anything about sharing.",
+    "tags": ["risograph", "print", "two-colour", "food", "fresh", "warm", "natural"],
+    "roles": {
+      "ground": { "hex": "#f3ecdc", "share": 0.55, "use": "the paper" },
+      "ink":    { "hex": "#1e5a3e", "share": 0.10, "use": "small text" },
+      "accent": { "hex": "#ff5a1f", "share": 0.20, "use": "the headline and the big shape" },
+      "second": { "hex": "#1e7a52", "share": 0.15, "use": "the image zone, leaves, stems, the photo" }
+    },
+    "rules": ["orange is the voice, green the support", "multiply where they cross"]
+  },
+  {
+    "id": "riso-red-teal",
+    "name": "Riso bright red and teal",
+    "description": "Bright red over teal on off-white. Sharper and more urgent than pink and blue; still clearly print. Good for talks, protests, sales with character, music, sport, anything that should feel energetic but crafted.",
+    "tags": ["risograph", "print", "two-colour", "urgent", "energetic", "bold"],
+    "roles": {
+      "ground": { "hex": "#f5efe3", "share": 0.55, "use": "the paper" },
+      "ink":    { "hex": "#0f5c68", "share": 0.10, "use": "small text" },
+      "accent": { "hex": "#e8352b", "share": 0.20, "use": "the headline and the big shape" },
+      "second": { "hex": "#0f7c8c", "share": 0.15, "use": "the image zone" }
+    },
+    "rules": ["red is the voice, teal the support", "multiply where they cross"]
+  },
+  {
+    "id": "riso-violet-sun",
+    "name": "Riso violet and sunflower",
+    "description": "Violet type over a sunflower-yellow image zone on cream. Bright and optimistic with good contrast for type (the yellow never carries text). Good for spring and summer events, kids, festivals, flowers, music in the park.",
+    "tags": ["risograph", "print", "two-colour", "sunny", "optimistic", "summer", "kids"],
+    "roles": {
+      "ground": { "hex": "#f6f0e1", "share": 0.55, "use": "the paper" },
+      "ink":    { "hex": "#3b2a7a", "share": 0.10, "use": "small text" },
+      "accent": { "hex": "#6a3fd1", "share": 0.20, "use": "the headline and the big shape" },
+      "second": { "hex": "#ffb000", "share": 0.15, "use": "the image zone only: never text, too light on cream" }
+    },
+    "rules": ["yellow never carries text", "violet over yellow multiplies into brown: keep the crossing small"]
+  },
+  {
+    "id": "swiss-bone-red",
+    "name": "Swiss bone, black and signal red",
+    "description": "Warm bone paper, near-black type, one signal-red shape. The international typographic style at its plainest: serious, confident, cultural. Good for design events, lectures, museums, architecture, typography, brands that want authority.",
+    "tags": ["swiss", "grid", "minimal", "serious", "cultural", "black", "red"],
+    "roles": {
+      "ground": { "hex": "#efe9df", "share": 0.60, "use": "the paper" },
+      "ink":    { "hex": "#111111", "share": 0.20, "use": "the headline, labels and rules" },
+      "accent": { "hex": "#e63b2e", "share": 0.18, "use": "one big shape only, never text" },
+      "second": { "hex": "#8a8379", "share": 0.02, "use": "hairlines and quiet details" }
+    },
+    "rules": ["red appears once, as a shape", "type is ink only"]
+  },
+  {
+    "id": "swiss-white-blue",
+    "name": "Swiss white, black and electric blue",
+    "description": "Clean white, black type and one electric-blue shape. Cooler and more technical than bone and red. Good for tech, science, product launches, conferences, fintech, anything precise and modern.",
+    "tags": ["swiss", "grid", "minimal", "tech", "cool", "modern", "blue"],
+    "roles": {
+      "ground": { "hex": "#f7f7f4", "share": 0.62, "use": "the page" },
+      "ink":    { "hex": "#0d0d0d", "share": 0.20, "use": "the headline, labels and rules" },
+      "accent": { "hex": "#1f4bff", "share": 0.16, "use": "one big shape only" },
+      "second": { "hex": "#9a9a9a", "share": 0.02, "use": "hairlines" }
+    },
+    "rules": ["blue appears once, as a shape", "type is ink only"]
+  },
+  {
+    "id": "night-yellow",
+    "name": "Night: black, warm white and yellow",
+    "description": "A near-black ground with warm-white type and one yellow shape: the inverted, nightlife version of the swiss palettes. Dramatic and high contrast. Good for clubs, concerts, film nights, late openings, launches after dark.",
+    "tags": ["dark", "night", "inverted", "dramatic", "music", "club", "yellow"],
+    "roles": {
+      "ground": { "hex": "#121212", "share": 0.62, "use": "the page: dark" },
+      "ink":    { "hex": "#f2efe8", "share": 0.20, "use": "the headline, labels and rules" },
+      "accent": { "hex": "#ffd23f", "share": 0.16, "use": "one big shape; may carry the headline in riso-style templates" },
+      "second": { "hex": "#5c5c5c", "share": 0.02, "use": "hairlines and the image zone's tint" }
+    },
+    "rules": ["the dark is the design: keep it mostly empty", "no grain heavier than 0.2"]
+  },
+  {
+    "id": "forest-cream-orange",
+    "name": "Forest, cream and tangerine",
+    "description": "Deep forest-green type on cream with a tangerine shape and a sage support. Earthy, calm and premium. Good for wellness, coffee, organic food, outdoor brands, slow living, bookshops.",
+    "tags": ["earthy", "calm", "natural", "premium", "green", "food", "wellness"],
+    "roles": {
+      "ground": { "hex": "#f4efe2", "share": 0.58, "use": "the paper" },
+      "ink":    { "hex": "#1f3d2b", "share": 0.20, "use": "the headline, labels and rules" },
+      "accent": { "hex": "#ff7a2e", "share": 0.16, "use": "one big shape, or the headline in riso-style templates" },
+      "second": { "hex": "#8fb08a", "share": 0.06, "use": "the image zone and quiet details" }
+    },
+    "rules": ["green carries text", "tangerine is a highlight, not a background"]
+  }
+]

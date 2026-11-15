@@ -6,11 +6,13 @@ import { FACTS } from './guide.gen';
 import { localGenerate, localEdit } from './local-gen';
 import { fail } from './util';
 import { buildModels, roleReady, scriptedModels, type Img, type ImgMeta, type Models, ModelError } from './wizard/models';
-import { docketsOf, planBrief, tidyPlan, writeOption, type Brief, type Planned } from './wizard/create';
+import { docketsOf, tidyPlan, type Brief, type Planned } from './wizard/create';
 import { editPiece, reviewRender, type Edited, type PartBrief, type Review } from './wizard/edit';
 import { addCheckLoop, chaptersFor, runToEnd, systemFor, wizardOf, type LoopState, type Step } from './wizard/common';
 import { check } from './gt/checker.gen.js';
 import { publishedStamps, stampsFor } from './library';
+import { TASTE } from './taste.gen';
+import { chooseFromBook, makeFromBook, type Trace } from './wizard/taste';
 
 export type { PartBrief };
 export interface Diagnostic { level: string; line?: number; msg: string; hint?: string }
@@ -56,26 +58,42 @@ export async function pictureOf(env: Env, versionId: string): Promise<Img | null
   return null;
 }
 
-// ── making pieces: one plan, then one write per option ─────────────────────────────────────────────────────────────
-export interface Made { source: string; ok: boolean; trail: Step[] }
-export async function planFor(env: Env, o: { prompt: string; refs: string[]; files: FileRef[]; looksLike?: Img[]; dockets?: string[] }): Promise<{ planned: Planned; brief: Brief; bytes: Record<string, Uint8Array> } | null> {
+// ── making pieces from the taste book ─────────────────────────────────────────────────────────────────────────────
+//   taste  (once per brief): the reader sees the whole book and the images → one pick per option
+//   spec   (once per option): the writer fills the picked template's slots
+//   script (once per option): code fills the template and fits the text; the writer only sees errors to fix
+export interface Made { source: string; ok: boolean; trail: Step[]; trace?: Trace[] }
+export async function planFor(env: Env, o: { prompt: string; refs: string[]; files: FileRef[]; looksLike?: Img[]; dockets?: string[]; n?: number }): Promise<{ planned: Planned; brief: Brief; bytes: Record<string, Uint8Array> } | null> {
   if (aiMode(env) === 'local') return null;
   const { images, bytes, assets } = await readFiles(env, o.files);
   const brief: Brief = { prompt: o.prompt, refs: o.refs, images, assets, looksLike: o.looksLike ?? [], dockets: o.dockets };
-  try { return { planned: await planBrief(models(env), brief, [...FACTS.fonts]), brief, bytes }; }
-  catch (e) {
-    // no plan is not the end: the writer works from the brief alone
-    console.error('planning failed', e);
-    const plan = tidyPlan({}, brief);
-    return { planned: { plan, dockets: docketsOf(plan.dockets), chapters: chaptersFor([], {}), looks: '', trail: [{ step: 'plan', by: 'reader', ms: 0, note: 'the reader did not answer; writing from the brief' }] }, brief, bytes };
-  }
+  const n = Math.max(1, Math.min(8, o.n ?? 4));
+  // the person chose a look: only templates built on it are offered
+  const book = o.dockets?.length && TASTE.templates.some((t) => o.dockets!.includes(t.guide))
+    ? { ...TASTE, templates: TASTE.templates.filter((t) => o.dockets!.includes(t.guide)) } : TASTE;
+  const { picks, trace } = await chooseFromBook(models(env), brief, n, book);
+  const first = TASTE.templates.find((t) => t.id === picks[0]?.template);
+  const plan = tidyPlan({ kind: 'canvas', title: o.prompt.split(/\s+/).slice(0, 3).join('-'), size: first?.size, flat: true }, brief);
+  return {
+    planned: {
+      plan, picks, tasteTrace: trace, looks: '', breakdowns: [],
+      dockets: docketsOf([...new Set(picks.map((p) => TASTE.templates.find((t) => t.id === p.template)?.guide).filter((g): g is string => !!g))]),
+      chapters: chaptersFor([], { kind: 'canvas' }),
+      trail: [{ step: 'taste', by: 'reader', ms: trace.ms, note: trace.note }],
+    },
+    brief, bytes,
+  };
 }
 export async function makeOption(env: Env, p: Awaited<ReturnType<typeof planFor>>, o: { prompt: string; uploads: string[]; i: number; n: number }): Promise<Made> {
   if (!p) return { source: localGenerate(o.prompt, o.i, o.uploads), ok: true, trail: [] };
-  // the library's drawings that fit this plan: the writer may place them, and their definitions go in the piece
-  const stamps = stampsFor(await publishedStamps(env).catch(() => []), p.planned.plan.elements ?? []);
-  try { return await writeOption(models(env), { brief: p.brief, planned: p.planned, files: p.bytes, i: o.i, n: o.n, rounds: rounds(env), stamps }); }
-  catch (e) { return busy(e); }
+  const picks = p.planned.picks ?? [];
+  if (!picks.length) fail(500, 'no template was chosen');
+  // the library's drawings whose words meet the brief's: the spec may use one as the art
+  const stamps = stampsFor(await publishedStamps(env).catch(() => []), [{ name: 'brief', what: p.brief.prompt }], 12);
+  try {
+    const r = await makeFromBook(models(env), { brief: p.brief, pick: picks[o.i % picks.length], i: o.i, n: o.n, files: p.bytes, rounds: rounds(env), stamps });
+    return { source: r.source, ok: r.ok, trail: [...p.planned.trail, ...r.trail], trace: [...(p.planned.tasteTrace ? [p.planned.tasteTrace] : []), ...r.trace] };
+  } catch (e) { return busy(e); }
 }
 
 // ── changing a piece ──────────────────────────────────────────────────────────────────────────────────────────────
