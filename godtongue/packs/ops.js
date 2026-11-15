@@ -266,8 +266,8 @@ export default function ops(reg) {
 
   reg.verb({
     words: ['print'],
-    help: 'Print a photo or illustration into an area (default: the window); printed in a shape, the photo fills that shape. Adjust it: duotone #1b1145 and #ffb347, blurred 6, brightness 1.2, contrast 1.1, saturation 0.5, hue 40, grayscale, sepia, inverted, 70% opacity, multiply. "on foil" prints see-through onto metal.',
-    examples: ['print @photo.jpg in the badge, grayscale, contrast 1.2.', 'print @marilyn.jpg in the window, focused at 0.5 0.2.', 'print @star.png on foil, white under the figure.'],
+    help: 'Print a photo or illustration into an area (default: the window); printed in a shape, the photo fills that shape. Adjust it: duotone #1b1145 and #ffb347, inked #df372c (one ink: the darker, the more ink; white prints nothing), halftone 8 (the ink as dots 8 apart), shaded (light from the top left gives a flat drawing form), blurred 6, brightness 1.2, contrast 1.1, saturation 0.5, hue 40, grayscale, sepia, inverted, 70% opacity, multiply. "on foil" prints see-through onto metal.',
+    examples: ['print @photo.jpg in the badge, grayscale, contrast 1.2.', 'print @orange.svg in the art, inked #df372c, halftone 7.', 'print @marilyn.jpg in the window, focused at 0.5 0.2.', 'print @star.png on foil, white under the figure.'],
     run(ctx, toks) {
       const a = toks.find(t => t.t === 'asset');
       if (!a) ctx.err('print which image?', 'e.g. "print @photo.jpg in the window."');
@@ -290,6 +290,13 @@ export default function ops(reg) {
       const filter = filterOf(ctx, mods); if (filter) image.filter = filter;
       // duotone: shadows take the first colour, highlights the second
       if (mods.duotone != null) { const cols = [].concat(mods.duotone).filter(t => t?.t === 'color').map(t => t.v); if (cols.length < 2) ctx.err('duotone needs two colours', 'e.g. "duotone #1b1145 and #ffb347"'); image.duotone = cols.slice(0, 2); }
+      // one ink: the darker the picture, the more ink; white and transparent print nothing (a drawing becomes a stamp)
+      const inkTok = [].concat(mods.inked ?? mods.ink ?? []).find(t => t?.t === 'color');
+      if (mods.inked != null || mods.ink != null) { if (!inkTok) ctx.err('inked in which colour?', 'e.g. "inked #df372c"'); image.ink = inkTok.v; }
+      // a halftone screen: the ink as dots on a grid this many pixels apart, bigger where it is darker
+      // shaded: light from the top left gives a flat drawing form (the ink gathers on the far side, as on a sphere)
+      if (flag(mods, 'shaded') || mods.shaded != null) image.shaded = true;
+      if (mods.halftone != null) { const h = num([].concat(mods.halftone)[0]); image.halftone = Number.isFinite(h) && h > 1 ? Math.min(60, h) : 8; }
       const lk = look(mods);
       const extra = Object.keys(lk).length ? { params: lk } : {};
       if (flag(mods, 'foil') || mods.on === 'foil') {

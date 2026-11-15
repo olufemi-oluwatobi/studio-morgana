@@ -12,7 +12,7 @@ import { fontFile } from '../core/config.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
-const MIME = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif' };
+const MIME = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', svg: 'image/svg+xml' };
 const STOCK = { brass: '#b8923f', stainless: '#b9bdc2', aluminium: '#c9ccd1', titanium: '#8f8a83', 'anodized-navy': '#17225e', 'anodized-midnight': '#0a1458', 'anodized-black': '#1c1e23' };
 const mixHex = (a, b, t = .5) => '#' + [1, 3, 5].map(i => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - t) + parseInt(b.slice(i, i + 2), 16) * t).toString(16).padStart(2, '0')).join('');
 
@@ -74,7 +74,7 @@ function faceSet(d, sides, unsupported) {
   const stepOf = (s) => {
     const out = { op: s.op, line: s.line, params: s.params || {}, kind: s.kind, mask: 'data:image/svg+xml;base64,' + Buffer.from(maskSvg(d, s.area)).toString('base64') };
     if (s.material) out.mat = mat(s.material);
-    if (s.image) { const a = d.assets[s.image.asset], z = d.zones[s.image.zone] || d.zones.window; out.image = { src: `data:${MIME[a.path.split('.').pop().toLowerCase()]};base64,${fs.readFileSync(a.path).toString('base64')}`, rect: s.image.rect || z.rect, focus: s.image.focus || [.5, .5], onFoil: !!s.on_foil, ...(s.image.filter ? { filter: s.image.filter } : {}), ...(s.image.duotone ? { duotone: s.image.duotone } : {}) }; }
+    if (s.image) { const a = d.assets[s.image.asset], z = d.zones[s.image.zone] || d.zones.window; out.image = { src: `data:${MIME[a.path.split('.').pop().toLowerCase()]};base64,${fs.readFileSync(a.path).toString('base64')}`, rect: s.image.rect || z.rect, focus: s.image.focus || [.5, .5], onFoil: !!s.on_foil, ...(s.image.filter ? { filter: s.image.filter } : {}), ...(s.image.duotone ? { duotone: s.image.duotone } : {}), ...(s.image.ink ? { ink: s.image.ink } : {}), ...(s.image.halftone ? { halftone: s.image.halftone } : {}), ...(s.image.shaded ? { shaded: true } : {}) }; }
     if (s.op === 'spray' && !['gloss', 'glitter', 'metalflake', 'candy', 'matte', 'paint'].includes(s.kind)) unsupported.add(`spray ${s.kind}`);
     return out;
   };

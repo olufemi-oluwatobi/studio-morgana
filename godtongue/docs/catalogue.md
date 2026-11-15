@@ -15,7 +15,7 @@ Everything the platform can make, every property each part has, what the rendere
 
 | Status | Meaning | Properties |
 | --- | --- | --- |
-| yes | rendered, and the plain-English words reach it | 142 |
+| yes | rendered, and the plain-English words reach it | 145 |
 | older words | rendered, but only verbs the plain-English layer replaces reach it (create, draw, set, glide, bring in, …) | 20 |
 | partly | some values reachable, some not | 16 |
 | **no word** | rendered, but nothing in the language reaches it | 4 |
@@ -258,6 +258,9 @@ The craft operations (emboss, engrave, deboss, etch, plate, foil, inlay, spray, 
 | `focus` | [x, y] 0–1 | `[0.5,0.5]` | Which point of the photo stays in view when it is cropped. | …, focused at 0.5 0.2 | yes |
 | `filter` | adjustments |  | Blur, brightness, contrast, saturation, hue, grayscale, sepia, invert. | …, grayscale, contrast 1.2 · Make the photo grayscale | yes |
 | `duotone` | [colour, colour] |  | Shadows take the first colour, highlights the second. | …, duotone #1b1145 and #ff9a5a | yes |
+| `ink` | colour |  | One ink: the darker the picture, the more ink; white and transparent print nothing. Turns a drawing or a photo into a one-colour stamp. | …, inked #df372c | yes |
+| `shaded` | yes/no |  | Light from the top left: the ink gathers on the far side, so a flat drawing gets form (use with inked and halftone). | …, inked #d8301a, halftone 8, shaded | yes |
+| `halftone` | px |  | A halftone screen: the ink as dots on a grid this far apart, bigger where it is darker. | …, inked #2343c2, halftone 8 | yes |
 | `on_foil` | yes/no | `false` | Printed see-through onto metal. | Print @art.png in the window, on foil | yes |
 
 ### Objects
@@ -527,7 +530,7 @@ Things that can be let or drawn: `Let there be a <name> called …`.
 | `rays` (`sunburst`, `ray`, `sunrays`) | Rays from the centre of a zone (or "from x y"), alternating thick and thin. |
 | `circle` (`circles`, `dot`, `disc`) | A circle. "40 big" is its radius. |
 | `ellipse` (`ellipses`, `oval`) | An ellipse, "W by H". |
-| `rectangle` (`rect`, `square`, `box`, `rectangles`) | A rectangle, "W by H", optional "corners 10". |
+| `rectangle` (`rect`, `square`, `box`, `rectangles`) | A rectangle, "W by H", or a square, "60 big" (its side); optional "corners 10". |
 | `star` (`stars`, `sparkle`, `sparkles`) | A star: "5 points, 40 big, 16 inner". |
 | `triangle` (`triangles`) | A triangle pointing up: "60 big" or "W by H". "corners 8" rounds it. |
 | `diamond` (`diamonds`, `rhombus`) | A diamond: "60 big" or "W by H". |
@@ -538,8 +541,8 @@ Things that can be let or drawn: `Let there be a <name> called …`.
 | `arrow` (`arrows`) | A block arrow pointing right, "W by H" (turn it to point elsewhere): "draw an arrow called go, 240 by 90, at 540 800." |
 | `bubble` (`speech bubble`, `bubbles`, `callout`) | A speech bubble, "W by H", with its tail at the bottom left: "draw a bubble called quote, 500 by 260, corners 40, at 540 400." |
 | `spiral` (`spirals`, `curl`, `swirl`) | A spiral: "20 big, 1.5 turns". Drawn as a line. |
-| `shape` (`polygon`, `outline shape`) | A closed shape with straight sides: "from 0 0 to 100 0 to 50 80". Use "through" for smooth corners. |
-| `line` (`lines`, `stroke`) | A straight line through points: "from 0 0 to 100 0, 4 wide". |
+| `shape` (`polygon`, `outline shape`) | A closed shape with straight sides: "from 0 0 to 100 0 to 50 80". Use "through" for smooth corners. Several outlines in one shape: "…, then from 200 0 to …". |
+| `line` (`lines`, `stroke`) | A straight line through points: "from 0 0 to 100 0, 4 wide". Several lines in one: "…, then from 0 20 to 100 20". |
 | `curve` (`curves`, `arc`, `wave`) | A smooth curve through points: "from 0 0 through 40 -30 to 80 0". Add "closed" for a closed shape. |
 
 ### Materials
@@ -686,7 +689,7 @@ Every first word a sentence can start with.
 | `deboss`, `press`, `sink` | Press an area down. Depth in mm (default 0.04). |
 | `etch`, `frost` | Frost or matte-etch an area. |
 | `spray` | Spray a coat: gloss, candy, glitter, metalflake, pearl, chameleon or matte. "in" takes colours. |
-| `print` | Print a photo or illustration into an area (default: the window); printed in a shape, the photo fills that shape. Adjust it: duotone #1b1145 and #ffb347, blurred 6, brightness 1.2, contrast 1.1, saturation 0.5, hue 40, grayscale, sepia, inverted, 70% opacity, multiply. "on foil" prints see-through onto metal. |
+| `print` | Print a photo or illustration into an area (default: the window); printed in a shape, the photo fills that shape. Adjust it: duotone #1b1145 and #ffb347, inked #df372c (one ink: the darker, the more ink; white prints nothing), halftone 8 (the ink as dots 8 apart), shaded (light from the top left gives a flat drawing form), blurred 6, brightness 1.2, contrast 1.1, saturation 0.5, hue 40, grayscale, sepia, inverted, 70% opacity, multiply. "on foil" prints see-through onto metal. |
 | `illustrate` | Cloisonné: turn an illustration into flat enamel cells with metal wires. |
 | `write`, `type`, `letter` | Set words in a font. Defaults: Bodoni Moda, size 48, centred. Several lines: put \n in the words, or wrap with "600 wide"; "leading 1.2" sets the line spacing; "aligned left" or "aligned right"; "uppercase"; "tracking 4". "curved 400" sets the words on an arc of that radius (negative curves the other way). Placed by words: "in the sticker", "in the cover, at the bottom left, 120 in", "at the top right" (the page, inside the margin), "under the heading, 40 apart", "beside the play, 16 apart". "as a heading" uses a style made with "Let a heading be …". Several words at once give one label each: Write "a", "b" in each swatch. In a table: Write "1", "Lanterns" in the next row of the playlist. |
 | `sign` | A script signature fitted to a spot. Defaults: Herr Von Muellerhoff, 620 wide, size 250, near the bottom. |

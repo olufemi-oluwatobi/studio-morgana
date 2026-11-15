@@ -110,7 +110,7 @@ function makeContext(doc, reg, diagnostics, baseDir, assetDirs) {
     layer(name) { return doc.layers[name]; },
     sideObj(side = ctx.side || 'front') { return (doc.sides[side] ||= { silhouette: [], steps: [] }); },
     addStep(step) {
-      if (ctx.inDefinition) ctx.err('a definition only draws; finish it after placing it', 'e.g. after "place a rose called r." write "plate the r-petal with rose gold."');
+      if (ctx.inDefinition && !ctx.placing) ctx.err('a definition only draws; finish it after placing it', 'e.g. after "place a rose called r." write "plate the r-petal with rose gold."');
       ctx.sideObj().steps.push({ ...step, line: ctx.line, span: ctx.span });
     },
     resolve(name) {                       // "petals" finds "petal"

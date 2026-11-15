@@ -116,6 +116,8 @@ const layerOf = (ctx, n) => { const L = ctx.doc.layers[n]; if (!L.shapes) ctx.er
 const pivot = (ctx, mods, shapes) => Array.isArray(mods.around) ? mods.around.map(ctx.px) : (mods.in === 'place' || flag(mods, 'place') || ctx.inDefinition === false ? centre(shapes) : [0, 0]);   // "in place" = round its own centre
 const deg = (t) => t?.t === 'num' ? t.v : null;
 
+// "from … to …, then from … to …": one thing made of several outlines
+const pieces = (toks) => { const out = [[]]; for (const t of toks) { if (t.t === 'word' && t.v === 'then') out.push([]); else out[out.length - 1].push(t); } return out.filter((r) => r.length); };
 export default function shapes(reg) {
   // ── elements ────────────────────────────────────────────────────────────────
   const at = (ctx, m) => Array.isArray(m.at) ? m.at.map(ctx.px) : (ctx.inDefinition ? [0, 0] : [ctx.doc.card.rect[0] + ctx.doc.card.rect[2] / 2, ctx.doc.card.rect[1] + ctx.doc.card.rect[3] / 2]);
@@ -126,8 +128,8 @@ export default function shapes(reg) {
     (ctx, m) => { const [x, y] = at(ctx, m), r = m.big != null ? ctx.px(m.big) : m.wide != null ? ctx.px(m.wide) / 2 : 20; return [{ pts: ellipse(x, y, r, r), closed: true, ...paintOf(ctx, m.wide != null && !flag(m, 'hollow') ? { ...m, wide: undefined } : m) }]; });
   el('ellipse', ['ellipses', 'oval'], 'An ellipse, "W by H".', { size: '40 by 70', at: '0 0' },
     (ctx, m) => { const [x, y] = at(ctx, m), [w, h] = m.size ? m.size.map(ctx.px) : [40, 70]; return [{ pts: ellipse(x, y, w / 2, h / 2), closed: true, ...paintOf(ctx, m) }]; });
-  el('rectangle', ['rect', 'square', 'box', 'rectangles'], 'A rectangle, "W by H", optional "corners 10".', { size: '100 by 60', corners: 0, at: '0 0' },
-    (ctx, m) => { const [x, y] = at(ctx, m), [w, h] = m.size ? m.size.map(ctx.px) : [100, m.big ? ctx.px(m.big) : 60]; return [{ pts: rectangle(x, y, w, h, m.corners != null ? ctx.px(m.corners) : 0), closed: true, ...paintOf(ctx, m) }]; });
+  el('rectangle', ['rect', 'square', 'box', 'rectangles'], 'A rectangle, "W by H", or a square, "60 big" (its side); optional "corners 10".', { size: '100 by 60', corners: 0, at: '0 0' },
+    (ctx, m) => { const [x, y] = at(ctx, m), [w, h] = m.size ? m.size.map(ctx.px) : m.big != null ? [ctx.px(m.big), ctx.px(m.big)] : [100, 60]; return [{ pts: rectangle(x, y, w, h, m.corners != null ? ctx.px(m.corners) : 0), closed: true, ...paintOf(ctx, m) }]; });
   el('star', ['stars', 'sparkle', 'sparkles'], 'A star: "5 points, 40 big, 16 inner".', { points: 5, big: 40, inner: 16, at: '0 0' },
     (ctx, m) => { const [x, y] = at(ctx, m), R = m.big != null ? ctx.px(m.big) : 40; return [{ pts: star(x, y, num(m.points, 5), R, m.inner != null ? ctx.px(m.inner) : R * .4), closed: true, ...paintOf(ctx, m) }]; });
   const ngon = (name, words, n, rot, help) => el(name, words, help, { big: 40, at: '0 0' },
@@ -150,10 +152,10 @@ export default function shapes(reg) {
       return [{ pts: body, closed: true, ...paintOf(ctx, m) }, { pts: [[x - w * .28, y + h / 2 - 2], [x - w * .34, y + h / 2 + t], [x - w * .12, y + h / 2 - 2]], closed: true, ...paintOf(ctx, m) }]; });
   el('spiral', ['spirals', 'curl', 'swirl'], 'A spiral: "20 big, 1.5 turns". Drawn as a line.', { big: 20, turns: 1.5, wide: 3 },
     (ctx, m) => { const [x, y] = at(ctx, m); return [{ pts: spiral(x, y, m.big != null ? ctx.px(m.big) : 20, num(m.turns, 1.5)), closed: false, paint: 'stroke', width: m.wide != null ? ctx.px(m.wide) : 3 }]; });
-  el('shape', ['polygon', 'outline shape'], 'A closed shape with straight sides: "from 0 0 to 100 0 to 50 80". Use "through" for smooth corners.', { from: 'points' },
-    (ctx, m, rest) => { const P = readPoints(ctx, rest); if (!P || P.pts.length < 3) ctx.err('a shape needs at least three points', 'e.g. from 0 0 to 100 0 to 50 80'); return [{ pts: P.smooth ? smooth(P.pts, true) : P.pts, closed: true, ...paintOf(ctx, m) }]; });
-  el('line', ['lines', 'stroke'], 'A straight line through points: "from 0 0 to 100 0, 4 wide".', { from: 'points', wide: 3 },
-    (ctx, m, rest) => { const P = readPoints(ctx, rest); if (!P || P.pts.length < 2) ctx.err('a line needs two points', 'e.g. from 0 0 to 100 0'); return [{ pts: P.pts, closed: false, paint: 'stroke', width: m.wide != null ? ctx.px(m.wide) : 3 }]; });
+  el('shape', ['polygon', 'outline shape'], 'A closed shape with straight sides: "from 0 0 to 100 0 to 50 80". Use "through" for smooth corners. Several outlines in one shape: "…, then from 200 0 to …".', { from: 'points' },
+    (ctx, m, rest) => pieces(rest).map((r) => { const P = readPoints(ctx, r); if (!P || P.pts.length < 3) ctx.err('a shape needs at least three points', 'e.g. from 0 0 to 100 0 to 50 80'); return { pts: P.smooth ? smooth(P.pts, true) : P.pts, closed: true, ...paintOf(ctx, m) }; }));
+  el('line', ['lines', 'stroke'], 'A straight line through points: "from 0 0 to 100 0, 4 wide". Several lines in one: "…, then from 0 20 to 100 20".', { from: 'points', wide: 3 },
+    (ctx, m, rest) => pieces(rest).map((r) => { const P = readPoints(ctx, r); if (!P || P.pts.length < 2) ctx.err('a line needs two points', 'e.g. from 0 0 to 100 0'); return { pts: P.pts, closed: false, paint: 'stroke', width: m.wide != null ? ctx.px(m.wide) : 3 }; }));
   el('curve', ['curves', 'arc', 'wave'], 'A smooth curve through points: "from 0 0 through 40 -30 to 80 0". Add "closed" for a closed shape.', { from: 'points', wide: 3 },
     (ctx, m, rest) => {
       const P = readPoints(ctx, rest); if (!P || P.pts.length < 2) ctx.err('a curve needs points', 'e.g. from 0 0 through 40 -30 to 80 0');
@@ -373,13 +375,23 @@ function place(ctx, obj, m, name, [x, y]) {
     ctx.vars.set(p.name, { value: v == null ? p.value : [].concat(v).map(t => (t.t ? t : { t: 'num', v: t, unit: null })) });
   }
   const wasIn = ctx.inDefinition, wasIt = ctx.it, wasScope = ctx.scope;
-  ctx.inDefinition = true; ctx.scope = null;
+  const stepsBefore = new Map(Object.entries(ctx.doc.sides).map(([sd, o]) => [sd, o.steps.length]));
+  // a placed object may paint itself (its own colours): those steps follow its parts to their placed names below
+  const wasPlacing = ctx.placing;
+  ctx.inDefinition = true; ctx.placing = true; ctx.scope = null;
   try { ctx.run(obj.body, `${obj.name}`); }
-  finally { for (const [k, v] of saved) v ? ctx.vars.set(k, v) : ctx.vars.delete(k); ctx.inDefinition = wasIn; ctx.scope = wasScope; ctx.it = wasIt; }
+  finally { for (const [k, v] of saved) v ? ctx.vars.set(k, v) : ctx.vars.delete(k); ctx.inDefinition = wasIn; ctx.placing = wasPlacing; ctx.scope = wasScope; ctx.it = wasIt; }
   const fresh = Object.keys(ctx.doc.layers).filter(n => !before.has(n));
   if (!fresh.length) ctx.err(`"${obj.name}" drew nothing`);
-  const turn = num(m.turned ?? m.turn ?? m.rotated, 0), k = num(m.scaled, 1), flip = flag(m, 'mirrored', 'flipped');
+  // an object drawn without a $size (a stamp is drawn round 0 0, about 100 from centre to edge) scales by "size N": 100 is as drawn
+  const sizeK = !obj.params.some(p => p.name === 'size') && m.size != null ? num([].concat(m.size)[0], 100) / 100 : 1;
+  const turn = num(m.turned ?? m.turn ?? m.rotated, 0), k = num(m.scaled, 1) * sizeK, flip = flag(m, 'mirrored', 'flipped');
   const fx = (p) => { let q = p; if (flip) q = [-q[0], q[1]]; q = T.scale(k, [0, 0])(q); q = T.turn(turn, [0, 0])(q); return [q[0] + x, q[1] + y]; };
+  // what the recipe painted (its own colours, its own effects) follows its parts to their placed names
+  const ren = new Map(fresh.map(n => [n, `${name}-${n}`]));
+  for (const [sd, o] of Object.entries(ctx.doc.sides)) for (const st of o.steps.slice(stepsBefore.get(sd) ?? 0))
+    for (const key of ['terms', 'minus', 'within']) for (const tm of st.area?.[key] || []) if (ren.has(tm.ref)) tm.ref = ren.get(tm.ref);
+  for (const side of ctx.looks?.values() || []) for (const [from, to] of ren) if (side.has(from)) { side.set(to, side.get(from)); side.delete(from); }   // plain-English looks, kept until the end
   const all = [];
   for (const n of fresh) {
     const L = ctx.doc.layers[n]; delete ctx.doc.layers[n];

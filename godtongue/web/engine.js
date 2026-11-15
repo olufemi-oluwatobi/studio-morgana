@@ -93,11 +93,48 @@
       }
       if (s.image) P.photos[i] = await load(s.image.src);
       if (s.image?.duotone) {              // shadows take the first colour, highlights the second
-        const ph = P.photos[i], k = Math.min(1, 2000 / Math.max(ph.width, ph.height)), dc = mk(Math.round(ph.width * k), Math.round(ph.height * k)), dx = dc.getContext('2d');
+        // a vector (an SVG drawing) is drawn at full size before it is recoloured, so it stays sharp
+        const ph = P.photos[i], vec = /^data:image\/svg/.test(s.image.src), k = vec ? 2000 / Math.max(ph.width || 1, ph.height || 1) : Math.min(1, 2000 / Math.max(ph.width, ph.height)), dc = mk(Math.round(ph.width * k), Math.round(ph.height * k)), dx = dc.getContext('2d');
         dx.drawImage(ph, 0, 0, dc.width, dc.height); const im = dx.getImageData(0, 0, dc.width, dc.height), d = im.data;
         const [A, B] = s.image.duotone.map(hx => [1, 3, 5].map(j => parseInt(hx.slice(j, j + 2), 16)));
         for (let q = 0; q < d.length; q += 4) { const l = (d[q] * .299 + d[q + 1] * .587 + d[q + 2] * .114) / 255; d[q] = A[0] + (B[0] - A[0]) * l; d[q + 1] = A[1] + (B[1] - A[1]) * l; d[q + 2] = A[2] + (B[2] - A[2]) * l; }
         dx.putImageData(im, 0, 0); P.photos[i] = dc;
+      }
+      if (s.image?.ink || s.image?.halftone) {   // one ink and/or a halftone screen: coverage from darkness
+        const ph = P.photos[i], vec = /^data:image\/svg/.test(s.image.src);
+        const k = vec ? 2000 / Math.max(ph.width || 1, ph.height || 1) : Math.min(1, 2000 / Math.max(ph.width, ph.height));
+        const W2 = Math.max(1, Math.round((ph.width || 1) * k)), H2 = Math.max(1, Math.round((ph.height || 1) * k));
+        const src = mk(W2, H2), sx = src.getContext('2d', { willReadFrequently: true }); sx.drawImage(ph, 0, 0, W2, H2);
+        const d = sx.getImageData(0, 0, W2, H2).data, out = mk(W2, H2), ox = out.getContext('2d');
+        const ink = s.image.ink ? [1, 3, 5].map(j => parseInt(s.image.ink.slice(j, j + 2), 16)) : null;
+        // the drawing's own box (where it has ink), for shading
+        let bx0 = W2, by0 = H2, bx1 = 0, by1 = 0;
+        if (s.image.shaded) for (let y = 0; y < H2; y += 4) for (let x = 0; x < W2; x += 4) if (d[(y * W2 + x) * 4 + 3] > 40) { if (x < bx0) bx0 = x; if (x > bx1) bx1 = x; if (y < by0) by0 = y; if (y > by1) by1 = y; }
+        const bw = Math.max(1, bx1 - bx0), bh = Math.max(1, by1 - by0);
+        const cover = s.image.shaded
+          ? (q) => { const a = d[q + 3] / 255; if (a < .1) return 0; const p = q / 4, x = (p % W2 - bx0) / bw, y = ((p / W2 | 0) - by0) / bh;
+              const t = Math.hypot(x - .28, y - .25) / 1.0, e = Math.max(0, Math.hypot(x - .5, y - .5) - .38) * 2.2;   // far from the light, and near the rim
+              return a * Math.min(1, .06 + Math.pow(Math.min(1, t), 1.5) * .85 + e); }
+          : (q) => (1 - (d[q] * .299 + d[q + 1] * .587 + d[q + 2] * .114) / 255) * (d[q + 3] / 255);
+        if (s.image.halftone) {
+          // the grid is measured in the piece's pixels: as many cells across the picture as its printed width allows
+          const rw = (s.image.rect || [0, 0, w])[2] || w, cell = Math.max(2, s.image.halftone * W2 / rw), ang = 15 * Math.PI / 180, ca = Math.cos(ang), sa = Math.sin(ang);
+          const R = Math.hypot(W2, H2);
+          for (let u = -R; u < R; u += cell) for (let v = -R; v < R; v += cell) {
+            const x = u * ca - v * sa + W2 / 2, y = u * sa + v * ca + H2 / 2;
+            if (x < 0 || y < 0 || x >= W2 || y >= H2) continue;
+            const q = ((y | 0) * W2 + (x | 0)) * 4, c = ink ? cover(q) : cover(q) || (d[q + 3] / 255) * .0;
+            if (c < .03) continue;
+            const r = cell * .5 * Math.sqrt(Math.min(1, c)) * 1.15;
+            ox.fillStyle = ink ? `rgb(${ink})` : `rgb(${d[q]},${d[q + 1]},${d[q + 2]})`;
+            ox.beginPath(); ox.arc(x, y, r, 0, 6.2832); ox.fill();
+          }
+        } else {
+          const im = ox.createImageData(W2, H2), o = im.data;
+          for (let q = 0; q < d.length; q += 4) { o[q] = ink[0]; o[q + 1] = ink[1]; o[q + 2] = ink[2]; o[q + 3] = Math.round(cover(q) * 255); }
+          ox.putImageData(im, 0, 0);
+        }
+        P.photos[i] = out;
       }
       if (s.op === 'grain' && !P.grain) {  // one seeded tile of noise per face
         const gc = mk(256, 256), gx = gc.getContext('2d'), gi = gx.createImageData(256, 256), gr = rng(seed + 4242);

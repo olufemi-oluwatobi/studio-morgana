@@ -63,13 +63,20 @@ const G = 'create a card called t.\n';
 for (const [name, src, line, words] of [
   ['place something undefined', G + 'place a tulip at 100 100.', 2, 'nothing called "tulip"'],
   ['definition without its recipe', G + 'define a tulip with $size 10.', 2, 'needs its recipe'],
-  ['finishing inside a definition', G + 'define a dot as:\n  draw a circle called c.\n  plate c with gold.\nend.\nplace a dot.', 6, 'a definition only draws'],
   ['move without a where', G + 'draw a circle called c.\nmove c.', 3, 'move it where'],
   ['a shape with two points', G + 'draw a shape called s from 0 0 to 10 10.', 2, 'at least three points'],
   ['an open bracket', G + 'draw a circle called c, (10 + 2 big.', 2, 'bracket is not closed'],
 ]) {
   const r = compile(src, { baseDir: ex }), d = r.diagnostics.find(x => x.level === 'error'), text = d ? `${d.msg} ${d.hint || ''}` : '';
   ok(`fails clearly: ${name}`, !r.ok && d.line === line && text.includes(words), `got line ${d?.line}: ${text}`);
+
+// a placed object may paint itself: its own colours follow its parts to their placed names, and can be changed after
+{
+  const r = compile('Let there be a flat canvas called t, 400 by 200.\ndefine a dot as:\n  draw a circle called c, 20 big.\n  make the c #ff0000.\nend.\nplace a dot called d1 at 100 100.\nplace a dot called d2 at 300 100, size 50.\nmake the d2-c #0000ff.\n', {});
+  const steps = r.doc.sides.front.steps.map((s) => [s.area?.terms?.[0]?.ref, s.mat?.color ?? s.params?.color]);
+  const L = r.doc.layers['d2-c'], w = L.path.rect[2] - L.path.rect[0];
+  ok('a placed object keeps its own colours, and they can be changed after', r.ok && steps.some(([a]) => a === 'd1-c') && steps.filter(([a]) => a === 'd2-c').length >= 1 && Math.round(w) === 20, JSON.stringify(steps) + ' w ' + w);
+}
 }
 // several problems are all reported, not just the first
 const many = compile(B + 'plait it.\nplate the fram with chrome.\nspray the frame with fizz.', { baseDir: ex });
