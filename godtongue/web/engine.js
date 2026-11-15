@@ -20,7 +20,7 @@
     const [bx, by, w, h] = e.rect || [0, 0, e.size[0], e.size[1]], p = new Path2D();
     if (e.outline === 'circle') { p.arc(bx + w / 2, by + h / 2, Math.min(w, h) / 2, 0, Math.PI * 2); return p; }
     const style = e.edge.style, side = e.edge.side, rough = style === 'torn' ? 7 : style === 'deckle' ? 2.6 : 0;
-    if (!rough || bx || by) { p.roundRect(bx, by, w, h, e.corners || (e.body.family === 'metal' ? 6 : e.body.family === 'card' ? 3 : 0)); return p; }
+    if (!rough || bx || by) { p.roundRect(bx, by, w, h, e.corners ?? (e.body.family === 'metal' ? 6 : e.body.family === 'card' ? 3 : 0)); return p; }
     const edge = (x0, y0, x1, y1, nx, ny, on) => {
       const len = Math.hypot(x1 - x0, y1 - y0), n = Math.max(2, Math.round(len / 3)); let walk = 0;
       for (let i = 0; i <= n; i++) {
