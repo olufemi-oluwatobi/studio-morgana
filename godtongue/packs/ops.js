@@ -135,6 +135,45 @@ export default function ops(reg) {
       step(ctx, 'grain', area, { params: { amount: Math.max(0, Math.min(1, num((mods._nums || [])[0] ?? mods.amount, .25))), size: flag(mods, 'coarse') ? 2 : 1 } });
     },
   });
+  // ── print texture (Morgana): the things that make a flat colour read as printed paper ──
+  const cols = (toks) => toks.filter(t => t.t === 'color').map(t => t.v);
+  const amt = (mods, d) => { const t = (mods._nums || [])[0] ?? mods.amount; return t == null ? d : Math.max(0, Math.min(1, t.unit === 'pct' || t.v > 1 ? t.v / 100 : t.v)); };
+  reg.verb({
+    words: ['mottle'],
+    help: 'Soft tone that wanders across an area, like ink soaking into paper: an amount from 0 to 1 (default 0.2) and how big the patches are ("140 wide").',
+    examples: ['mottle the card, 0.2.', 'mottle the panel, 0.15, 90 wide.'],
+    run(ctx, toks) {
+      const { area, mods } = head(ctx, toks);
+      step(ctx, 'mottle', area, { params: { amount: amt(mods, .2), size: num(mods.wide ?? mods.size, 140) } });
+    },
+  });
+  reg.verb({
+    words: ['speck', 'fleck'],
+    help: 'Light and dark flecks, as on cheap paper: an amount from 0 to 1 (default 0.03), "in" a light colour "and" a dark one.',
+    examples: ['speck the card, 0.03, in #8fc1d9 and #0b2533.'],
+    run(ctx, toks) {
+      const { area, mods } = head(ctx, toks), c = cols(toks);
+      step(ctx, 'speck', area, { params: { amount: amt(mods, .03), light: c[0] || '#ffffff', dark: c[1] || '#000000' } });
+    },
+  });
+  reg.verb({
+    words: ['distress'],
+    help: 'Grunge eating in from the edges of an area, worst at the corners, as on a well-handled print: "in" a colour, an amount from 0 to 1 (default 0.9) and how deep it reaches ("60 deep").',
+    examples: ['distress the card in #0d1b22.', 'distress the card in #0d1b22, 0.8, 70 deep.'],
+    run(ctx, toks) {
+      const { area, mods } = head(ctx, toks), c = cols(toks);
+      step(ctx, 'distress', area, { params: { amount: amt(mods, .9), width: num(mods.deep ?? mods.wide, 50), color: c[0] || '#0d1b22' } });
+    },
+  });
+  reg.verb({
+    words: ['wear', 'chalk'],
+    help: 'Breaks up an area’s own paint, like dry chalk or a worn print: an amount from 0 to 1 (0.1 a few specks, 0.4 dry chalk, default 0.4) and the size of the patches ("10 wide").',
+    examples: ['wear the grid, 0.4.', 'wear the title, 0.1.'],
+    run(ctx, toks) {
+      const { area, mods } = head(ctx, toks);
+      step(ctx, 'wear', area, { params: { amount: amt(mods, .4), size: num(mods.wide ?? mods.size, 10) } });
+    },
+  });
   reg.verb({
     words: ['stroke'],
     help: 'A flat outline round an area, outside its edge: "stroke the title in #ffffff, 6 wide." (Without a colour, "stroke the petal, 3 wide" draws a shape as a line, like "hollow".)',
@@ -266,7 +305,7 @@ export default function ops(reg) {
 
   reg.verb({
     words: ['print'],
-    help: 'Print a photo or illustration into an area (default: the window); printed in a shape, the photo fills that shape. Adjust it: duotone #1b1145 and #ffb347, inked #df372c (one ink: the darker, the more ink; white prints nothing), halftone 8 (the ink as dots 8 apart), shaded (light from the top left gives a flat drawing form), blurred 6, brightness 1.2, contrast 1.1, saturation 0.5, hue 40, grayscale, sepia, inverted, 70% opacity, multiply. "on foil" prints see-through onto metal.',
+    help: 'Print a photo or illustration into an area (default: the window); printed in a shape, the photo fills that shape. Adjust it: duotone #1b1145 and #ffb347, inked #df372c (one ink: the darker, the more ink; white prints nothing), halftone 8 (the ink as dots 8 apart), shaded (light from the top left gives a flat drawing form), stippled #0c1720 and #f1ede3 (an engraving: ink and paper, dot by dot), graded #160402 and #aa4820 and #face8c, mixed 40% (a finish through a run of colours), cut out (the backdrop removed), blurred 6, brightness 1.2, contrast 1.1, saturation 0.5, hue 40, grayscale, sepia, inverted, 70% opacity, multiply. "on foil" prints see-through onto metal.',
     examples: ['print @photo.jpg in the badge, grayscale, contrast 1.2.', 'print @orange.svg in the art, inked #df372c, halftone 7.', 'print @marilyn.jpg in the window, focused at 0.5 0.2.', 'print @star.png on foil, white under the figure.'],
     run(ctx, toks) {
       const a = toks.find(t => t.t === 'asset');
@@ -297,6 +336,19 @@ export default function ops(reg) {
       // shaded: light from the top left gives a flat drawing form (the ink gathers on the far side, as on a sphere)
       if (flag(mods, 'shaded') || mods.shaded != null) image.shaded = true;
       if (mods.halftone != null) { const h = num([].concat(mods.halftone)[0]); image.halftone = Number.isFinite(h) && h > 1 ? Math.min(60, h) : 8; }
+      // stippled: one ink and the paper, dot by dot (an engraving's look); "light 0.5" lifts it (for mid-tone subjects)
+      if (mods.stippled != null || flag(mods, 'stippled')) {
+        const c = [].concat(mods.stippled ?? []).filter(t => t?.t === 'color').map(t => t.v);
+        image.stipple = { ink: c[0] || '#0c1720', paper: c[1] || '#f1ede3', light: num(mods.light, .95) };
+      }
+      // graded: a finish; its tones mapped through a run of colours (dark to light), mixed over its own ("mixed 40%")
+      if (mods.graded != null) {
+        const c = [].concat(mods.graded).filter(t => t?.t === 'color').map(t => t.v);
+        if (c.length < 2) ctx.err('graded needs two or more colours, dark to light', 'e.g. "graded #160402 and #aa4820 and #face8c, mixed 40%"');
+        const mx = mods.mixed ?? mods.mix; image.grade = { stops: c, amount: mx == null ? .4 : Math.max(0, Math.min(1, mx.unit === 'pct' || mx.v > 1 ? mx.v / 100 : mx.v)) };
+      }
+      // cut out: the backdrop removed (made once, cached beside the photo)
+      if (flag(mods, 'cut') || flag(mods, 'cutout')) image.cutout = true;
       const lk = look(mods);
       const extra = Object.keys(lk).length ? { params: lk } : {};
       if (flag(mods, 'foil') || mods.on === 'foil') {

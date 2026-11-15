@@ -190,6 +190,9 @@ export const PARTS = [
       P('shaded', 'yes/no', null, 'Light from the top left: the ink gathers on the far side, so a flat drawing gets form (use with inked and halftone).', '…, inked #d8301a, halftone 8, shaded', 'ok'),
       P('halftone', 'px', null, 'A halftone screen: the ink as dots on a grid this far apart, bigger where it is darker.', '…, inked #2343c2, halftone 8', 'ok'),
       P('on_foil', 'yes/no', false, 'Printed see-through onto metal.', 'Print @art.png in the window, on foil', 'ok'),
+      P('stipple', '{ ink, paper, light }', null, 'An engraving: one ink and the paper, dot by dot, at the printed size; light lifts mid tones.', '…, stippled #0c1720 and #f1ede3, light 0.5', 'ok'),
+      P('grade', '{ stops, amount }', null, 'A finish: tones mapped through a run of colours, dark to light, mixed over the picture.', '…, graded #160402 and #aa4820 and #face8c, mixed 40%', 'ok'),
+      P('cutout', 'yes/no', false, 'The backdrop removed (IS-Net matte, made once and cached).', '…, cut out', 'ok'),
     ],
   },
   {
@@ -347,6 +350,23 @@ export const OPERATIONS = [
   O('vignette', 'Darkens or tints the edges of an area.', 'Give the card a vignette of 0.35, in #1f3a5f', 'ok', [
     P('amount', '0–1', 0.5, 'How strong.', '… of 0.35', 'ok'),
     P('color', 'colour', '#000000', 'Colour.', '…, in #1f3a5f', 'ok'),
+  ]),
+  O('mottle', 'Soft tone wandering across an area, like ink soaked into paper.', 'Make the card mottled, 0.2 · mottle the card, 0.2, 140 wide', 'ok', [
+    P('amount', '0–1', 0.2, 'How strong.', '…, 0.2', 'ok'),
+    P('size', 'px', 140, 'How big the patches are.', '…, 140 wide', 'ok'),
+  ]),
+  O('speck', 'Light and dark flecks, as on cheap paper.', 'speck the card, 0.03, in #8fc1d9 and #0b2533', 'ok', [
+    P('amount', '0–1', 0.03, 'How many.', '…, 0.03', 'ok'),
+    P('light / dark', 'colours', ['#ffffff', '#000000'], 'The two flecks.', '…, in #8fc1d9 and #0b2533', 'ok'),
+  ]),
+  O('distress', 'Grunge eating in from the edges of an area, worst at the corners.', 'distress the card in #0d1b22, 60 deep', 'ok', [
+    P('color', 'colour', '#0d1b22', 'The grunge.', '… in #0d1b22', 'ok'),
+    P('amount', '0–1', 0.9, 'How solid.', '…, 0.8', 'ok'),
+    P('width', 'px', 50, 'How deep it reaches.', '…, 60 deep', 'ok'),
+  ]),
+  O('wear', 'An area’s own paint breaks up: dry chalk, a worn print.', 'Make the grid chalky, 0.4 · wear the title, 0.1', 'ok', [
+    P('amount', '0–1', 0.4, '0.1 a few specks, 0.4 dry chalk.', '…, 0.4', 'ok'),
+    P('size', 'px', 10, 'The size of the patches.', '…, 10 wide', 'ok'),
   ]),
   O('grain', 'Film grain over an area.', 'Make the card grainy, 0.2', 'ok', [
     P('amount', '0–1', 0.25, 'How strong.', '…, 0.2', 'ok'),

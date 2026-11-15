@@ -3,12 +3,14 @@
 // has front and back). The browser builds each face's maps (colour, material, height, silhouette, shadow, flakes)
 // and lights them live in WebGL2. Runtime: web/engine.js.
 // Covers: plate, foil, enamel, emboss, deboss, engrave, etch, print, illustrate, sprays (paint, gloss, matte,
-// glitter, metal flake, candy), flip, elements, layers, motion, captions, video.
+// glitter, metal flake, candy), flip, elements, layers, motion, captions, video; print effects: stipple, grade,
+// cut out, mottle, speck, distress, wear.
 // Not yet: pearl and crystal sprays, holo finishes, brushed anisotropy (see docs/morgana-execution.md).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fontFile } from '../core/config.js';
+import { cutoutPath } from '../core/cutout.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
@@ -74,7 +76,7 @@ function faceSet(d, sides, unsupported) {
   const stepOf = (s) => {
     const out = { op: s.op, line: s.line, params: s.params || {}, kind: s.kind, mask: 'data:image/svg+xml;base64,' + Buffer.from(maskSvg(d, s.area)).toString('base64') };
     if (s.material) out.mat = mat(s.material);
-    if (s.image) { const a = d.assets[s.image.asset], z = d.zones[s.image.zone] || d.zones.window; out.image = { src: `data:${MIME[a.path.split('.').pop().toLowerCase()]};base64,${fs.readFileSync(a.path).toString('base64')}`, rect: s.image.rect || z.rect, focus: s.image.focus || [.5, .5], onFoil: !!s.on_foil, ...(s.image.filter ? { filter: s.image.filter } : {}), ...(s.image.duotone ? { duotone: s.image.duotone } : {}), ...(s.image.ink ? { ink: s.image.ink } : {}), ...(s.image.halftone ? { halftone: s.image.halftone } : {}), ...(s.image.shaded ? { shaded: true } : {}) }; }
+    if (s.image) { const a = d.assets[s.image.asset], z = d.zones[s.image.zone] || d.zones.window, file = s.image.cutout ? cutoutPath(a.path) : a.path; out.image = { src: `data:${MIME[file.split('.').pop().toLowerCase()]};base64,${fs.readFileSync(file).toString('base64')}`, rect: s.image.rect || z.rect, focus: s.image.focus || [.5, .5], onFoil: !!s.on_foil, ...(s.image.filter ? { filter: s.image.filter } : {}), ...(s.image.duotone ? { duotone: s.image.duotone } : {}), ...(s.image.ink ? { ink: s.image.ink } : {}), ...(s.image.halftone ? { halftone: s.image.halftone } : {}), ...(s.image.shaded ? { shaded: true } : {}), ...(s.image.grade ? { grade: s.image.grade } : {}), ...(s.image.stipple ? { stipple: s.image.stipple } : {}) }; }
     if (s.op === 'spray' && !['gloss', 'glitter', 'metalflake', 'candy', 'matte', 'paint'].includes(s.kind)) unsupported.add(`spray ${s.kind}`);
     return out;
   };

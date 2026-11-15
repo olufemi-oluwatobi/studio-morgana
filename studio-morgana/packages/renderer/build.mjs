@@ -52,8 +52,8 @@ const listDir = (d, keep) => { const names = fs.readdirSync(d).filter(keep); dir
 add(path.join(GT, 'web', 'engine.js'));
 const styles = path.join(GT, 'styles');
 if (fs.existsSync(styles)) for (const f of listDir(styles, (f) => f.endsWith('.gt'))) add(path.join(styles, f));
-const fontsDir = path.resolve(GT, '..', 'fancard-complete', 'fancard-studio', 'fonts');
-if (fs.existsSync(fontsDir)) {
+// godtongue's own fonts (Cinzel, Doto, Space Mono, Archivo Black, …) and the factory's
+for (const fontsDir of [path.join(GT, 'fonts'), path.resolve(GT, '..', 'fancard-complete', 'fancard-studio', 'fonts')]) if (fs.existsSync(fontsDir)) {
   for (const fam of listDir(fontsDir, (f) => fs.statSync(path.join(fontsDir, f)).isDirectory())) {
     const d = path.join(fontsDir, fam, 'files');
     if (!fs.existsSync(d)) continue;

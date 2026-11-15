@@ -14,6 +14,28 @@
   const rgb = (r, g, b, a = 1) => `rgba(${r | 0},${g | 0},${b | 0},${a})`;
   const grey = (mm) => { const v = Math.min(255, mm / HMAX * 255); return rgb(v, v, v); };
 
+  // ── seeded noise for texture effects (Morgana print effects: mottle, speck, distress, wear, stipple)
+  // field: smooth noise with features about `scale` px across; fine: per-pixel noise softened by `sigma` px.
+  // Both come back as Float32Array of roughly normal values (mean 0, deviation 1); U turns one into 0..1.
+  const nzNormed = (data, n) => { const v = new Float32Array(n); let m = 0, q2 = 0; for (let i = 0; i < n; i++) { const x = data[i * 4]; v[i] = x; m += x; q2 += x * x; }
+    m /= n; const sd = Math.sqrt(Math.max(1e-6, q2 / n - m * m)); for (let i = 0; i < n; i++) v[i] = (v[i] - m) / sd; return v; };
+  const nzRand = (w, h, seed) => { const r = rng(seed), c = mk(w, h), x = c.getContext('2d'), im = x.createImageData(w, h);
+    for (let q = 0; q < im.data.length; q += 4) { const v = r() * 255; im.data[q] = im.data[q + 1] = im.data[q + 2] = v; im.data[q + 3] = 255; } x.putImageData(im, 0, 0); return c; };
+  const nzField = (w, h, scale, seed) => {
+    const sw = Math.ceil(w / scale) + 3, sh = Math.ceil(h / scale) + 3, src = nzRand(sw, sh, seed);
+    const o = mk(w, h), ox = o.getContext('2d', { willReadFrequently: true }); ox.imageSmoothingEnabled = true; ox.imageSmoothingQuality = 'high';
+    ox.filter = `blur(${Math.max(.5, scale / 3)}px)`; ox.drawImage(src, -scale, -scale, sw * scale, sh * scale); ox.filter = 'none';
+    return nzNormed(ox.getImageData(0, 0, w, h).data, w * h);
+  };
+  const nzFine = (w, h, sigma, seed) => {
+    const src = nzRand(w + 8, h + 8, seed), o = mk(w, h), ox = o.getContext('2d', { willReadFrequently: true });
+    ox.filter = `blur(${sigma}px)`; ox.drawImage(src, -4, -4); ox.filter = 'none';
+    return nzNormed(ox.getImageData(0, 0, w, h).data, w * h);
+  };
+  const nzErf = (x) => { const t = 1 / (1 + .3275911 * Math.abs(x)), y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - .284496736) * t + .254829592) * t * Math.exp(-x * x); return x >= 0 ? y : -y; };
+  const nzU = (n) => .5 * (1 + nzErf(n / Math.SQRT2));
+  const nzHex = (h) => [1, 3, 5].map(j => parseInt(h.slice(j, j + 2), 16));
+
   // ── outline: rect, rounded or circle; torn and deckle edges eat into the sheet with a random walk.
   // rect origin: e.rect = [x, y, w, h] when the body sits inside the element's box (cards); else the whole box.
   function outline(e, rnd) {
@@ -84,7 +106,7 @@
     const [w, h] = e.size, seed = key === 'front' ? hashStr(e.name) : hashStr(e.name + ':' + key), rnd = rng(seed);
     const P = { e, steps, shape: outline(e, rnd), masks: await Promise.all(steps.map(s => load(s.mask))), coats: [], photos: {}, boxes: {} };
     for (const [i, s] of steps.entries()) {
-      if (s.params?.gradient || s.op === 'vignette') {            // the box a gradient runs across: where the mask has ink
+      if (s.params?.gradient || s.op === 'vignette' || s.op === 'distress') {            // the box a gradient runs across: where the mask has ink
         const sc = 4, bw = Math.ceil(w / sc), bh = Math.ceil(h / sc), bc = mk(bw, bh), bx = bc.getContext('2d', { willReadFrequently: true });
         bx.drawImage(P.masks[i], 0, 0, bw, bh); const a = bx.getImageData(0, 0, bw, bh).data;
         let x0 = bw, y0 = bh, x1 = -1, y1 = -1;
@@ -99,6 +121,35 @@
         const [A, B] = s.image.duotone.map(hx => [1, 3, 5].map(j => parseInt(hx.slice(j, j + 2), 16)));
         for (let q = 0; q < d.length; q += 4) { const l = (d[q] * .299 + d[q + 1] * .587 + d[q + 2] * .114) / 255; d[q] = A[0] + (B[0] - A[0]) * l; d[q + 1] = A[1] + (B[1] - A[1]) * l; d[q + 2] = A[2] + (B[2] - A[2]) * l; }
         dx.putImageData(im, 0, 0); P.photos[i] = dc;
+      }
+      if (s.image?.grade) {                // a finish: the picture's tones mapped through a run of colours, mixed over its own
+        const ph = P.photos[i], k = Math.min(1, 2400 / Math.max(ph.width, ph.height)), dc = mk(Math.round(ph.width * k), Math.round(ph.height * k)), dx = dc.getContext('2d', { willReadFrequently: true });
+        dx.drawImage(ph, 0, 0, dc.width, dc.height); const im = dx.getImageData(0, 0, dc.width, dc.height), d = im.data;
+        const st = s.image.grade.stops.map(nzHex), n = st.length - 1, amt = s.image.grade.amount ?? .4, con = s.image.grade.contrast ?? 1.16;
+        for (let q = 0; q < d.length; q += 4) {
+          const l = (d[q] * .3 + d[q + 1] * .59 + d[q + 2] * .11) / 255, pos = Math.min(n - 1e-6, l * n), j = Math.floor(pos), f = pos - j;
+          for (let c = 0; c < 3; c++) { const m = st[j][c] + (st[j + 1][c] - st[j][c]) * f, v = (d[q + c] * (1 - amt) + m * amt) / 255;
+            d[q + c] = Math.pow(Math.max(0, Math.min(1, .5 + (v - .5) * con)), 1.08) * 255; }
+        }
+        dx.putImageData(im, 0, 0); P.photos[i] = dc;
+      }
+      if (s.image?.stipple) {              // stippled: one ink and the paper, dot by dot, at the size it is printed
+        const ph = P.photos[i], rr = s.image.rect || [0, 0, w, h], k = Math.max(rr[2] / ph.width, rr[3] / ph.height);
+        const W2 = Math.max(1, Math.round(ph.width * k)), H2 = Math.max(1, Math.round(ph.height * k)), N = W2 * H2;
+        const src = mk(W2, H2), sx = src.getContext('2d', { willReadFrequently: true }); sx.imageSmoothingQuality = 'high'; sx.drawImage(ph, 0, 0, W2, H2);
+        const d = sx.getImageData(0, 0, W2, H2).data;
+        const mean = (r) => { const c2 = mk(W2, H2), x2 = c2.getContext('2d', { willReadFrequently: true }); x2.filter = `blur(${r}px)`; x2.drawImage(src, 0, 0); return x2.getImageData(0, 0, W2, H2).data; };
+        const m6 = mean(6), m30 = mean(30), na = nzFine(W2, H2, .75, seed + i * 11), nb = nzFine(W2, H2, 1.8, seed + i * 13), ne = nzFine(W2, H2, .9, seed + i * 17);
+        const ink = nzHex(s.image.stipple.ink), pap = nzHex(s.image.stipple.paper), gam = s.image.stipple.light ?? .95;
+        const lum = (a, q) => (a[q] * .3 + a[q + 1] * .59 + a[q + 2] * .11) / 255;
+        const out = mk(W2, H2), ox = out.getContext('2d'), oi = ox.createImageData(W2, H2), o = oi.data;
+        for (let p = 0; p < N; p++) {
+          const q = p * 4, al = d[q + 3] / 255; if (al < .04 || al <= nzU(ne[p]) * .9 + .05) continue;   // a grainy edge, not a cut one
+          const L = lum(d, q), L2 = Math.pow(Math.max(0, Math.min(1, (L + 1.1 * (L - lum(m6, q)) + .5 * (L - lum(m30, q)) - .08) / .84)), gam);
+          const c = L2 > nzU((.7 * na[p] + .3 * nb[p]) / .76) ? pap : ink;
+          o[q] = c[0]; o[q + 1] = c[1]; o[q + 2] = c[2]; o[q + 3] = 255;
+        }
+        ox.putImageData(oi, 0, 0); P.photos[i] = out;
       }
       if (s.image?.ink || s.image?.halftone) {   // one ink and/or a halftone screen: coverage from darkness
         const ph = P.photos[i], vec = /^data:image\/svg/.test(s.image.src);
@@ -141,6 +192,29 @@
         for (let q = 0; q < gi.data.length; q += 4) { const v = gr() * 255; gi.data[q] = gi.data[q + 1] = gi.data[q + 2] = v; gi.data[q + 3] = 255; }
         gx.putImageData(gi, 0, 0); P.grain = gc;
       }
+      if (s.op === 'mottle') {             // soft tone that wanders across the area, like ink soaking into paper
+        const p = s.params || {}, sz = p.size || 140, a = nzField(w, h, sz, seed + i * 31), b = nzField(w, h, sz / 4, seed + i * 37);
+        const c2 = mk(w, h), x2 = c2.getContext('2d'), im = x2.createImageData(w, h), o = im.data;
+        for (let q = 0; q < w * h; q++) { const v = 128 + (a[q] * .65 + b[q] * .35) * 64; o[q * 4] = o[q * 4 + 1] = o[q * 4 + 2] = Math.max(0, Math.min(255, v)); o[q * 4 + 3] = 255; }
+        x2.putImageData(im, 0, 0); (P.tex ||= {})[i] = c2;
+      }
+      if (s.op === 'speck') {              // flecks: a few light and a few dark specks, as on cheap paper
+        const p = s.params || {}, r = rng(seed + i * 41), am = p.amount ?? .03, L = nzHex(p.light || '#ffffff'), D = nzHex(p.dark || '#000000');
+        const c2 = mk(w, h), x2 = c2.getContext('2d'), im = x2.createImageData(w, h), o = im.data;
+        for (let q = 0; q < w * h; q++) { const u = r(); const c = u < am / 2 ? D : u > 1 - am / 2 ? L : null; if (!c) continue; o[q * 4] = c[0]; o[q * 4 + 1] = c[1]; o[q * 4 + 2] = c[2]; o[q * 4 + 3] = c === D ? 150 : 140; }
+        x2.putImageData(im, 0, 0); (P.tex ||= {})[i] = c2;
+      }
+      if (s.op === 'distress') {           // grunge eating in from the area's edges, worst at the corners
+        const p = s.params || {}, [bx0, by0, bw, bh] = P.boxes[i] || [0, 0, w, h], wd = p.width || 50, am = p.amount ?? .9, C = nzHex(p.color || '#0d1b22');
+        const b1 = nzField(w, h, wd * 3.3, seed + i * 43), b2 = nzField(w, h, wd * .6, seed + i * 47), fn = nzFine(w, h, .9, seed + i * 53);
+        const c2 = mk(w, h), x2 = c2.getContext('2d'), im = x2.createImageData(w, h), o = im.data;
+        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+          const q = y * w + x, dd = Math.max(0, Math.min(x - bx0, bx0 + bw - x, y - by0, by0 + bh - y)), e = Math.exp(-dd / wd);
+          const sc = e * 1.9 + .8 * (.6 * b1[q] + .4 * b2[q]) + .25 * fn[q] - 1.6, a = Math.max(0, Math.min(1, sc * 3.5)) * Math.min(1, e * 6) * am;
+          if (a <= 0) continue; o[q * 4] = C[0]; o[q * 4 + 1] = C[1]; o[q * 4 + 2] = C[2]; o[q * 4 + 3] = a * 255;
+        }
+        x2.putImageData(im, 0, 0); (P.tex ||= {})[i] = c2;
+      }
       if (s.op === 'spray' && s.kind === 'paint') {
         const p = s.params, sten = mk(w, h), sx = sten.getContext('2d');
         sx.filter = p.soft ? `blur(${Math.max(2, p.away_cm * .8)}px)` : 'none'; sx.drawImage(P.masks[i], 0, 0);
@@ -160,6 +234,16 @@
           }
         }
         P.coats[i] = { coat, mm, drips, color: s.mat.color };
+      }
+    }
+    // worn / chalky: the area's own paint breaks up (dry chalk, a printed title); every step on that area is eroded
+    for (const [i, s] of steps.entries()) if (s.op === 'wear') {
+      const p = s.params || {}, fn = nzFine(w, h, .6, seed + i * 97), lo = nzField(w, h, p.size || 10, seed + i * 89), t0 = (p.amount ?? .4) * .45;
+      const nc = mk(w, h), nx = nc.getContext('2d'), im = nx.createImageData(w, h), o = im.data, mix = p.mix ?? .45;
+      for (let q = 0; q < w * h; q++) o[q * 4 + 3] = Math.max(0, Math.min(255, (nzU((1 - mix) * fn[q] + mix * lo[q]) - t0) * 1.9 * 255));
+      nx.putImageData(im, 0, 0);
+      for (const [j, t] of steps.entries()) if (j !== i && t.op !== 'wear' && t.mask === s.mask) {
+        const m2 = mk(w, h), mx = m2.getContext('2d'); mx.drawImage(P.masks[j], 0, 0); mx.globalCompositeOperation = 'destination-in'; mx.drawImage(nc, 0, 0); P.masks[j] = m2;
       }
     }
     // the shadow is the silhouette blurred by height; the maps are colour, material, height up, height down,
@@ -282,6 +366,9 @@
           break;
         }
         case 'grain': put(c, mask, (g) => { g.save(); g.scale(p.size || 1, p.size || 1); g.fillStyle = g.createPattern(P.grain, 'repeat'); g.fillRect(0, 0, w, h); g.restore(); }, 'overlay', 0, p.amount ?? .25); break;
+        case 'mottle': put(c, mask, (g) => g.drawImage(P.tex[i], 0, 0), 'overlay', 0, p.amount ?? .2); break;
+        case 'speck': case 'distress': put(c, mask, (g) => g.drawImage(P.tex[i], 0, 0)); break;
+        case 'wear': break;   // done when the face was prepared: it eroded the area's masks
         case 'glow': for (let k = 0; k < (p.strength || 1); k++) put(c, mask, p.color || '#fff', p.blend || 'screen', p.blur ?? 30, p.opacity ?? 1); break;
         case 'plate': case 'foil': case 'inlay': put(c, mask, s.mat.color); put(m, mask, rgb(s.mat.metal * 255, s.mat.rough * 255, 0)); break;
         case 'emboss': put(u, mask, grey(p.height_mm ?? .1), 'lighter', 1 + (p.soft ?? .5) * 4); break;

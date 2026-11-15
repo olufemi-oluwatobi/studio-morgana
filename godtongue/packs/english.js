@@ -34,7 +34,7 @@ const secs = (t) => t == null ? null : (Array.isArray(t) ? t[0] : t)?.t === 'num
 const split = (toks, seps) => { const out = [[]]; for (const t of toks) { if (t.t === ',' || (seps && isWord(t, ...seps))) out.push([]); else out.at(-1).push(t); } return out.filter(c => c.length); };
 
 // the order a thing's looks are painted in, bottom to top
-const PRE = ['shadow', 'glow', 'frosted'], POST = ['adjust'], TOP = ['outline', 'inshadow'], FINISH = ['vignette', 'grain'];
+const PRE = ['shadow', 'glow', 'frosted'], POST = ['adjust'], TOP = ['outline', 'inshadow'], FINISH = ['wear', 'mottle', 'vignette', 'grain', 'speck', 'distress'];
 const SLOTS = [...PRE, 'fill', ...POST, ...TOP, ...FINISH];
 
 // ── things: what a sentence is about ─────────────────────────────────────────────────────────────────────────────
@@ -167,6 +167,10 @@ function dictionary(reg) {
       a.slot('outline', { verb: 'stroke', head: col || 'in #000000', mods: [...(col || !r.length ? [] : [txt(r)]), ...a.mods.map(txt)] }); }, { slot: 'outline' });
   W(['frosted', 'frosted glass', 'glassy'], 'effect', 'Blurs what is under the thing, like frosted glass. Details: blurred 18, brightness 1.1.', 'Make the panel frosted.', effect('frosted', 'adjust', ['blurred 18', 'brightness 1.1']), { slot: 'frosted' });
   W(['grain', 'grainy', 'noise', 'noisy'], 'effect', 'Film grain over the thing: an amount from 0 to 1.', 'Make the card grainy, 0.2.', effect('grain', 'grain'), { slot: 'grain' });
+  W(['mottle', 'mottled', 'blotchy'], 'effect', 'Soft tone wandering across the thing, like ink soaked into paper: an amount from 0 to 1, and "140 wide".', 'Make the card mottled, 0.2.', effect('mottle', 'mottle'), { slot: 'mottle' });
+  W(['speck', 'specks', 'speckled', 'flecked'], 'effect', 'Light and dark flecks: an amount from 0 to 1, in a light colour and a dark one.', 'Make the card speckled, 0.03, in #8fc1d9 and #0b2533.', effect('speck', 'speck'), { slot: 'speck' });
+  W(['distressed', 'grungy', 'grunge'], 'effect', 'Grunge eating in from the edges: in a colour, an amount, "60 deep".', 'Make the card distressed in #0d1b22, 60 deep.', effect('distress', 'distress'), { slot: 'distress' });
+  W(['chalky', 'worn', 'weathered'], 'effect', 'The thing’s own paint breaks up: 0.1 a few specks (a printed title), 0.4 dry chalk.', 'Make the grid chalky, 0.4.', effect('wear', 'wear'), { slot: 'wear' });
   W(['vignette', 'vignetted'], 'effect', 'Darkens the edges of the thing: an amount from 0 to 1, and a colour.', 'Give the card a vignette of 0.35, in #1f3a5f.', effect('vignette', 'vignette'), { slot: 'vignette' });
 
   // colour: flat, gradient, and how it sits

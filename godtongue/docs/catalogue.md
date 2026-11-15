@@ -15,7 +15,7 @@ Everything the platform can make, every property each part has, what the rendere
 
 | Status | Meaning | Properties |
 | --- | --- | --- |
-| yes | rendered, and the plain-English words reach it | 145 |
+| yes | rendered, and the plain-English words reach it | 161 |
 | older words | rendered, but only verbs the plain-English layer replaces reach it (create, draw, set, glide, bring in, …) | 20 |
 | partly | some values reachable, some not | 16 |
 | **no word** | rendered, but nothing in the language reaches it | 4 |
@@ -262,6 +262,9 @@ The craft operations (emboss, engrave, deboss, etch, plate, foil, inlay, spray, 
 | `shaded` | yes/no |  | Light from the top left: the ink gathers on the far side, so a flat drawing gets form (use with inked and halftone). | …, inked #d8301a, halftone 8, shaded | yes |
 | `halftone` | px |  | A halftone screen: the ink as dots on a grid this far apart, bigger where it is darker. | …, inked #2343c2, halftone 8 | yes |
 | `on_foil` | yes/no | `false` | Printed see-through onto metal. | Print @art.png in the window, on foil | yes |
+| `stipple` | { ink, paper, light } |  | An engraving: one ink and the paper, dot by dot, at the printed size; light lifts mid tones. | …, stippled #0c1720 and #f1ede3, light 0.5 | yes |
+| `grade` | { stops, amount } |  | A finish: tones mapped through a run of colours, dark to light, mixed over the picture. | …, graded #160402 and #aa4820 and #face8c, mixed 40% | yes |
+| `cutout` | yes/no | `false` | The backdrop removed (IS-Net matte, made once and cached). | …, cut out | yes |
 
 ### Objects
 
@@ -496,6 +499,43 @@ Darkens or tints the edges of an area. **Say:** Give the card a vignette of 0.35
 | `amount` | 0–1 | `0.5` | How strong. | … of 0.35 | yes |
 | `color` | colour | `#000000` | Colour. | …, in #1f3a5f | yes |
 
+### mottle
+
+Soft tone wandering across an area, like ink soaked into paper. **Say:** Make the card mottled, 0.2 · mottle the card, 0.2, 140 wide · **Status:** yes
+
+| Setting | Type | Default | What it does | How to say it | Status |
+| --- | --- | --- | --- | --- | --- |
+| `amount` | 0–1 | `0.2` | How strong. | …, 0.2 | yes |
+| `size` | px | `140` | How big the patches are. | …, 140 wide | yes |
+
+### speck
+
+Light and dark flecks, as on cheap paper. **Say:** speck the card, 0.03, in #8fc1d9 and #0b2533 · **Status:** yes
+
+| Setting | Type | Default | What it does | How to say it | Status |
+| --- | --- | --- | --- | --- | --- |
+| `amount` | 0–1 | `0.03` | How many. | …, 0.03 | yes |
+| `light / dark` | colours | `["#ffffff","#000000"]` | The two flecks. | …, in #8fc1d9 and #0b2533 | yes |
+
+### distress
+
+Grunge eating in from the edges of an area, worst at the corners. **Say:** distress the card in #0d1b22, 60 deep · **Status:** yes
+
+| Setting | Type | Default | What it does | How to say it | Status |
+| --- | --- | --- | --- | --- | --- |
+| `color` | colour | `#0d1b22` | The grunge. | … in #0d1b22 | yes |
+| `amount` | 0–1 | `0.9` | How solid. | …, 0.8 | yes |
+| `width` | px | `50` | How deep it reaches. | …, 60 deep | yes |
+
+### wear
+
+An area’s own paint breaks up: dry chalk, a worn print. **Say:** Make the grid chalky, 0.4 · wear the title, 0.1 · **Status:** yes
+
+| Setting | Type | Default | What it does | How to say it | Status |
+| --- | --- | --- | --- | --- | --- |
+| `amount` | 0–1 | `0.4` | 0.1 a few specks, 0.4 dry chalk. | …, 0.4 | yes |
+| `size` | px | `10` | The size of the patches. | …, 10 wide | yes |
+
 ### grain
 
 Film grain over an area. **Say:** Make the card grainy, 0.2 · **Status:** yes
@@ -585,20 +625,24 @@ Each is measured, so text wraps and fits exactly.
 
 | Font | Cuts |
 | --- | --- |
-| Big Shoulders Display | 400, 700, 300, 500 |
-| Bodoni Moda | 400, 700, 400 italic, 500 |
+| Archivo Black | 400 |
+| Cinzel | 400, 700, 500, 600, 800, 900 |
+| Doto | 400, 700, 300, 500, 600, 800, 900 |
+| Space Mono | 400, 700 |
+| Big Shoulders Display | 400, 700, 300, 500, 600, 800, 900 |
+| Bodoni Moda | 400, 700, 400 italic, 500, 600, 800, 900 |
 | Herr Von Muellerhoff | 400 |
 | Homemade Apple | 400 |
-| Jost | 400, 700, 400 italic, 300, 500 |
+| Jost | 400, 700, 400 italic, 300, 500, 600, 800, 900 |
 | Lilita One | 400 |
-| Martian Mono | 400, 700, 300, 500 |
+| Martian Mono | 400, 700, 300, 500, 600, 800 |
 | Michroma | 400 |
 | Mr Dafoe | 400 |
 | Mrs Saint Delafield | 400 |
-| Newsreader | 400, 700, 300, 500 |
+| Newsreader | 400, 700, 300, 500, 600, 800 |
 | Permanent Marker | 400 |
 | Rock Salt | 400 |
-| Saira Condensed | 400, 700, 300, 500 |
+| Saira Condensed | 400, 700, 300, 500, 600, 800, 900 |
 | Sedgwick Ave Display | 400 |
 | Shrikhand | 400 |
 
@@ -622,6 +666,10 @@ The dictionary. A new effect, state, transform or motion is one entry (`docs/eng
 | `outline`, `outlined` | effect | A flat line round the thing. Details: in #1b1145, 8 wide. | Make the title outlined in #1b1145, 8 wide. |
 | `frosted`, `frosted glass`, `glassy` | effect | Blurs what is under the thing, like frosted glass. Details: blurred 18, brightness 1.1. | Make the panel frosted. |
 | `grain`, `grainy`, `noise`, `noisy` | effect | Film grain over the thing: an amount from 0 to 1. | Make the card grainy, 0.2. |
+| `mottle`, `mottled`, `blotchy` | effect | Soft tone wandering across the thing, like ink soaked into paper: an amount from 0 to 1, and "140 wide". | Make the card mottled, 0.2. |
+| `speck`, `specks`, `speckled`, `flecked` | effect | Light and dark flecks: an amount from 0 to 1, in a light colour and a dark one. | Make the card speckled, 0.03, in #8fc1d9 and #0b2533. |
+| `distressed`, `grungy`, `grunge` | effect | Grunge eating in from the edges: in a colour, an amount, "60 deep". | Make the card distressed in #0d1b22, 60 deep. |
+| `chalky`, `worn`, `weathered` | effect | The thing’s own paint breaks up: 0.1 a few specks (a printed title), 0.4 dry chalk. | Make the grid chalky, 0.4. |
 | `vignette`, `vignetted` | effect | Darkens the edges of the thing: an amount from 0 to 1, and a colour. | Give the card a vignette of 0.35, in #1f3a5f. |
 | `colour`, `color` | colour | The thing's colour: any hex colour, colour name or material. | Give the card the colour #10131f. |
 | `gradient`, `radial gradient`, `linear gradient` | colour | A blend of colours across the thing: from … to … (to …), "angled 45"; "radial gradient" spreads from the middle. | Make the card a gradient from #1b1145 to #ffb347, angled 80. |
@@ -680,6 +728,10 @@ Every first word a sentence can start with.
 | `adjust`, `filter` | An adjustment layer: changes everything already painted under an area. blurred 12 (frosted glass), brightness 1.1, contrast 1.2, saturation 0.6, hue 40, grayscale, sepia, inverted. Write it after the things it should change. |
 | `vignette` | Darken (or tint) the edges of an area, leaving its middle clear: an amount from 0 to 1 (default 0.5), optionally "in #colour". |
 | `grain`, `noise` | Film grain over an area, for texture: an amount from 0 to 1 (default 0.25). "coarse" makes bigger grains. |
+| `mottle` | Soft tone that wanders across an area, like ink soaking into paper: an amount from 0 to 1 (default 0.2) and how big the patches are ("140 wide"). |
+| `speck`, `fleck` | Light and dark flecks, as on cheap paper: an amount from 0 to 1 (default 0.03), "in" a light colour "and" a dark one. |
+| `distress` | Grunge eating in from the edges of an area, worst at the corners, as on a well-handled print: "in" a colour, an amount from 0 to 1 (default 0.9) and how deep it reaches ("60 deep"). |
+| `wear`, `chalk` | Breaks up an area’s own paint, like dry chalk or a worn print: an amount from 0 to 1 (0.1 a few specks, 0.4 dry chalk, default 0.4) and the size of the patches ("10 wide"). |
 | `stroke` | A flat outline round an area, outside its edge: "stroke the title in #ffffff, 6 wide." (Without a colour, "stroke the petal, 3 wide" draws a shape as a line, like "hollow".) |
 | `shadow` | A soft drop shadow under an area. Write it before the steps that colour the area, so the area sits on its shadow. Defaults: 10 down, blur 18, black, 45% opacity. Add "inside" for an inner shadow (written after the colour), which makes the area look cut in. |
 | `glow` | A glow of light round an area (outer glow). Write it before the steps that colour the area. Defaults: white, 30 wide, strength 1. |
@@ -689,7 +741,7 @@ Every first word a sentence can start with.
 | `deboss`, `press`, `sink` | Press an area down. Depth in mm (default 0.04). |
 | `etch`, `frost` | Frost or matte-etch an area. |
 | `spray` | Spray a coat: gloss, candy, glitter, metalflake, pearl, chameleon or matte. "in" takes colours. |
-| `print` | Print a photo or illustration into an area (default: the window); printed in a shape, the photo fills that shape. Adjust it: duotone #1b1145 and #ffb347, inked #df372c (one ink: the darker, the more ink; white prints nothing), halftone 8 (the ink as dots 8 apart), shaded (light from the top left gives a flat drawing form), blurred 6, brightness 1.2, contrast 1.1, saturation 0.5, hue 40, grayscale, sepia, inverted, 70% opacity, multiply. "on foil" prints see-through onto metal. |
+| `print` | Print a photo or illustration into an area (default: the window); printed in a shape, the photo fills that shape. Adjust it: duotone #1b1145 and #ffb347, inked #df372c (one ink: the darker, the more ink; white prints nothing), halftone 8 (the ink as dots 8 apart), shaded (light from the top left gives a flat drawing form), stippled #0c1720 and #f1ede3 (an engraving: ink and paper, dot by dot), graded #160402 and #aa4820 and #face8c, mixed 40% (a finish through a run of colours), cut out (the backdrop removed), blurred 6, brightness 1.2, contrast 1.1, saturation 0.5, hue 40, grayscale, sepia, inverted, 70% opacity, multiply. "on foil" prints see-through onto metal. |
 | `illustrate` | Cloisonné: turn an illustration into flat enamel cells with metal wires. |
 | `write`, `type`, `letter` | Set words in a font. Defaults: Bodoni Moda, size 48, centred. Several lines: put \n in the words, or wrap with "600 wide"; "leading 1.2" sets the line spacing; "aligned left" or "aligned right"; "uppercase"; "tracking 4". "curved 400" sets the words on an arc of that radius (negative curves the other way). Placed by words: "in the sticker", "in the cover, at the bottom left, 120 in", "at the top right" (the page, inside the margin), "under the heading, 40 apart", "beside the play, 16 apart". "as a heading" uses a style made with "Let a heading be …". Several words at once give one label each: Write "a", "b" in each swatch. In a table: Write "1", "Lanterns" in the next row of the playlist. |
 | `sign` | A script signature fitted to a spot. Defaults: Herr Von Muellerhoff, 620 wide, size 250, near the bottom. |

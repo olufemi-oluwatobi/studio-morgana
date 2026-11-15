@@ -12,14 +12,20 @@ export const config = {
   fancardHome: process.env.FANCARD_HOME || file.fancardHome || path.join(ROOT, '..', 'fancard-complete', 'fancard-studio'),
   python: process.env.PYTHON || file.python || 'python3',
   get fontsDir() { return process.env.FANCARD_FONTS || file.fontsDir || path.join(this.fancardHome, 'fonts'); },
+  // every folder searched for fonts, in order: FANCARD_FONTS (a path list), the config's, godtongue's own, the factory's
+  get fontsDirs() { return [...(process.env.FANCARD_FONTS || '').split(path.delimiter), file.fontsDir, path.join(ROOT, 'fonts'), path.join(this.fancardHome, 'fonts')].filter(Boolean); },
 };
 
 // "Bodoni Moda", 400, "italic" → path to its woff2, or null
 export function fontFile(family, weight = 400, style = 'normal') {
   const slug = family.toLowerCase().replace(/\s+/g, '-');
-  const dir = path.join(config.fontsDir, slug, 'files');
-  if (!fs.existsSync(dir)) return null;
-  const files = fs.readdirSync(dir).filter(f => f.endsWith('.woff2') && f.includes('-latin-') && !f.includes('-latin-ext-'));
-  return [`${slug}-latin-${weight}-${style}.woff2`, `${slug}-latin-400-${style}.woff2`, `${slug}-latin-${weight}-normal.woff2`, `${slug}-latin-400-normal.woff2`]
-    .map(f => files.includes(f) ? path.join(dir, f) : null).find(Boolean) || (files[0] ? path.join(dir, files[0]) : null);
+  for (const root of config.fontsDirs) {
+    const dir = path.join(root, slug, 'files');
+    if (!fs.existsSync(dir)) continue;
+    const files = fs.readdirSync(dir).filter(f => f.endsWith('.woff2') && f.includes('-latin-') && !f.includes('-latin-ext-'));
+    const hit = [`${slug}-latin-${weight}-${style}.woff2`, `${slug}-latin-400-${style}.woff2`, `${slug}-latin-${weight}-normal.woff2`, `${slug}-latin-400-normal.woff2`]
+      .map(f => files.includes(f) ? path.join(dir, f) : null).find(Boolean) || (files[0] ? path.join(dir, files[0]) : null);
+    if (hit) return hit;
+  }
+  return null;
 }

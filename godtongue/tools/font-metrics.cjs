@@ -3,12 +3,15 @@
 // The compiler uses them to wrap and fit text exactly.   node tools/font-metrics.cjs
 const fs = require('fs'), path = require('path');
 const { chromium } = require('playwright');
-const DIR = process.env.FANCARD_FONTS || path.join(__dirname, '..', '..', 'fancard-complete', 'fancard-studio', 'fonts');
+// godtongue's own fonts first, then the factory's (or FANCARD_FONTS, a path list)
+const DIRS = [...(process.env.FANCARD_FONTS || '').split(path.delimiter).filter(Boolean), path.join(__dirname, '..', 'fonts'), path.join(__dirname, '..', '..', 'fancard-complete', 'fancard-studio', 'fonts')].filter(d => fs.existsSync(d));
 (async () => {
   const br = await chromium.launch(), p = await br.newPage(), out = {};
-  for (const fam of fs.readdirSync(DIR).filter(f => fs.existsSync(path.join(DIR, f, 'files'))).sort()) {
+  const seen = new Set();
+  for (const DIR of DIRS) for (const fam of fs.readdirSync(DIR).filter(f => fs.existsSync(path.join(DIR, f, 'files'))).sort()) {
+    if (seen.has(fam)) continue; seen.add(fam);
     const files = fs.readdirSync(path.join(DIR, fam, 'files')).filter(f => f.endsWith('.woff2') && f.includes('-latin-') && !f.includes('-latin-ext-'));
-    for (const [w, st] of [[400, 'normal'], [700, 'normal'], [400, 'italic'], [300, 'normal'], [500, 'normal']]) {
+    for (const [w, st] of [[400, 'normal'], [700, 'normal'], [400, 'italic'], [300, 'normal'], [500, 'normal'], [600, 'normal'], [800, 'normal'], [900, 'normal']]) {
       const f = `${fam}-latin-${w}-${st}.woff2`; if (!files.includes(f)) continue;
       const b64 = fs.readFileSync(path.join(DIR, fam, 'files', f)).toString('base64');
       out[`${fam}/${w}/${st}`] = await p.evaluate(async ([b64, key]) => {
