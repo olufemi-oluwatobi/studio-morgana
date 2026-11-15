@@ -102,7 +102,7 @@ export const TASTE: Book = {
      "use": "the paper"
     },
     "ink": {
-     "hex": "#0f5c68",
+     "hex": "#0a3a42",
      "share": 0.1,
      "use": "small text"
     },
@@ -142,7 +142,7 @@ export const TASTE: Book = {
      "use": "the paper"
     },
     "ink": {
-     "hex": "#3b2a7a",
+     "hex": "#1a1036",
      "share": 0.1,
      "use": "small text"
     },
@@ -243,9 +243,9 @@ export const TASTE: Book = {
    ]
   },
   {
-   "id": "night-yellow",
-   "name": "Night: black, warm white and yellow",
-   "description": "A near-black ground with warm-white type and one yellow shape: the inverted, nightlife version of the swiss palettes. Dramatic and high contrast. Good for clubs, concerts, film nights, late openings, launches after dark.",
+   "id": "night-signal",
+   "name": "Night: black, warm white and signal orange",
+   "description": "A near-black ground with warm-white type and one signal-orange shape: the inverted, nightlife version of the swiss palettes. Dramatic and high contrast. Good for clubs, concerts, film nights, late openings, launches after dark.",
    "tags": [
     "dark",
     "night",
@@ -253,7 +253,7 @@ export const TASTE: Book = {
     "dramatic",
     "music",
     "club",
-    "yellow"
+    "orange"
    ],
    "roles": {
     "ground": {
@@ -267,9 +267,9 @@ export const TASTE: Book = {
      "use": "the headline, labels and rules"
     },
     "accent": {
-     "hex": "#ffd23f",
+     "hex": "#ff5a00",
      "share": 0.16,
-     "use": "one big shape; may carry the headline in riso-style templates"
+     "use": "one big shape; type may cross it"
     },
     "second": {
      "hex": "#5c5c5c",
@@ -320,6 +320,325 @@ export const TASTE: Book = {
    "rules": [
     "green carries text",
     "tangerine is a highlight, not a background"
+   ]
+  },
+  {
+   "id": "bauhaus-primary",
+   "name": "Bauhaus primaries",
+   "description": "Warm off-white with black type, a hard red and a deep blue: geometric, constructivist, confident. Good for art schools, architecture, design talks, museums, bold brand statements.",
+   "tags": [
+    "bauhaus",
+    "geometric",
+    "primary",
+    "bold",
+    "cultural",
+    "red",
+    "blue"
+   ],
+   "roles": {
+    "ground": {
+     "hex": "#f2ede3",
+     "share": 0.58,
+     "use": "the background"
+    },
+    "ink": {
+     "hex": "#121212",
+     "share": 0.2,
+     "use": "the headline, labels and rules"
+    },
+    "accent": {
+     "hex": "#e1251b",
+     "share": 0.16,
+     "use": "one big shape, or the headline in riso-style templates"
+    },
+    "second": {
+     "hex": "#0b4fa8",
+     "share": 0.06,
+     "use": "the image zone and quiet details"
+    }
+   },
+   "rules": [
+    "red and blue as flat shapes; type in black",
+    "no gradients, no tints"
+   ]
+  },
+  {
+   "id": "pastel-soft",
+   "name": "Soft pastels",
+   "description": "Blush paper with plum type, a candy pink and a powder aqua. Gentle, sweet and friendly. Good for beauty, baby, bakeries, cafés, wellness, birthdays, soft launches.",
+   "tags": [
+    "pastel",
+    "soft",
+    "sweet",
+    "beauty",
+    "cafe",
+    "gentle",
+    "pink"
+   ],
+   "roles": {
+    "ground": {
+     "hex": "#fbeee6",
+     "share": 0.58,
+     "use": "the background"
+    },
+    "ink": {
+     "hex": "#3d2c3e",
+     "share": 0.2,
+     "use": "the headline, labels and rules"
+    },
+    "accent": {
+     "hex": "#f49ac1",
+     "share": 0.16,
+     "use": "one big shape, or the headline in riso-style templates"
+    },
+    "second": {
+     "hex": "#a7d8de",
+     "share": 0.06,
+     "use": "the image zone and quiet details"
+    }
+   },
+   "rules": [
+    "type always in plum: the pastels are too light to read"
+   ]
+  },
+  {
+   "id": "citrus-pop",
+   "name": "Citrus pop",
+   "description": "Lemon-cream ground, black type, tangerine and a fresh green. Juicy and loud. Good for summer sales, drinks, smoothies, fruit, markets, pool parties.",
+   "tags": [
+    "citrus",
+    "summer",
+    "sale",
+    "drinks",
+    "fresh",
+    "loud",
+    "food"
+   ],
+   "roles": {
+    "ground": {
+     "hex": "#fff7d6",
+     "share": 0.58,
+     "use": "the background"
+    },
+    "ink": {
+     "hex": "#1b1b1b",
+     "share": 0.2,
+     "use": "the headline, labels and rules"
+    },
+    "accent": {
+     "hex": "#ff8a00",
+     "share": 0.16,
+     "use": "one big shape, or the headline in riso-style templates"
+    },
+    "second": {
+     "hex": "#00a76f",
+     "share": 0.06,
+     "use": "the image zone and quiet details"
+    }
+   },
+   "rules": [
+    "one fruit colour leads; the other supports"
+   ]
+  },
+  {
+   "id": "mono-ink",
+   "name": "Black and white",
+   "description": "Pure white, pure black and a pale grey shape. Stark, editorial and expensive when the type is good. Good for fashion, galleries, statements, minimal brands, announcements, obituaries.",
+   "tags": [
+    "mono",
+    "black",
+    "white",
+    "minimal",
+    "editorial",
+    "stark",
+    "fashion"
+   ],
+   "roles": {
+    "ground": {
+     "hex": "#ffffff",
+     "share": 0.58,
+     "use": "the background"
+    },
+    "ink": {
+     "hex": "#0a0a0a",
+     "share": 0.2,
+     "use": "the headline, labels and rules"
+    },
+    "accent": {
+     "hex": "#e2e2e2",
+     "share": 0.16,
+     "use": "one pale grey shape behind the type"
+    },
+    "second": {
+     "hex": "#bdbdbd",
+     "share": 0.06,
+     "use": "the image zone and quiet details"
+    }
+   },
+   "rules": [
+    "no colour at all",
+    "black type; the grey only as a shape behind it"
+   ]
+  },
+  {
+   "id": "neon-night",
+   "name": "Neon night",
+   "description": "Deep navy-black with near-white type, hot magenta and electric cyan. Club, rave and arcade energy. Good for parties, gaming, esports, DJs, late events, tech with attitude.",
+   "tags": [
+    "neon",
+    "night",
+    "club",
+    "gaming",
+    "rave",
+    "dark",
+    "electric"
+   ],
+   "roles": {
+    "ground": {
+     "hex": "#0b0b1a",
+     "share": 0.58,
+     "use": "the background"
+    },
+    "ink": {
+     "hex": "#f5f5ff",
+     "share": 0.2,
+     "use": "the headline, labels and rules"
+    },
+    "accent": {
+     "hex": "#ff2bd6",
+     "share": 0.16,
+     "use": "one big shape, or the headline in riso-style templates"
+    },
+    "second": {
+     "hex": "#23e6ff",
+     "share": 0.06,
+     "use": "the image zone and quiet details"
+    }
+   },
+   "rules": [
+    "neon only on dark",
+    "never more than two neons"
+   ]
+  },
+  {
+   "id": "sunset-ochre",
+   "name": "Sunset ochre",
+   "description": "Warm cream with espresso type, a burnt orange and an ochre gold: the colours of a Lagos evening. Rich, warm and celebratory. Good for afrobeats, festivals, owambe, fashion, food, culture.",
+   "tags": [
+    "warm",
+    "sunset",
+    "african",
+    "festival",
+    "music",
+    "culture",
+    "orange",
+    "gold"
+   ],
+   "roles": {
+    "ground": {
+     "hex": "#fff1e0",
+     "share": 0.58,
+     "use": "the background"
+    },
+    "ink": {
+     "hex": "#2b1a10",
+     "share": 0.2,
+     "use": "the headline, labels and rules"
+    },
+    "accent": {
+     "hex": "#e2531e",
+     "share": 0.16,
+     "use": "one big shape, or the headline in riso-style templates"
+    },
+    "second": {
+     "hex": "#f2b632",
+     "share": 0.06,
+     "use": "the image zone and quiet details"
+    }
+   },
+   "rules": [
+    "orange leads, gold supports",
+    "espresso for all small text"
+   ]
+  },
+  {
+   "id": "ocean-calm",
+   "name": "Ocean calm",
+   "description": "Mist-blue ground, deep teal type, a lagoon blue and a soft coral. Calm, clean and trustworthy. Good for travel, health, clinics, finance, spas, water, summer calm.",
+   "tags": [
+    "calm",
+    "ocean",
+    "travel",
+    "health",
+    "clean",
+    "blue",
+    "trust"
+   ],
+   "roles": {
+    "ground": {
+     "hex": "#eef5f6",
+     "share": 0.58,
+     "use": "the background"
+    },
+    "ink": {
+     "hex": "#0d3b4a",
+     "share": 0.2,
+     "use": "the headline, labels and rules"
+    },
+    "accent": {
+     "hex": "#1aa6b7",
+     "share": 0.16,
+     "use": "one big shape, or the headline in riso-style templates"
+    },
+    "second": {
+     "hex": "#f4a259",
+     "share": 0.06,
+     "use": "the image zone and quiet details"
+    }
+   },
+   "rules": [
+    "coral sparingly: one detail"
+   ]
+  },
+  {
+   "id": "luxe-black-gold",
+   "name": "Black and gold",
+   "description": "Near-black with ivory type and an antique gold. Formal, luxurious and nocturnal. Good for galas, weddings, perfume, jewellery, premium launches, awards, New Year's Eve.",
+   "tags": [
+    "luxury",
+    "gold",
+    "black",
+    "formal",
+    "wedding",
+    "gala",
+    "premium",
+    "night"
+   ],
+   "roles": {
+    "ground": {
+     "hex": "#0f0e0c",
+     "share": 0.58,
+     "use": "the background"
+    },
+    "ink": {
+     "hex": "#f3ead8",
+     "share": 0.2,
+     "use": "the headline, labels and rules"
+    },
+    "accent": {
+     "hex": "#a8822f",
+     "share": 0.16,
+     "use": "one big shape, or the headline in riso-style templates"
+    },
+    "second": {
+     "hex": "#3a342a",
+     "share": 0.06,
+     "use": "the image zone and quiet details"
+    }
+   },
+   "rules": [
+    "gold is precious: one shape or one line",
+    "ivory for text"
    ]
   }
  ],
@@ -548,9 +867,204 @@ export const TASTE: Book = {
     140,
     160
    ]
+  },
+  {
+   "id": "wide-tech",
+   "name": "Wide technical sans",
+   "description": "Michroma, very wide and engineered, with light Jost labels. Futuristic, precise, automotive: car launches, tech, architecture, sound systems.",
+   "tags": [
+    "sans",
+    "wide",
+    "tech",
+    "future",
+    "automotive",
+    "precise"
+   ],
+   "display": {
+    "font": "Michroma",
+    "weight": 400,
+    "tracking": 0,
+    "leading": 1.05,
+    "case": "upper"
+   },
+   "label": {
+    "font": "Jost",
+    "weight": 400,
+    "tracking": 0.16,
+    "leading": 1.45,
+    "case": "upper"
+   },
+   "scale": [
+    16,
+    20,
+    24,
+    29,
+    60,
+    80,
+    100,
+    120,
+    140
+   ]
+  },
+  {
+   "id": "street-marker",
+   "name": "Marker with a mono label",
+   "description": "Permanent Marker, hand-drawn and urgent, with Martian Mono labels. Raw and DIY: street events, skate, protests, open mics, school projects.",
+   "tags": [
+    "handwritten",
+    "marker",
+    "street",
+    "diy",
+    "raw",
+    "protest"
+   ],
+   "display": {
+    "font": "Permanent Marker",
+    "weight": 400,
+    "tracking": -0.01,
+    "leading": 1,
+    "case": "as written"
+   },
+   "label": {
+    "font": "Martian Mono",
+    "weight": 500,
+    "tracking": 0.12,
+    "leading": 1.45,
+    "case": "upper"
+   },
+   "scale": [
+    16,
+    20,
+    24,
+    29,
+    72,
+    100,
+    130,
+    160,
+    200
+   ]
+  },
+  {
+   "id": "graffiti",
+   "name": "Graffiti display",
+   "description": "Sedgwick Ave Display, tagged and loose, with bold Jost labels. Hip-hop, block parties, streetwear drops, battles.",
+   "tags": [
+    "graffiti",
+    "street",
+    "hiphop",
+    "urban",
+    "loud"
+   ],
+   "display": {
+    "font": "Sedgwick Ave Display",
+    "weight": 400,
+    "tracking": 0,
+    "leading": 0.95,
+    "case": "as written"
+   },
+   "label": {
+    "font": "Jost",
+    "weight": 700,
+    "tracking": 0.1,
+    "leading": 1.45,
+    "case": "upper"
+   },
+   "scale": [
+    20,
+    24,
+    29,
+    40,
+    90,
+    120,
+    150,
+    180,
+    220
+   ]
+  },
+  {
+   "id": "script-luxe",
+   "name": "Formal script with didone caps",
+   "description": "Mrs Saint Delafield, a flowing formal script, with Bodoni Moda capitals for labels. Weddings, invitations, beauty, perfume, galas.",
+   "tags": [
+    "script",
+    "luxury",
+    "wedding",
+    "elegant",
+    "formal",
+    "beauty"
+   ],
+   "display": {
+    "font": "Mrs Saint Delafield",
+    "weight": 400,
+    "tracking": 0,
+    "leading": 1,
+    "case": "as written"
+   },
+   "label": {
+    "font": "Bodoni Moda",
+    "weight": 400,
+    "tracking": 0.18,
+    "leading": 1.45,
+    "case": "upper"
+   },
+   "scale": [
+    18,
+    20,
+    24,
+    29,
+    90,
+    120,
+    150,
+    180,
+    220
+   ]
+  },
+  {
+   "id": "handwritten-note",
+   "name": "Handwritten note",
+   "description": "Homemade Apple, a personal handwriting, with Jost labels. Warm and personal: cafés, thank-you notes, small shops, quotes, menus of the day.",
+   "tags": [
+    "handwritten",
+    "personal",
+    "warm",
+    "cafe",
+    "note",
+    "friendly"
+   ],
+   "display": {
+    "font": "Homemade Apple",
+    "weight": 400,
+    "tracking": 0,
+    "leading": 1.25,
+    "case": "as written"
+   },
+   "label": {
+    "font": "Jost",
+    "weight": 500,
+    "tracking": 0.08,
+    "leading": 1.45,
+    "case": "upper"
+   },
+   "scale": [
+    18,
+    20,
+    24,
+    29,
+    48,
+    60,
+    72,
+    90,
+    110
+   ]
   }
  ],
  "spacing": [
+  {
+   "id": "edge",
+   "name": "Edge",
+   "description": "Side margins of about 4% of the width. Type almost touches the edge: maximal, shouty, packed. Use for sales and street posters.",
+   "margin": 0.04
+  },
   {
    "id": "tight",
    "name": "Tight",
@@ -568,9 +1082,405 @@ export const TASTE: Book = {
    "name": "Airy",
    "description": "Side margins of about 9% of the width. More paper around everything: quiet, premium, gallery-like. The headline gets smaller to fit.",
    "margin": 0.09
+  },
+  {
+   "id": "gallery",
+   "name": "Gallery",
+   "description": "Side margins of about 12% of the width. A frame of empty space: luxury, invitations, gallery cards. Type is smaller and precious.",
+   "margin": 0.12
+  }
+ ],
+ "formats": [
+  {
+   "id": "tiktok",
+   "name": "TikTok video",
+   "size": [
+    1080,
+    1920
+   ],
+   "ratio": "9:16",
+   "words": [
+    "tiktok",
+    "tik tok"
+   ],
+   "safe": {
+    "top": 150,
+    "bottom": 320,
+    "left": 60,
+    "right": 140
+   },
+   "description": "Full-screen vertical. The app covers the top (search, tabs), the bottom (caption, sound) and a column of buttons on the right: keep text and faces inside the safe area, centred a little left. Read in a second while scrolling: one big message."
+  },
+  {
+   "id": "instagram-reel",
+   "name": "Instagram Reel",
+   "size": [
+    1080,
+    1920
+   ],
+   "ratio": "9:16",
+   "words": [
+    "reel",
+    "reels"
+   ],
+   "safe": {
+    "top": 150,
+    "bottom": 300,
+    "left": 60,
+    "right": 120
+   },
+   "description": "Full-screen vertical. The caption and buttons cover the bottom and right; the profile the top. The grid preview crops the middle to 4:5, so keep the headline in the middle."
+  },
+  {
+   "id": "instagram-story",
+   "name": "Instagram Story",
+   "size": [
+    1080,
+    1920
+   ],
+   "ratio": "9:16",
+   "words": [
+    "story",
+    "stories",
+    "ig story",
+    "instagram story"
+   ],
+   "safe": {
+    "top": 150,
+    "bottom": 300,
+    "left": 60,
+    "right": 60
+   },
+   "description": "Full-screen vertical, seen for a few seconds. The profile bar covers the top and the reply field the bottom. Room for stickers and a link at the lower third."
+  },
+  {
+   "id": "youtube-short",
+   "name": "YouTube Short",
+   "size": [
+    1080,
+    1920
+   ],
+   "ratio": "9:16",
+   "words": [
+    "short",
+    "shorts",
+    "youtube short"
+   ],
+   "safe": {
+    "top": 150,
+    "bottom": 340,
+    "left": 60,
+    "right": 120
+   },
+   "description": "Full-screen vertical. The title and channel sit over the bottom; buttons on the right."
+  },
+  {
+   "id": "instagram-post",
+   "name": "Instagram post (portrait)",
+   "size": [
+    1080,
+    1350
+   ],
+   "ratio": "4:5",
+   "words": [
+    "instagram",
+    "insta",
+    "ig",
+    "feed",
+    "post",
+    "carousel"
+   ],
+   "safe": {
+    "top": 0,
+    "bottom": 0,
+    "left": 0,
+    "right": 0
+   },
+   "description": "The tallest feed post: the most room in the feed. The profile grid crops it to 3:4 around the middle, so keep the headline away from the very top and bottom."
+  },
+  {
+   "id": "instagram-square",
+   "name": "Square post",
+   "size": [
+    1080,
+    1080
+   ],
+   "ratio": "1:1",
+   "words": [
+    "square",
+    "1:1"
+   ],
+   "safe": {
+    "top": 0,
+    "bottom": 0,
+    "left": 0,
+    "right": 0
+   },
+   "description": "Square: works on every feed (Instagram, Facebook, LinkedIn, X). Compact: one message and one image."
+  },
+  {
+   "id": "x-post",
+   "name": "X (Twitter) image",
+   "size": [
+    1600,
+    900
+   ],
+   "ratio": "16:9",
+   "words": [
+    "twitter",
+    "tweet",
+    "x post",
+    "on x"
+   ],
+   "safe": {
+    "top": 0,
+    "bottom": 0,
+    "left": 0,
+    "right": 0
+   },
+   "description": "Landscape in the timeline. Small on a phone: few words, big type."
+  },
+  {
+   "id": "linkedin-post",
+   "name": "LinkedIn post",
+   "size": [
+    1080,
+    1350
+   ],
+   "ratio": "4:5",
+   "words": [
+    "linkedin"
+   ],
+   "safe": {
+    "top": 0,
+    "bottom": 0,
+    "left": 0,
+    "right": 0
+   },
+   "description": "Portrait feed image for a professional audience. Nothing covers it, but keep the message well inside the frame: about 15% clear on every side reads best in the feed."
+  },
+  {
+   "id": "youtube-thumbnail",
+   "name": "YouTube thumbnail",
+   "size": [
+    1280,
+    720
+   ],
+   "ratio": "16:9",
+   "words": [
+    "youtube",
+    "thumbnail",
+    "yt"
+   ],
+   "safe": {
+    "top": 0,
+    "bottom": 110,
+    "left": 0,
+    "right": 200
+   },
+   "description": "Landscape, seen tiny beside other videos: three words at most, huge, high contrast. The video length covers the bottom right corner."
+  },
+  {
+   "id": "big-screen",
+   "name": "Big screen (16:9)",
+   "size": [
+    1920,
+    1080
+   ],
+   "ratio": "16:9",
+   "words": [
+    "big screen",
+    "screen",
+    "presentation",
+    "slide",
+    "keynote",
+    "projector",
+    "tv",
+    "display",
+    "landscape",
+    "16:9",
+    "event screen"
+   ],
+   "safe": {
+    "top": 54,
+    "bottom": 54,
+    "left": 96,
+    "right": 96
+   },
+   "description": "A screen seen across a room: a stage screen, a TV, a slide. Big type, read from far away; keep a 5% margin for screens that overscan."
+  },
+  {
+   "id": "banner",
+   "name": "Wide banner",
+   "size": [
+    1920,
+    640
+   ],
+   "ratio": "3:1",
+   "words": [
+    "banner",
+    "header",
+    "billboard",
+    "cover image",
+    "website header"
+   ],
+   "safe": {
+    "top": 40,
+    "bottom": 40,
+    "left": 120,
+    "right": 120
+   },
+   "description": "Very wide and short: a website header, a social cover, a billboard. One line of type and one image side by side."
+  },
+  {
+   "id": "poster",
+   "name": "Poster (A-series)",
+   "size": [
+    1080,
+    1528
+   ],
+   "ratio": "1:√2",
+   "words": [
+    "poster",
+    "flyer",
+    "a4",
+    "a3",
+    "a2",
+    "print",
+    "printed"
+   ],
+   "safe": {
+    "top": 0,
+    "bottom": 0,
+    "left": 0,
+    "right": 0
+   },
+   "description": "The A-paper shape (A4, A3, A2 …) for printed posters and flyers. Seen from a few metres: a big headline and the facts."
+  },
+  {
+   "id": "tall-poster",
+   "name": "Tall poster (2:3)",
+   "size": [
+    1080,
+    1620
+   ],
+   "ratio": "2:3",
+   "words": [
+    "pinterest",
+    "pin",
+    "tall poster",
+    "2:3"
+   ],
+   "safe": {
+    "top": 0,
+    "bottom": 0,
+    "left": 0,
+    "right": 0
+   },
+   "description": "2:3: the classic gig-poster and Pinterest shape, a little taller than A-paper."
   }
  ],
  "templates": [
+  {
+   "id": "quote-card",
+   "name": "Quote card",
+   "description": "A quotation card for feeds. A solid accent dot at the top left, the quote in four big flush-left lines below it, a soft circle in the second colour bleeding off the bottom right corner, and the speaker's name and role at the foot over a short accent rule. Calm, readable and shareable.",
+   "use": "quotes, testimonials, reviews, sayings, announcements in one sentence, tips, facts, thank-you posts",
+   "tags": [
+    "quote",
+    "social",
+    "card",
+    "testimonial",
+    "calm",
+    "typographic"
+   ],
+   "guide": "",
+   "size": [
+    1080,
+    1080
+   ],
+   "formats": [
+    "instagram-square",
+    "instagram-post",
+    "linkedin-post"
+   ],
+   "flexible": true,
+   "fits": {
+    "type": [
+     "editorial-serif",
+     "didone-fashion",
+     "friendly-round",
+     "retro-bold",
+     "handwritten-note",
+     "script-luxe",
+     "street-marker"
+    ],
+    "spacing": [
+     "standard",
+     "airy",
+     "gallery",
+     "tight"
+    ]
+   },
+   "sizes": {
+    "quote": {
+     "role": "display",
+     "default": 96,
+     "max": 110,
+     "width": "safe",
+     "elements": [
+      "quote-1",
+      "quote-2",
+      "quote-3",
+      "quote-4"
+     ],
+     "description": "the quote size; code shrinks it until the longest line fits between the margins"
+    },
+    "labels": {
+     "role": "label",
+     "default": 24,
+     "max": 29,
+     "width": 0.7,
+     "elements": [
+      "by-1",
+      "by-2"
+     ],
+     "description": "the size of the name and role"
+    }
+   },
+   "slots": [
+    {
+     "name": "quote",
+     "lines": 4,
+     "max": 18,
+     "description": "the quotation broken into four lines of similar length, at natural pauses; no quotation marks",
+     "default": [
+      "Good design is",
+      "as little design",
+      "as possible, and",
+      "then less."
+     ]
+    },
+    {
+     "name": "by",
+     "lines": 2,
+     "max": 28,
+     "description": "who said it, then their role or where it is from",
+     "default": [
+      "Dieter Rams",
+      "Ten principles, 1976"
+     ]
+    }
+   ],
+   "art": {
+    "description": "an accent dot above the quote and a soft circle bleeding off the bottom right",
+    "shapes": "Let there be a circle called dot, {{W * 0.045}} big, at {{left + W * 0.045}} {{top + W * 0.045}}.\nMake the dot pop.\nLet there be a circle called orb, {{W * 0.31}} big, at {{W * 0.95}} {{H * 0.95}}.\nMake the orb {{c.second}}.",
+    "stamp": "Let there be a circle called dot, {{W * 0.045}} big, at {{left + W * 0.045}} {{top + W * 0.045}}.\nMake the dot pop.\nplace a {{stamp}} at {{W * 0.8}} {{H * 0.8}}, size {{W * 0.13}}.",
+    "asset": "Let there be a circle called dot, {{W * 0.045}} big, at {{left + W * 0.045}} {{top + W * 0.045}}.\nMake the dot pop.\nLet there be a circle called photo, {{W * 0.23}} big, at {{W * 0.86}} {{H * 0.86}}.\nPrint @{{asset}} in the photo.",
+    "stampInk": "second"
+   },
+   "source": "-- Quote card: one quotation set big and flush left, an accent dot above it, a soft circle bleeding off the corner,\n-- and who said it at the foot over a short accent rule.\nLet there be a flat canvas called quote-card, {{W}} by {{H}}.\nLet paper be {{c.ground}}.\nLet ink be {{c.ink}}.\nLet pop be {{c.accent}}.\nMake the card paper.\n\n{{art}}\n\nLet a quote be {{font.display}} {{weight.display}}, size {{size.quote}}, tracking {{track.quote}}, aligned left, ink.\nWrite \"{{quote.1}}\" called quote-1 as a quote, at {{left}} {{top + W * 0.2 + size.quote * 0.8}}.\nWrite \"{{quote.2}}\" called quote-2 as a quote, at {{left}} {{top + W * 0.2 + size.quote * 0.8 + size.quote * lead.display}}.\nWrite \"{{quote.3}}\" called quote-3 as a quote, at {{left}} {{top + W * 0.2 + size.quote * 0.8 + size.quote * lead.display * 2}}.\nWrite \"{{quote.4}}\" called quote-4 as a quote, at {{left}} {{top + W * 0.2 + size.quote * 0.8 + size.quote * lead.display * 3}}.\n\nLet a label be {{font.label}} {{weight.label}}, size {{size.labels}}, tracking {{track.labels}}, aligned left, ink.\nLet there be a rectangle called rule, {{W * 0.1}} by 4, at {{left + W * 0.05}} {{bottom - size.labels * (1.6 + lead.label)}}.\nMake the rule pop.\nWrite \"{{by.1}}\" called by-1 as a label, at {{left}} {{bottom - size.labels * (0.25 + lead.label)}}.\nWrite \"{{by.2}}\" called by-2 as a label, at {{left}} {{bottom - size.labels * 0.25}}.\n"
+  },
   {
    "id": "riso-poster",
    "name": "Risograph poster",
@@ -683,7 +1593,122 @@ export const TASTE: Book = {
     "asset": "Let there be a rectangle called art-frame, 1080 by 1030, at 540 1151.\nPrint @{{asset}} in the art-frame, inked {{c.second}}, halftone 7, multiply.\nLet there be a circle called sun, 330 big, at 760 860.\nMake the sun warm, multiply.",
     "stampInk": "second"
    },
+   "formats": [
+    "poster",
+    "tall-poster",
+    "instagram-post"
+   ],
+   "flexible": false,
    "source": "-- Riso poster: two spot inks on cream paper. The accent ink carries the headline and one big flat shape; the second\n-- ink carries the image zone and the labels. Where they cross they multiply into a third colour.\nLet there be a flat canvas called riso-poster, 1080 by 1666.\nLet paper be {{c.ground}}.\nLet warm be {{c.accent}}.\nLet cool be {{c.second}}.\nLet small be {{c.ink}}.\nMake the card paper, grainy 0.3, coarse.\n\n-- the image zone: from 38% down to the bottom, bleeding off the bottom and the right\n{{art}}\n\n-- the headline zone: flush left on the margin, set tight, three lines on a step of the leading\nLet a line be {{font.display}} {{weight.display}}, size {{size.headline}}, tracking {{track.headline}}, aligned left, warm.\nWrite \"{{headline.1}}\" called headline-1 as a line, at {{margin}} {{margin + size.headline * 0.86}}.\nWrite \"{{headline.2}}\" called headline-2 as a line, at {{margin}} {{margin + size.headline * 0.86 + size.headline * lead.display}}.\nWrite \"{{headline.3}}\" called headline-3 as a line, at {{margin}} {{margin + size.headline * 0.86 + size.headline * lead.display * 2}}.\nMake the headline-1, the headline-2 and the headline-3 multiply.\n\n-- labels: a right-hand column in three groups, ending on the right margin\nLet a label be {{font.label}} {{weight.label}}, size {{size.labels}}, tracking {{track.labels}}, aligned left, small.\nWrite \"{{about.1}}\" called about-1 as a label, at {{W - margin - 216}} 92.\nWrite \"{{about.2}}\" called about-2 as a label, at {{W - margin - 216}} {{92 + size.labels * lead.label}}.\nWrite \"{{about.3}}\" called about-3 as a label, at {{W - margin - 216}} {{92 + size.labels * lead.label * 2}}.\nWrite \"{{where.1}}\" called where-1 as a label, at {{W - margin - 216}} 370.\nWrite \"{{where.2}}\" called where-2 as a label, at {{W - margin - 216}} {{370 + size.labels * lead.label}}.\nWrite \"{{when.1}}\" called when-1 as a label, at {{W - margin - 216}} 482.\nWrite \"{{when.2}}\" called when-2 as a label, at {{W - margin - 216}} {{482 + size.labels * lead.label}}.\n"
+  },
+  {
+   "id": "screen-title",
+   "name": "Screen title",
+   "description": "A landscape title for screens and timelines. A two-line headline set big and flush left across the middle, a small label above it and two at the foot, and a huge accent circle bleeding off the right edge with a smaller second-colour circle over it. Reads from across a room or at thumbnail size.",
+   "use": "event screens, stage and conference slides, YouTube thumbnails, X posts, website banners, TV and display screens, title cards",
+   "tags": [
+    "landscape",
+    "screen",
+    "slide",
+    "thumbnail",
+    "banner",
+    "title",
+    "bold"
+   ],
+   "guide": "",
+   "size": [
+    1920,
+    1080
+   ],
+   "formats": [
+    "big-screen",
+    "youtube-thumbnail",
+    "x-post",
+    "banner"
+   ],
+   "flexible": true,
+   "fits": {
+    "type": [
+     "grotesk-poster",
+     "condensed-tech",
+     "wide-tech",
+     "editorial-serif",
+     "didone-fashion",
+     "friendly-round",
+     "graffiti",
+     "retro-bold"
+    ],
+    "spacing": [
+     "standard",
+     "tight",
+     "airy",
+     "edge"
+    ]
+   },
+   "sizes": {
+    "headline": {
+     "role": "display",
+     "default": 200,
+     "max": 240,
+     "width": 0.6,
+     "elements": [
+      "headline-1",
+      "headline-2"
+     ],
+     "description": "the headline size; code shrinks it until the longest line fits 60% of the width"
+    },
+    "labels": {
+     "role": "label",
+     "default": 29,
+     "max": 29,
+     "width": 0.28,
+     "elements": [
+      "kicker-1",
+      "info-1",
+      "info-2"
+     ],
+     "description": "the label size"
+    }
+   },
+   "slots": [
+    {
+     "name": "kicker",
+     "lines": 1,
+     "max": 32,
+     "description": "above the headline: the event, show or series",
+     "default": [
+      "Morgana Talks · Episode 12"
+     ]
+    },
+    {
+     "name": "headline",
+     "lines": 2,
+     "max": 12,
+     "description": "the title in two lines",
+     "default": [
+      "Design in",
+      "plain words"
+     ]
+    },
+    {
+     "name": "info",
+     "lines": 2,
+     "max": 26,
+     "description": "at the foot: the speaker or place, then the date or time",
+     "default": [
+      "Ada Obi, Studio Morgana",
+      "Thursday · 7pm"
+     ]
+    }
+   ],
+   "art": {
+    "description": "a huge accent circle bleeding off the right edge and a smaller second-colour circle over it",
+    "shapes": "Let there be a circle called sun, {{H * 0.53}} big, at {{W * 0.86}} {{H * 0.55}}.\nMake the sun pop.\nLet there be a circle called moon, {{H * 0.17}} big, at {{W * 0.68}} {{H * 0.3}}.\nMake the moon {{c.second}}.",
+    "stamp": "Let there be a circle called sun, {{H * 0.53}} big, at {{W * 0.86}} {{H * 0.55}}.\nMake the sun pop.\nplace a {{stamp}} at {{W * 0.84}} {{H * 0.52}}, size {{H * 0.3}}.",
+    "asset": "Let there be a circle called sun, {{H * 0.53}} big, at {{W * 0.86}} {{H * 0.55}}.\nPrint @{{asset}} in the sun.",
+    "stampInk": "second"
+   },
+   "source": "-- Screen title: landscape. A two-line headline flush left on the middle, a label above it and two at the foot, and a\n-- huge accent circle bleeding off the right edge behind a smaller second-colour circle.\nLet there be a flat canvas called screen-title, {{W}} by {{H}}.\nLet paper be {{c.ground}}.\nLet ink be {{c.ink}}.\nLet pop be {{c.accent}}.\nMake the card paper.\n\n{{art}}\n\nLet a label be {{font.label}} {{weight.label}}, size {{size.labels}}, tracking {{track.labels}}, aligned left, ink.\nWrite \"{{kicker.1}}\" called kicker-1 as a label, at {{left}} {{top + size.labels}}.\n\nWrite \"{{headline.1}}\" called headline-1 in {{font.display}} {{weight.display}}, at {{left}} {{H * 0.5 - size.headline * lead.display * 0.5 + size.headline * 0.35}}, size {{size.headline}}, tracking {{track.headline}}, aligned left.\nWrite \"{{headline.2}}\" called headline-2 in {{font.display}} {{weight.display}}, at {{left}} {{H * 0.5 + size.headline * lead.display * 0.5 + size.headline * 0.35}}, size {{size.headline}}, tracking {{track.headline}}, aligned left.\nMake the headline-1 and the headline-2 ink.\n\nWrite \"{{info.1}}\" called info-1 as a label, at {{left}} {{bottom - size.labels * 0.25}}.\nWrite \"{{info.2}}\" called info-2 as a label, at {{left + W * 0.3}} {{bottom - size.labels * 0.25}}.\n"
   },
   {
    "id": "swiss-type-poster",
@@ -789,7 +1814,125 @@ export const TASTE: Book = {
     "asset": "Let there be a circle called sun, 520 big, at 760 470.\nPrint @{{asset}} in the sun, inked {{c.accent}}.",
     "stampInk": "accent"
    },
+   "formats": [
+    "instagram-post",
+    "linkedin-post",
+    "poster",
+    "tall-poster"
+   ],
+   "flexible": false,
    "source": "-- Swiss type poster: one huge stacked headline on a strict grid, small mono labels, one big accent shape.\nLet there be a flat canvas called swiss-type-poster, 1080 by 1350.\nLet bone be {{c.ground}}.\nLet ink be {{c.ink}}.\nLet signal be {{c.accent}}.\nMake the card bone.\nLet a label be {{font.label}} {{weight.label}}, size {{size.labels}}, tracking {{track.labels}}, aligned left, ink.\n\n{{art}}\n\n-- the headline: three lines, the last one sitting on the bottom rule\nWrite \"{{headline.1}}\" called headline-1 in {{font.display}} {{weight.display}}, at {{margin}} {{1080 - size.headline * lead.display * 2}}, size {{size.headline}}, tracking {{track.headline}}, aligned left.\nWrite \"{{headline.2}}\" called headline-2 in {{font.display}} {{weight.display}}, at {{margin}} {{1080 - size.headline * lead.display}}, size {{size.headline}}, tracking {{track.headline}}, aligned left.\nWrite \"{{headline.3}}\" called headline-3 in {{font.display}} {{weight.display}}, at {{margin}} 1080, size {{size.headline}}, tracking {{track.headline}}, aligned left.\nMake the headline-1, the headline-2 and the headline-3 ink.\n\nLet there be a rectangle called rule-top, {{W - margin * 2}} by 3, at {{W / 2}} 150.\nLet there be a rectangle called rule-bottom, {{W - margin * 2}} by 3, at {{W / 2}} 1180.\nMake the rule-top and the rule-bottom ink.\n\nWrite \"{{kicker.1}}\" called kicker-1 as a label, at {{margin}} 120.\nWrite \"{{topic.1}}\" called topic-1 as a label, at {{margin}} 1220.\nWrite \"{{dates.1}}\" called dates-1 as a label, at {{W - margin}} 1220, aligned right.\n"
+  },
+  {
+   "id": "vertical-stack",
+   "name": "Vertical stack",
+   "description": "A full-screen vertical piece (9:16) for TikTok, Reels, Stories and Shorts. A huge accent circle fills the upper half; a three-line headline is stacked flush left in the lower half, crossing the circle's edge; a small label sits at the top and two at the foot. Everything stays inside the app's safe area, so the caption, buttons and profile bar never cover the words.",
+   "use": "TikTok and Reels covers, story announcements, launches, events, sales, drops: one loud message read in a second",
+   "tags": [
+    "vertical",
+    "social",
+    "story",
+    "tiktok",
+    "bold",
+    "announcement",
+    "event"
+   ],
+   "guide": "",
+   "size": [
+    1080,
+    1920
+   ],
+   "formats": [
+    "tiktok",
+    "instagram-reel",
+    "instagram-story",
+    "youtube-short"
+   ],
+   "flexible": true,
+   "fits": {
+    "type": [
+     "grotesk-poster",
+     "condensed-tech",
+     "friendly-round",
+     "editorial-serif",
+     "graffiti",
+     "street-marker",
+     "wide-tech",
+     "retro-bold"
+    ],
+    "spacing": [
+     "standard",
+     "tight",
+     "edge",
+     "airy"
+    ]
+   },
+   "sizes": {
+    "headline": {
+     "role": "display",
+     "default": 300,
+     "max": 300,
+     "width": "safe",
+     "elements": [
+      "headline-1",
+      "headline-2",
+      "headline-3"
+     ],
+     "description": "the headline size; code shrinks it until the longest line fits inside the safe area"
+    },
+    "labels": {
+     "role": "label",
+     "default": 29,
+     "max": 29,
+     "width": "safe",
+     "elements": [
+      "kicker-1",
+      "info-1",
+      "info-2"
+     ],
+     "description": "the label size"
+    }
+   },
+   "slots": [
+    {
+     "name": "kicker",
+     "lines": 1,
+     "max": 30,
+     "description": "at the top: who or what, small (a brand, a series, a date)",
+     "default": [
+      "Studio Morgana · Drop 03"
+     ]
+    },
+    {
+     "name": "headline",
+     "lines": 3,
+     "max": 9,
+     "description": "the message in three short lines, one word each where possible",
+     "default": [
+      "New",
+      "season",
+      "now"
+     ]
+    },
+    {
+     "name": "info",
+     "lines": 2,
+     "max": 30,
+     "description": "at the foot: the detail, then the call to action (where, when, link)",
+     "default": [
+      "Friday 7pm · Lagos",
+      "Link in bio"
+     ]
+    }
+   ],
+   "art": {
+    "description": "a huge accent circle in the upper half and a small second-colour circle beside it",
+    "shapes": "Let there be a circle called sun, {{W * 0.46}} big, at {{W * 0.6}} {{top + H * 0.3}}.\nMake the sun pop.\nLet there be a circle called moon, {{W * 0.08}} big, at {{left + W * 0.14}} {{top + H * 0.17}}.\nMake the moon {{c.second}}.",
+    "stamp": "Let there be a circle called sun, {{W * 0.46}} big, at {{W * 0.6}} {{top + H * 0.3}}.\nMake the sun pop.\nplace a {{stamp}} at {{W * 0.6}} {{top + H * 0.3}}, size {{W * 0.26}}.",
+    "asset": "Let there be a circle called sun, {{W * 0.46}} big, at {{W * 0.6}} {{top + H * 0.3}}.\nPrint @{{asset}} in the sun.",
+    "stampInk": "second"
+   },
+   "source": "-- Vertical stack: full-screen 9:16. A huge accent circle in the upper half, a three-line headline stacked flush left\n-- in the lower half crossing the circle's edge, a label at the top and two at the foot, all inside the app's safe area.\nLet there be a flat canvas called vertical-stack, {{W}} by {{H}}.\nLet paper be {{c.ground}}.\nLet ink be {{c.ink}}.\nLet pop be {{c.accent}}.\nMake the card paper.\n\n{{art}}\n\nLet a label be {{font.label}} {{weight.label}}, size {{size.labels}}, tracking {{track.labels}}, aligned left, ink.\nWrite \"{{kicker.1}}\" called kicker-1 as a label, at {{left}} {{top + size.labels}}.\n\nWrite \"{{headline.1}}\" called headline-1 in {{font.display}} {{weight.display}}, at {{left}} {{bottom - size.labels * (1.45 + lead.label) - size.headline * (0.25 + lead.display * 2)}}, size {{size.headline}}, tracking {{track.headline}}, aligned left.\nWrite \"{{headline.2}}\" called headline-2 in {{font.display}} {{weight.display}}, at {{left}} {{bottom - size.labels * (1.45 + lead.label) - size.headline * (0.25 + lead.display)}}, size {{size.headline}}, tracking {{track.headline}}, aligned left.\nWrite \"{{headline.3}}\" called headline-3 in {{font.display}} {{weight.display}}, at {{left}} {{bottom - size.labels * (1.45 + lead.label) - size.headline * 0.25}}, size {{size.headline}}, tracking {{track.headline}}, aligned left.\nMake the headline-1, the headline-2 and the headline-3 ink.\n\nWrite \"{{info.1}}\" called info-1 as a label, at {{left}} {{bottom - size.labels * (0.25 + lead.label)}}.\nWrite \"{{info.2}}\" called info-2 as a label, at {{left}} {{bottom - size.labels * 0.25}}.\n"
   }
  ]
 };

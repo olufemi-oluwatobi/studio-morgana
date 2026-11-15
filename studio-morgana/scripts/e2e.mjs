@@ -148,7 +148,7 @@ await page.locator('.editor-bar .btn', { hasText: 'Pin' }).click();
 // (this piece was made on the project's wall, so it starts pinned there: unpin, then pin again)
 const item = page.locator('.pin-menu button', { hasText: PROJECT });
 const startsPinned = (await item.getAttribute('aria-checked')) === 'true';
-await item.click(); await page.waitForFunction((on) => document.querySelector('.pin-menu [aria-checked]')?.getAttribute('aria-checked') === String(!on), startsPinned);
+await item.click(); await page.waitForFunction((on) => document.querySelector('.pin-menu [aria-checked]')?.getAttribute('aria-checked') === String(!on), startsPinned, { timeout: 30000 });
 if (startsPinned) { await item.click(); await page.waitForSelector('.pin-menu [aria-checked="true"]'); }
 await shot(page, 'editor-pin-menu');
 await page.keyboard.press('Escape');

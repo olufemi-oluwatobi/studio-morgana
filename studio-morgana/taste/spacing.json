@@ -1,5 +1,32 @@
 [
-  { "id": "tight", "name": "Tight", "description": "Side margins of about 5.5% of the width. Type runs close to the edge: urgent, packed, poster-like. Use when the headline should feel huge.", "margin": 0.055 },
-  { "id": "standard", "name": "Standard", "description": "Side margins of about 6.7% of the width: the classic poster margin. Balanced and calm; the safe default.", "margin": 0.067 },
-  { "id": "airy", "name": "Airy", "description": "Side margins of about 9% of the width. More paper around everything: quiet, premium, gallery-like. The headline gets smaller to fit.", "margin": 0.09 }
+  {
+    "id": "edge",
+    "name": "Edge",
+    "description": "Side margins of about 4% of the width. Type almost touches the edge: maximal, shouty, packed. Use for sales and street posters.",
+    "margin": 0.04
+  },
+  {
+    "id": "tight",
+    "name": "Tight",
+    "description": "Side margins of about 5.5% of the width. Type runs close to the edge: urgent, packed, poster-like. Use when the headline should feel huge.",
+    "margin": 0.055
+  },
+  {
+    "id": "standard",
+    "name": "Standard",
+    "description": "Side margins of about 6.7% of the width: the classic poster margin. Balanced and calm; the safe default.",
+    "margin": 0.067
+  },
+  {
+    "id": "airy",
+    "name": "Airy",
+    "description": "Side margins of about 9% of the width. More paper around everything: quiet, premium, gallery-like. The headline gets smaller to fit.",
+    "margin": 0.09
+  },
+  {
+    "id": "gallery",
+    "name": "Gallery",
+    "description": "Side margins of about 12% of the width. A frame of empty space: luxury, invitations, gallery cards. Type is smaller and precious.",
+    "margin": 0.12
+  }
 ]

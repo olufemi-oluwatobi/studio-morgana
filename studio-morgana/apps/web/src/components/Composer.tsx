@@ -3,6 +3,7 @@ import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState, useSyn
 import { useStore } from '../lib/store';
 import { addAsset, addPieceRef, addUpload, assetsStore, composerStore, forgetAsset, generate, loadAssets, removeRef, toggleRole, wallStore, type Ref } from '../lib/wall';
 import { ArrowUp, Plus, X } from './Icons';
+import { FORMATS } from '../lib/formats.gen';
 
 // phones get a shorter placeholder, so it never wraps
 const narrowQ = typeof window === 'undefined' ? null : matchMedia('(max-width: 560px)');
@@ -26,6 +27,7 @@ export const Composer = memo(function Composer() {
   const text = useStore(composerStore, (c) => c.text);
   const refs = useStore(composerStore, (c) => c.refs);
   const busy = useStore(composerStore, (c) => c.busy);
+  const format = useStore(composerStore, (c) => c.format);
   const project = useStore(wallStore, (w) => (w.scope.kind === 'project' ? w.project?.name ?? null : null));
   const narrow = useNarrow();
   const box = useRef<HTMLDivElement>(null);
@@ -124,6 +126,13 @@ export const Composer = memo(function Composer() {
       <div className="composer-more" aria-hidden={!open}>
         <div className="composer-more-inner">
           <div className="refs">
+            <label className="format-pick">
+              <span>Format</span>
+              <select value={format} onChange={(e) => composerStore.set((c) => ({ ...c, format: e.target.value }))}>
+                <option value="auto">Auto (from your words)</option>
+                {FORMATS.map((f) => <option key={f.id} value={f.id}>{f.name} · {f.ratio}</option>)}
+              </select>
+            </label>
             <span className="refs-hint">{refs.length ? 'Drag more pieces here, or press + for an asset or a reference' : 'Press + to add an asset (goes in the piece) or a reference (a look to match), or drag a piece here'}</span>
           </div>
         </div>

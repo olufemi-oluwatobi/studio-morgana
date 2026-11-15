@@ -59,11 +59,12 @@ export async function pictureOf(env: Env, versionId: string): Promise<Img | null
 }
 
 // ── making pieces from the taste book ─────────────────────────────────────────────────────────────────────────────
-//   taste  (once per brief): the reader sees the whole book and the images → one pick per option
-//   spec   (once per option): the writer fills the picked template's slots
-//   script (once per option): code fills the template and fits the text; the writer only sees errors to fix
+//   taste  (once per brief): the reader sees the book (filtered to the format) and the images → an action sheet of picks
+//   spec   (once per option): the writer fills the picked template's slots → an action sheet
+//   script (once per option): code fills a draft; the writer rewrites it for the format and the person's tweaks,
+//                             or writes a new layout; the compiler and a layout check stand behind it
 export interface Made { source: string; ok: boolean; trail: Step[]; trace?: Trace[] }
-export async function planFor(env: Env, o: { prompt: string; refs: string[]; files: FileRef[]; looksLike?: Img[]; dockets?: string[]; n?: number }): Promise<{ planned: Planned; brief: Brief; bytes: Record<string, Uint8Array> } | null> {
+export async function planFor(env: Env, o: { prompt: string; refs: string[]; files: FileRef[]; looksLike?: Img[]; dockets?: string[]; n?: number; format?: string; filters?: string[] }): Promise<{ planned: Planned; brief: Brief; bytes: Record<string, Uint8Array> } | null> {
   if (aiMode(env) === 'local') return null;
   const { images, bytes, assets } = await readFiles(env, o.files);
   const brief: Brief = { prompt: o.prompt, refs: o.refs, images, assets, looksLike: o.looksLike ?? [], dockets: o.dockets };
@@ -71,12 +72,11 @@ export async function planFor(env: Env, o: { prompt: string; refs: string[]; fil
   // the person chose a look: only templates built on it are offered
   const book = o.dockets?.length && TASTE.templates.some((t) => o.dockets!.includes(t.guide))
     ? { ...TASTE, templates: TASTE.templates.filter((t) => o.dockets!.includes(t.guide)) } : TASTE;
-  const { picks, trace } = await chooseFromBook(models(env), brief, n, book);
-  const first = TASTE.templates.find((t) => t.id === picks[0]?.template);
-  const plan = tidyPlan({ kind: 'canvas', title: o.prompt.split(/\s+/).slice(0, 3).join('-'), size: first?.size, flat: true }, brief);
+  const { picks, format, trace } = await chooseFromBook(models(env), brief, n, { format: o.format, tags: o.filters }, book);
+  const plan = tidyPlan({ kind: 'canvas', title: o.prompt.split(/\s+/).slice(0, 3).join('-'), size: format.size, flat: true }, brief);
   return {
     planned: {
-      plan, picks, tasteTrace: trace, looks: '', breakdowns: [],
+      plan, picks, format, tasteTrace: trace, looks: '', breakdowns: [],
       dockets: docketsOf([...new Set(picks.map((p) => TASTE.templates.find((t) => t.id === p.template)?.guide).filter((g): g is string => !!g))]),
       chapters: chaptersFor([], { kind: 'canvas' }),
       trail: [{ step: 'taste', by: 'reader', ms: trace.ms, note: trace.note }],
@@ -91,7 +91,7 @@ export async function makeOption(env: Env, p: Awaited<ReturnType<typeof planFor>
   // the library's drawings whose words meet the brief's: the spec may use one as the art
   const stamps = stampsFor(await publishedStamps(env).catch(() => []), [{ name: 'brief', what: p.brief.prompt }], 12);
   try {
-    const r = await makeFromBook(models(env), { brief: p.brief, pick: picks[o.i % picks.length], i: o.i, n: o.n, files: p.bytes, rounds: rounds(env), stamps });
+    const r = await makeFromBook(models(env), { brief: p.brief, pick: picks[o.i % picks.length], format: p.planned.format, i: o.i, n: o.n, files: p.bytes, rounds: rounds(env), stamps });
     return { source: r.source, ok: r.ok, trail: [...p.planned.trail, ...r.trail], trace: [...(p.planned.tasteTrace ? [p.planned.tasteTrace] : []), ...r.trace] };
   } catch (e) { return busy(e); }
 }

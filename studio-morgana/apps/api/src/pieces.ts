@@ -137,7 +137,7 @@ pieces.get('/wall', async (c) => {
 // ── generate: one line of NDJSON per option as soon as it is written, so the wall fills in as they arrive
 pieces.post('/generate', async (c) => {
   const who = c.get('who');
-  const body = await json<{ prompt?: string; refs?: string[]; uploads?: string[]; inspiration?: string[]; dockets?: string[]; n?: number; projectId?: string }>(c);
+  const body = await json<{ prompt?: string; refs?: string[]; uploads?: string[]; inspiration?: string[]; dockets?: string[]; n?: number; projectId?: string; format?: string; filters?: string[] }>(c);
   const prompt = str(body.prompt, 'prompt', 2000);
   const n = Math.min(4, Math.max(1, Number(body.n) || 4));
   await spend(c.env, who, 'generate', n);
@@ -181,8 +181,8 @@ pieces.post('/generate', async (c) => {
     const beat = setInterval(() => { void send({ type: 'ping' }); }, 8000);
     try {
     // one plan for all the options (the reader looks at the images and picks the manual's chapters), then one write each
-    const planned = await late(planFor(env, { prompt, refs, files: uploads.map((u) => ({ name: u.name, key: u.key, type: u.type, meta: metaOf(u) })), looksLike, dockets: (Array.isArray(body.dockets) ? body.dockets : []).map(String).slice(0, 2), n }), 70_000).catch((e) => { console.error('planning failed', e); return null; });
-    if (planned) log('plan', { n, picks: planned.planned.picks, trail: planned.planned.trail });
+    const planned = await late(planFor(env, { prompt, refs, files: uploads.map((u) => ({ name: u.name, key: u.key, type: u.type, meta: metaOf(u) })), looksLike, dockets: (Array.isArray(body.dockets) ? body.dockets : []).map(String).slice(0, 2), n, format: typeof body.format === 'string' && body.format !== 'auto' ? body.format : undefined, filters: (Array.isArray(body.filters) ? body.filters : []).map(String).slice(0, 8) }), 70_000).catch((e) => { console.error('planning failed', e); return null; });
+    if (planned) log('plan', { n, format: planned.planned.format?.id, picks: planned.planned.picks, trail: planned.planned.trail });
     await Promise.all(Array.from({ length: n }, async (_, i) => {
       try {
         const made = await late(makeOption(env, planned, { prompt, uploads: uploads.map((u) => u.name), i, n }), 200_000);

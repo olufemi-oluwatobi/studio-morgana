@@ -1,0 +1,108 @@
+{
+  "id": "screen-title",
+  "name": "Screen title",
+  "description": "A landscape title for screens and timelines. A two-line headline set big and flush left across the middle, a small label above it and two at the foot, and a huge accent circle bleeding off the right edge with a smaller second-colour circle over it. Reads from across a room or at thumbnail size.",
+  "use": "event screens, stage and conference slides, YouTube thumbnails, X posts, website banners, TV and display screens, title cards",
+  "tags": [
+    "landscape",
+    "screen",
+    "slide",
+    "thumbnail",
+    "banner",
+    "title",
+    "bold"
+  ],
+  "guide": "",
+  "size": [
+    1920,
+    1080
+  ],
+  "formats": [
+    "big-screen",
+    "youtube-thumbnail",
+    "x-post",
+    "banner"
+  ],
+  "flexible": true,
+  "fits": {
+    "type": [
+      "grotesk-poster",
+      "condensed-tech",
+      "wide-tech",
+      "editorial-serif",
+      "didone-fashion",
+      "friendly-round",
+      "graffiti",
+      "retro-bold"
+    ],
+    "spacing": [
+      "standard",
+      "tight",
+      "airy",
+      "edge"
+    ]
+  },
+  "sizes": {
+    "headline": {
+      "role": "display",
+      "default": 200,
+      "max": 240,
+      "width": 0.6,
+      "elements": [
+        "headline-1",
+        "headline-2"
+      ],
+      "description": "the headline size; code shrinks it until the longest line fits 60% of the width"
+    },
+    "labels": {
+      "role": "label",
+      "default": 29,
+      "max": 29,
+      "width": 0.28,
+      "elements": [
+        "kicker-1",
+        "info-1",
+        "info-2"
+      ],
+      "description": "the label size"
+    }
+  },
+  "slots": [
+    {
+      "name": "kicker",
+      "lines": 1,
+      "max": 32,
+      "description": "above the headline: the event, show or series",
+      "default": [
+        "Morgana Talks · Episode 12"
+      ]
+    },
+    {
+      "name": "headline",
+      "lines": 2,
+      "max": 12,
+      "description": "the title in two lines",
+      "default": [
+        "Design in",
+        "plain words"
+      ]
+    },
+    {
+      "name": "info",
+      "lines": 2,
+      "max": 26,
+      "description": "at the foot: the speaker or place, then the date or time",
+      "default": [
+        "Ada Obi, Studio Morgana",
+        "Thursday · 7pm"
+      ]
+    }
+  ],
+  "art": {
+    "description": "a huge accent circle bleeding off the right edge and a smaller second-colour circle over it",
+    "shapes": "Let there be a circle called sun, {{H * 0.53}} big, at {{W * 0.86}} {{H * 0.55}}.\nMake the sun pop.\nLet there be a circle called moon, {{H * 0.17}} big, at {{W * 0.68}} {{H * 0.3}}.\nMake the moon {{c.second}}.",
+    "stamp": "Let there be a circle called sun, {{H * 0.53}} big, at {{W * 0.86}} {{H * 0.55}}.\nMake the sun pop.\nplace a {{stamp}} at {{W * 0.84}} {{H * 0.52}}, size {{H * 0.3}}.",
+    "asset": "Let there be a circle called sun, {{H * 0.53}} big, at {{W * 0.86}} {{H * 0.55}}.\nPrint @{{asset}} in the sun.",
+    "stampInk": "second"
+  }
+}

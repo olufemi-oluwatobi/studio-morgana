@@ -1,0 +1,19 @@
+-- Screen title: landscape. A two-line headline flush left on the middle, a label above it and two at the foot, and a
+-- huge accent circle bleeding off the right edge behind a smaller second-colour circle.
+Let there be a flat canvas called screen-title, {{W}} by {{H}}.
+Let paper be {{c.ground}}.
+Let ink be {{c.ink}}.
+Let pop be {{c.accent}}.
+Make the card paper.
+
+{{art}}
+
+Let a label be {{font.label}} {{weight.label}}, size {{size.labels}}, tracking {{track.labels}}, aligned left, ink.
+Write "{{kicker.1}}" called kicker-1 as a label, at {{left}} {{top + size.labels}}.
+
+Write "{{headline.1}}" called headline-1 in {{font.display}} {{weight.display}}, at {{left}} {{H * 0.5 - size.headline * lead.display * 0.5 + size.headline * 0.35}}, size {{size.headline}}, tracking {{track.headline}}, aligned left.
+Write "{{headline.2}}" called headline-2 in {{font.display}} {{weight.display}}, at {{left}} {{H * 0.5 + size.headline * lead.display * 0.5 + size.headline * 0.35}}, size {{size.headline}}, tracking {{track.headline}}, aligned left.
+Make the headline-1 and the headline-2 ink.
+
+Write "{{info.1}}" called info-1 as a label, at {{left}} {{bottom - size.labels * 0.25}}.
+Write "{{info.2}}" called info-2 as a label, at {{left + W * 0.3}} {{bottom - size.labels * 0.25}}.

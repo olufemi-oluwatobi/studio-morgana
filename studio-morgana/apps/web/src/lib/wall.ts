@@ -91,8 +91,9 @@ export async function loadWall(opts: { tab?: Tab; scope?: Scope; more?: boolean 
 
 // ── composer
 export type Ref = { kind: 'piece'; id: string; title: string; thumb: string | null } | { kind: 'upload'; key: string; name: string; thumb: string; uploading?: boolean; role: 'use' | 'style' };
-interface ComposerState { open: boolean; text: string; refs: Ref[]; busy: boolean }
-export const composerStore = createStore<ComposerState>({ open: false, text: '', refs: [], busy: false });
+interface ComposerState { open: boolean; text: string; refs: Ref[]; busy: boolean; format: string }
+// format: a format id from the taste book, or 'auto' (found from the brief's words, or chosen by the model)
+export const composerStore = createStore<ComposerState>({ open: false, text: '', refs: [], busy: false, format: 'auto' });
 const refKey = (r: Ref) => (r.kind === 'piece' ? 'p:' + r.id : 'u:' + r.key);
 
 export function addPieceRef(t: { id: string; title: string; thumb: string | null }) {
@@ -230,7 +231,7 @@ export async function generate() {
   const seen = new Set<number>(), failures = new Set<string>();
   try {
     await streamLines('/generate', {
-      prompt, n, projectId,
+      prompt, n, projectId, format: c.format,
       refs: c.refs.filter((r) => r.kind === 'piece').map((r) => (r as { id: string }).id),
       uploads: c.refs.filter((r) => r.kind === 'upload' && r.role === 'use').map((r) => (r as { key: string }).key),
       inspiration: c.refs.filter((r) => r.kind === 'upload' && r.role === 'style').map((r) => (r as { key: string }).key),

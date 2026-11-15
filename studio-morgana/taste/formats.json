@@ -1,0 +1,290 @@
+[
+  {
+    "id": "tiktok",
+    "name": "TikTok video",
+    "size": [
+      1080,
+      1920
+    ],
+    "ratio": "9:16",
+    "words": [
+      "tiktok",
+      "tik tok"
+    ],
+    "safe": {
+      "top": 150,
+      "bottom": 320,
+      "left": 60,
+      "right": 140
+    },
+    "description": "Full-screen vertical. The app covers the top (search, tabs), the bottom (caption, sound) and a column of buttons on the right: keep text and faces inside the safe area, centred a little left. Read in a second while scrolling: one big message."
+  },
+  {
+    "id": "instagram-reel",
+    "name": "Instagram Reel",
+    "size": [
+      1080,
+      1920
+    ],
+    "ratio": "9:16",
+    "words": [
+      "reel",
+      "reels"
+    ],
+    "safe": {
+      "top": 150,
+      "bottom": 300,
+      "left": 60,
+      "right": 120
+    },
+    "description": "Full-screen vertical. The caption and buttons cover the bottom and right; the profile the top. The grid preview crops the middle to 4:5, so keep the headline in the middle."
+  },
+  {
+    "id": "instagram-story",
+    "name": "Instagram Story",
+    "size": [
+      1080,
+      1920
+    ],
+    "ratio": "9:16",
+    "words": [
+      "story",
+      "stories",
+      "ig story",
+      "instagram story"
+    ],
+    "safe": {
+      "top": 150,
+      "bottom": 300,
+      "left": 60,
+      "right": 60
+    },
+    "description": "Full-screen vertical, seen for a few seconds. The profile bar covers the top and the reply field the bottom. Room for stickers and a link at the lower third."
+  },
+  {
+    "id": "youtube-short",
+    "name": "YouTube Short",
+    "size": [
+      1080,
+      1920
+    ],
+    "ratio": "9:16",
+    "words": [
+      "short",
+      "shorts",
+      "youtube short"
+    ],
+    "safe": {
+      "top": 150,
+      "bottom": 340,
+      "left": 60,
+      "right": 120
+    },
+    "description": "Full-screen vertical. The title and channel sit over the bottom; buttons on the right."
+  },
+  {
+    "id": "instagram-post",
+    "name": "Instagram post (portrait)",
+    "size": [
+      1080,
+      1350
+    ],
+    "ratio": "4:5",
+    "words": [
+      "instagram",
+      "insta",
+      "ig",
+      "feed",
+      "post",
+      "carousel"
+    ],
+    "safe": {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0
+    },
+    "description": "The tallest feed post: the most room in the feed. The profile grid crops it to 3:4 around the middle, so keep the headline away from the very top and bottom."
+  },
+  {
+    "id": "instagram-square",
+    "name": "Square post",
+    "size": [
+      1080,
+      1080
+    ],
+    "ratio": "1:1",
+    "words": [
+      "square",
+      "1:1"
+    ],
+    "safe": {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0
+    },
+    "description": "Square: works on every feed (Instagram, Facebook, LinkedIn, X). Compact: one message and one image."
+  },
+  {
+    "id": "x-post",
+    "name": "X (Twitter) image",
+    "size": [
+      1600,
+      900
+    ],
+    "ratio": "16:9",
+    "words": [
+      "twitter",
+      "tweet",
+      "x post",
+      "on x"
+    ],
+    "safe": {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0
+    },
+    "description": "Landscape in the timeline. Small on a phone: few words, big type."
+  },
+  {
+    "id": "linkedin-post",
+    "name": "LinkedIn post",
+    "size": [
+      1080,
+      1350
+    ],
+    "ratio": "4:5",
+    "words": [
+      "linkedin"
+    ],
+    "safe": {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0
+    },
+    "description": "Portrait feed image for a professional audience. Nothing covers it, but keep the message well inside the frame: about 15% clear on every side reads best in the feed."
+  },
+  {
+    "id": "youtube-thumbnail",
+    "name": "YouTube thumbnail",
+    "size": [
+      1280,
+      720
+    ],
+    "ratio": "16:9",
+    "words": [
+      "youtube",
+      "thumbnail",
+      "yt"
+    ],
+    "safe": {
+      "top": 0,
+      "bottom": 110,
+      "left": 0,
+      "right": 200
+    },
+    "description": "Landscape, seen tiny beside other videos: three words at most, huge, high contrast. The video length covers the bottom right corner."
+  },
+  {
+    "id": "big-screen",
+    "name": "Big screen (16:9)",
+    "size": [
+      1920,
+      1080
+    ],
+    "ratio": "16:9",
+    "words": [
+      "big screen",
+      "screen",
+      "presentation",
+      "slide",
+      "keynote",
+      "projector",
+      "tv",
+      "display",
+      "landscape",
+      "16:9",
+      "event screen"
+    ],
+    "safe": {
+      "top": 54,
+      "bottom": 54,
+      "left": 96,
+      "right": 96
+    },
+    "description": "A screen seen across a room: a stage screen, a TV, a slide. Big type, read from far away; keep a 5% margin for screens that overscan."
+  },
+  {
+    "id": "banner",
+    "name": "Wide banner",
+    "size": [
+      1920,
+      640
+    ],
+    "ratio": "3:1",
+    "words": [
+      "banner",
+      "header",
+      "billboard",
+      "cover image",
+      "website header"
+    ],
+    "safe": {
+      "top": 40,
+      "bottom": 40,
+      "left": 120,
+      "right": 120
+    },
+    "description": "Very wide and short: a website header, a social cover, a billboard. One line of type and one image side by side."
+  },
+  {
+    "id": "poster",
+    "name": "Poster (A-series)",
+    "size": [
+      1080,
+      1528
+    ],
+    "ratio": "1:√2",
+    "words": [
+      "poster",
+      "flyer",
+      "a4",
+      "a3",
+      "a2",
+      "print",
+      "printed"
+    ],
+    "safe": {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0
+    },
+    "description": "The A-paper shape (A4, A3, A2 …) for printed posters and flyers. Seen from a few metres: a big headline and the facts."
+  },
+  {
+    "id": "tall-poster",
+    "name": "Tall poster (2:3)",
+    "size": [
+      1080,
+      1620
+    ],
+    "ratio": "2:3",
+    "words": [
+      "pinterest",
+      "pin",
+      "tall poster",
+      "2:3"
+    ],
+    "safe": {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0
+    },
+    "description": "2:3: the classic gig-poster and Pinterest shape, a little taller than A-paper."
+  }
+]

@@ -3,19 +3,105 @@
   "name": "Risograph poster",
   "description": "A two-ink risograph poster, 1080 by 1666. Top 38%: a huge three-line headline set tight and flush left in the accent ink, with a small right-hand label column in three groups (what, where, when). Bottom 62%: an image zone in the second ink that bleeds off the bottom and right, with one big accent circle overprinting it. Feels printed, warm and arty.",
   "use": "event posters, exhibitions, festivals, markets, workshops, studio nights, zine and magazine covers: anything with a short loud title and a few facts",
-  "tags": ["poster", "event", "risograph", "print", "editorial", "warm", "arty"],
+  "tags": [
+    "poster",
+    "event",
+    "risograph",
+    "print",
+    "editorial",
+    "warm",
+    "arty"
+  ],
   "guide": "riso-poster",
-  "size": [1080, 1666],
-  "fits": { "type": ["editorial-serif", "friendly-round", "retro-bold", "didone-fashion"], "spacing": ["tight", "standard"] },
+  "size": [
+    1080,
+    1666
+  ],
+  "fits": {
+    "type": [
+      "editorial-serif",
+      "friendly-round",
+      "retro-bold",
+      "didone-fashion"
+    ],
+    "spacing": [
+      "tight",
+      "standard"
+    ]
+  },
   "sizes": {
-    "headline": { "role": "display", "default": 158, "max": 158, "width": 0.6, "elements": ["headline-1", "headline-2", "headline-3"], "description": "the headline size; code shrinks it until the longest line fits 60% of the width" },
-    "labels":   { "role": "label", "default": 29, "max": 29, "width": 216, "elements": ["about-1", "about-2", "about-3", "where-1", "where-2", "when-1", "when-2"], "description": "the label size; the column is 216 pixels wide" }
+    "headline": {
+      "role": "display",
+      "default": 158,
+      "max": 158,
+      "width": 0.6,
+      "elements": [
+        "headline-1",
+        "headline-2",
+        "headline-3"
+      ],
+      "description": "the headline size; code shrinks it until the longest line fits 60% of the width"
+    },
+    "labels": {
+      "role": "label",
+      "default": 29,
+      "max": 29,
+      "width": 216,
+      "elements": [
+        "about-1",
+        "about-2",
+        "about-3",
+        "where-1",
+        "where-2",
+        "when-1",
+        "when-2"
+      ],
+      "description": "the label size; the column is 216 pixels wide"
+    }
   },
   "slots": [
-    { "name": "headline", "lines": 3, "max": 9, "description": "the message in three short lines, one or two words each (about 4 to 9 letters a line), read top to bottom", "default": ["Open", "Studio", "Nights"] },
-    { "name": "about", "lines": 3, "max": 12, "description": "what it is: three tiny facts or keywords", "default": ["Print", "Paper", "Ink"] },
-    { "name": "where", "lines": 2, "max": 12, "description": "where: the place, then a finer detail (room, city)", "default": ["East wing", "Studio 3"] },
-    { "name": "when", "lines": 2, "max": 12, "description": "when: the day, then the time", "default": ["Fridays", "From seven"] }
+    {
+      "name": "headline",
+      "lines": 3,
+      "max": 9,
+      "description": "the message in three short lines, one or two words each (about 4 to 9 letters a line), read top to bottom",
+      "default": [
+        "Open",
+        "Studio",
+        "Nights"
+      ]
+    },
+    {
+      "name": "about",
+      "lines": 3,
+      "max": 12,
+      "description": "what it is: three tiny facts or keywords",
+      "default": [
+        "Print",
+        "Paper",
+        "Ink"
+      ]
+    },
+    {
+      "name": "where",
+      "lines": 2,
+      "max": 12,
+      "description": "where: the place, then a finer detail (room, city)",
+      "default": [
+        "East wing",
+        "Studio 3"
+      ]
+    },
+    {
+      "name": "when",
+      "lines": 2,
+      "max": 12,
+      "description": "when: the day, then the time",
+      "default": [
+        "Fridays",
+        "From seven"
+      ]
+    }
   ],
   "art": {
     "description": "the image zone, in the second ink, with one big accent circle overprinting it",
@@ -23,5 +109,11 @@
     "stamp": "Let there be a circle called sun, 330 big, at 760 860.\nMake the sun warm, multiply.\nplace a {{stamp}} at 560 1230, size 400.",
     "asset": "Let there be a rectangle called art-frame, 1080 by 1030, at 540 1151.\nPrint @{{asset}} in the art-frame, inked {{c.second}}, halftone 7, multiply.\nLet there be a circle called sun, 330 big, at 760 860.\nMake the sun warm, multiply.",
     "stampInk": "second"
-  }
+  },
+  "formats": [
+    "poster",
+    "tall-poster",
+    "instagram-post"
+  ],
+  "flexible": false
 }

@@ -1,0 +1,21 @@
+-- Quote card: one quotation set big and flush left, an accent dot above it, a soft circle bleeding off the corner,
+-- and who said it at the foot over a short accent rule.
+Let there be a flat canvas called quote-card, {{W}} by {{H}}.
+Let paper be {{c.ground}}.
+Let ink be {{c.ink}}.
+Let pop be {{c.accent}}.
+Make the card paper.
+
+{{art}}
+
+Let a quote be {{font.display}} {{weight.display}}, size {{size.quote}}, tracking {{track.quote}}, aligned left, ink.
+Write "{{quote.1}}" called quote-1 as a quote, at {{left}} {{top + W * 0.2 + size.quote * 0.8}}.
+Write "{{quote.2}}" called quote-2 as a quote, at {{left}} {{top + W * 0.2 + size.quote * 0.8 + size.quote * lead.display}}.
+Write "{{quote.3}}" called quote-3 as a quote, at {{left}} {{top + W * 0.2 + size.quote * 0.8 + size.quote * lead.display * 2}}.
+Write "{{quote.4}}" called quote-4 as a quote, at {{left}} {{top + W * 0.2 + size.quote * 0.8 + size.quote * lead.display * 3}}.
+
+Let a label be {{font.label}} {{weight.label}}, size {{size.labels}}, tracking {{track.labels}}, aligned left, ink.
+Let there be a rectangle called rule, {{W * 0.1}} by 4, at {{left + W * 0.05}} {{bottom - size.labels * (1.6 + lead.label)}}.
+Make the rule pop.
+Write "{{by.1}}" called by-1 as a label, at {{left}} {{bottom - size.labels * (0.25 + lead.label)}}.
+Write "{{by.2}}" called by-2 as a label, at {{left}} {{bottom - size.labels * 0.25}}.

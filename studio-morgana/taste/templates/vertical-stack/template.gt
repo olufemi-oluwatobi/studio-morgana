@@ -1,0 +1,20 @@
+-- Vertical stack: full-screen 9:16. A huge accent circle in the upper half, a three-line headline stacked flush left
+-- in the lower half crossing the circle's edge, a label at the top and two at the foot, all inside the app's safe area.
+Let there be a flat canvas called vertical-stack, {{W}} by {{H}}.
+Let paper be {{c.ground}}.
+Let ink be {{c.ink}}.
+Let pop be {{c.accent}}.
+Make the card paper.
+
+{{art}}
+
+Let a label be {{font.label}} {{weight.label}}, size {{size.labels}}, tracking {{track.labels}}, aligned left, ink.
+Write "{{kicker.1}}" called kicker-1 as a label, at {{left}} {{top + size.labels}}.
+
+Write "{{headline.1}}" called headline-1 in {{font.display}} {{weight.display}}, at {{left}} {{bottom - size.labels * (1.45 + lead.label) - size.headline * (0.25 + lead.display * 2)}}, size {{size.headline}}, tracking {{track.headline}}, aligned left.
+Write "{{headline.2}}" called headline-2 in {{font.display}} {{weight.display}}, at {{left}} {{bottom - size.labels * (1.45 + lead.label) - size.headline * (0.25 + lead.display)}}, size {{size.headline}}, tracking {{track.headline}}, aligned left.
+Write "{{headline.3}}" called headline-3 in {{font.display}} {{weight.display}}, at {{left}} {{bottom - size.labels * (1.45 + lead.label) - size.headline * 0.25}}, size {{size.headline}}, tracking {{track.headline}}, aligned left.
+Make the headline-1, the headline-2 and the headline-3 ink.
+
+Write "{{info.1}}" called info-1 as a label, at {{left}} {{bottom - size.labels * (0.25 + lead.label)}}.
+Write "{{info.2}}" called info-2 as a label, at {{left}} {{bottom - size.labels * 0.25}}.

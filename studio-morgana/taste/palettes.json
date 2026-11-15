@@ -3,104 +3,639 @@
     "id": "riso-pink-blue",
     "name": "Riso fluorescent pink and medium blue",
     "description": "The classic two-drum risograph pairing: fluorescent pink and medium blue on warm cream paper. Where the inks cross they multiply into a deep violet. Loud, playful and arty; reads as printed, not digital. Good for events, studios, exhibitions, zines, nightlife with a craft feel.",
-    "tags": ["risograph", "print", "two-colour", "fluorescent", "playful", "arty", "warm"],
+    "tags": [
+      "risograph",
+      "print",
+      "two-colour",
+      "fluorescent",
+      "playful",
+      "arty",
+      "warm"
+    ],
     "roles": {
-      "ground": { "hex": "#f1e9da", "share": 0.55, "use": "the paper: the whole background, left bare around the type" },
-      "ink":    { "hex": "#2343c2", "share": 0.10, "use": "small text: labels, dates, places" },
-      "accent": { "hex": "#ff4fa3", "share": 0.20, "use": "the headline and one big flat shape" },
-      "second": { "hex": "#2343c2", "share": 0.15, "use": "the image zone: shapes, stamps or the photo's shadows" }
+      "ground": {
+        "hex": "#f1e9da",
+        "share": 0.55,
+        "use": "the paper: the whole background, left bare around the type"
+      },
+      "ink": {
+        "hex": "#2343c2",
+        "share": 0.1,
+        "use": "small text: labels, dates, places"
+      },
+      "accent": {
+        "hex": "#ff4fa3",
+        "share": 0.2,
+        "use": "the headline and one big flat shape"
+      },
+      "second": {
+        "hex": "#2343c2",
+        "share": 0.15,
+        "use": "the image zone: shapes, stamps or the photo's shadows"
+      }
     },
-    "rules": ["two inks only: accent and second (ink is the same blue)", "overprint with multiply, never cover", "no black anywhere"]
+    "rules": [
+      "two inks only: accent and second (ink is the same blue)",
+      "overprint with multiply, never cover",
+      "no black anywhere"
+    ]
   },
   {
     "id": "riso-orange-green",
     "name": "Riso orange and green",
     "description": "Bright orange with a deep fresh green on cream: the colours of fruit and leaves. Warm, generous and edible. Good for food, markets, cooking, gardens, community events and anything about sharing.",
-    "tags": ["risograph", "print", "two-colour", "food", "fresh", "warm", "natural"],
+    "tags": [
+      "risograph",
+      "print",
+      "two-colour",
+      "food",
+      "fresh",
+      "warm",
+      "natural"
+    ],
     "roles": {
-      "ground": { "hex": "#f3ecdc", "share": 0.55, "use": "the paper" },
-      "ink":    { "hex": "#1e5a3e", "share": 0.10, "use": "small text" },
-      "accent": { "hex": "#ff5a1f", "share": 0.20, "use": "the headline and the big shape" },
-      "second": { "hex": "#1e7a52", "share": 0.15, "use": "the image zone, leaves, stems, the photo" }
+      "ground": {
+        "hex": "#f3ecdc",
+        "share": 0.55,
+        "use": "the paper"
+      },
+      "ink": {
+        "hex": "#1e5a3e",
+        "share": 0.1,
+        "use": "small text"
+      },
+      "accent": {
+        "hex": "#ff5a1f",
+        "share": 0.2,
+        "use": "the headline and the big shape"
+      },
+      "second": {
+        "hex": "#1e7a52",
+        "share": 0.15,
+        "use": "the image zone, leaves, stems, the photo"
+      }
     },
-    "rules": ["orange is the voice, green the support", "multiply where they cross"]
+    "rules": [
+      "orange is the voice, green the support",
+      "multiply where they cross"
+    ]
   },
   {
     "id": "riso-red-teal",
     "name": "Riso bright red and teal",
     "description": "Bright red over teal on off-white. Sharper and more urgent than pink and blue; still clearly print. Good for talks, protests, sales with character, music, sport, anything that should feel energetic but crafted.",
-    "tags": ["risograph", "print", "two-colour", "urgent", "energetic", "bold"],
+    "tags": [
+      "risograph",
+      "print",
+      "two-colour",
+      "urgent",
+      "energetic",
+      "bold"
+    ],
     "roles": {
-      "ground": { "hex": "#f5efe3", "share": 0.55, "use": "the paper" },
-      "ink":    { "hex": "#0f5c68", "share": 0.10, "use": "small text" },
-      "accent": { "hex": "#e8352b", "share": 0.20, "use": "the headline and the big shape" },
-      "second": { "hex": "#0f7c8c", "share": 0.15, "use": "the image zone" }
+      "ground": {
+        "hex": "#f5efe3",
+        "share": 0.55,
+        "use": "the paper"
+      },
+      "ink": {
+        "hex": "#0a3a42",
+        "share": 0.1,
+        "use": "small text"
+      },
+      "accent": {
+        "hex": "#e8352b",
+        "share": 0.2,
+        "use": "the headline and the big shape"
+      },
+      "second": {
+        "hex": "#0f7c8c",
+        "share": 0.15,
+        "use": "the image zone"
+      }
     },
-    "rules": ["red is the voice, teal the support", "multiply where they cross"]
+    "rules": [
+      "red is the voice, teal the support",
+      "multiply where they cross"
+    ]
   },
   {
     "id": "riso-violet-sun",
     "name": "Riso violet and sunflower",
     "description": "Violet type over a sunflower-yellow image zone on cream. Bright and optimistic with good contrast for type (the yellow never carries text). Good for spring and summer events, kids, festivals, flowers, music in the park.",
-    "tags": ["risograph", "print", "two-colour", "sunny", "optimistic", "summer", "kids"],
+    "tags": [
+      "risograph",
+      "print",
+      "two-colour",
+      "sunny",
+      "optimistic",
+      "summer",
+      "kids"
+    ],
     "roles": {
-      "ground": { "hex": "#f6f0e1", "share": 0.55, "use": "the paper" },
-      "ink":    { "hex": "#3b2a7a", "share": 0.10, "use": "small text" },
-      "accent": { "hex": "#6a3fd1", "share": 0.20, "use": "the headline and the big shape" },
-      "second": { "hex": "#ffb000", "share": 0.15, "use": "the image zone only: never text, too light on cream" }
+      "ground": {
+        "hex": "#f6f0e1",
+        "share": 0.55,
+        "use": "the paper"
+      },
+      "ink": {
+        "hex": "#1a1036",
+        "share": 0.1,
+        "use": "small text"
+      },
+      "accent": {
+        "hex": "#6a3fd1",
+        "share": 0.2,
+        "use": "the headline and the big shape"
+      },
+      "second": {
+        "hex": "#ffb000",
+        "share": 0.15,
+        "use": "the image zone only: never text, too light on cream"
+      }
     },
-    "rules": ["yellow never carries text", "violet over yellow multiplies into brown: keep the crossing small"]
+    "rules": [
+      "yellow never carries text",
+      "violet over yellow multiplies into brown: keep the crossing small"
+    ]
   },
   {
     "id": "swiss-bone-red",
     "name": "Swiss bone, black and signal red",
     "description": "Warm bone paper, near-black type, one signal-red shape. The international typographic style at its plainest: serious, confident, cultural. Good for design events, lectures, museums, architecture, typography, brands that want authority.",
-    "tags": ["swiss", "grid", "minimal", "serious", "cultural", "black", "red"],
+    "tags": [
+      "swiss",
+      "grid",
+      "minimal",
+      "serious",
+      "cultural",
+      "black",
+      "red"
+    ],
     "roles": {
-      "ground": { "hex": "#efe9df", "share": 0.60, "use": "the paper" },
-      "ink":    { "hex": "#111111", "share": 0.20, "use": "the headline, labels and rules" },
-      "accent": { "hex": "#e63b2e", "share": 0.18, "use": "one big shape only, never text" },
-      "second": { "hex": "#8a8379", "share": 0.02, "use": "hairlines and quiet details" }
+      "ground": {
+        "hex": "#efe9df",
+        "share": 0.6,
+        "use": "the paper"
+      },
+      "ink": {
+        "hex": "#111111",
+        "share": 0.2,
+        "use": "the headline, labels and rules"
+      },
+      "accent": {
+        "hex": "#e63b2e",
+        "share": 0.18,
+        "use": "one big shape only, never text"
+      },
+      "second": {
+        "hex": "#8a8379",
+        "share": 0.02,
+        "use": "hairlines and quiet details"
+      }
     },
-    "rules": ["red appears once, as a shape", "type is ink only"]
+    "rules": [
+      "red appears once, as a shape",
+      "type is ink only"
+    ]
   },
   {
     "id": "swiss-white-blue",
     "name": "Swiss white, black and electric blue",
     "description": "Clean white, black type and one electric-blue shape. Cooler and more technical than bone and red. Good for tech, science, product launches, conferences, fintech, anything precise and modern.",
-    "tags": ["swiss", "grid", "minimal", "tech", "cool", "modern", "blue"],
+    "tags": [
+      "swiss",
+      "grid",
+      "minimal",
+      "tech",
+      "cool",
+      "modern",
+      "blue"
+    ],
     "roles": {
-      "ground": { "hex": "#f7f7f4", "share": 0.62, "use": "the page" },
-      "ink":    { "hex": "#0d0d0d", "share": 0.20, "use": "the headline, labels and rules" },
-      "accent": { "hex": "#1f4bff", "share": 0.16, "use": "one big shape only" },
-      "second": { "hex": "#9a9a9a", "share": 0.02, "use": "hairlines" }
+      "ground": {
+        "hex": "#f7f7f4",
+        "share": 0.62,
+        "use": "the page"
+      },
+      "ink": {
+        "hex": "#0d0d0d",
+        "share": 0.2,
+        "use": "the headline, labels and rules"
+      },
+      "accent": {
+        "hex": "#1f4bff",
+        "share": 0.16,
+        "use": "one big shape only"
+      },
+      "second": {
+        "hex": "#9a9a9a",
+        "share": 0.02,
+        "use": "hairlines"
+      }
     },
-    "rules": ["blue appears once, as a shape", "type is ink only"]
+    "rules": [
+      "blue appears once, as a shape",
+      "type is ink only"
+    ]
   },
   {
-    "id": "night-yellow",
-    "name": "Night: black, warm white and yellow",
-    "description": "A near-black ground with warm-white type and one yellow shape: the inverted, nightlife version of the swiss palettes. Dramatic and high contrast. Good for clubs, concerts, film nights, late openings, launches after dark.",
-    "tags": ["dark", "night", "inverted", "dramatic", "music", "club", "yellow"],
+    "id": "night-signal",
+    "name": "Night: black, warm white and signal orange",
+    "description": "A near-black ground with warm-white type and one signal-orange shape: the inverted, nightlife version of the swiss palettes. Dramatic and high contrast. Good for clubs, concerts, film nights, late openings, launches after dark.",
+    "tags": [
+      "dark",
+      "night",
+      "inverted",
+      "dramatic",
+      "music",
+      "club",
+      "orange"
+    ],
     "roles": {
-      "ground": { "hex": "#121212", "share": 0.62, "use": "the page: dark" },
-      "ink":    { "hex": "#f2efe8", "share": 0.20, "use": "the headline, labels and rules" },
-      "accent": { "hex": "#ffd23f", "share": 0.16, "use": "one big shape; may carry the headline in riso-style templates" },
-      "second": { "hex": "#5c5c5c", "share": 0.02, "use": "hairlines and the image zone's tint" }
+      "ground": {
+        "hex": "#121212",
+        "share": 0.62,
+        "use": "the page: dark"
+      },
+      "ink": {
+        "hex": "#f2efe8",
+        "share": 0.2,
+        "use": "the headline, labels and rules"
+      },
+      "accent": {
+        "hex": "#ff5a00",
+        "share": 0.16,
+        "use": "one big shape; type may cross it"
+      },
+      "second": {
+        "hex": "#5c5c5c",
+        "share": 0.02,
+        "use": "hairlines and the image zone's tint"
+      }
     },
-    "rules": ["the dark is the design: keep it mostly empty", "no grain heavier than 0.2"]
+    "rules": [
+      "the dark is the design: keep it mostly empty",
+      "no grain heavier than 0.2"
+    ]
   },
   {
     "id": "forest-cream-orange",
     "name": "Forest, cream and tangerine",
     "description": "Deep forest-green type on cream with a tangerine shape and a sage support. Earthy, calm and premium. Good for wellness, coffee, organic food, outdoor brands, slow living, bookshops.",
-    "tags": ["earthy", "calm", "natural", "premium", "green", "food", "wellness"],
+    "tags": [
+      "earthy",
+      "calm",
+      "natural",
+      "premium",
+      "green",
+      "food",
+      "wellness"
+    ],
     "roles": {
-      "ground": { "hex": "#f4efe2", "share": 0.58, "use": "the paper" },
-      "ink":    { "hex": "#1f3d2b", "share": 0.20, "use": "the headline, labels and rules" },
-      "accent": { "hex": "#ff7a2e", "share": 0.16, "use": "one big shape, or the headline in riso-style templates" },
-      "second": { "hex": "#8fb08a", "share": 0.06, "use": "the image zone and quiet details" }
+      "ground": {
+        "hex": "#f4efe2",
+        "share": 0.58,
+        "use": "the paper"
+      },
+      "ink": {
+        "hex": "#1f3d2b",
+        "share": 0.2,
+        "use": "the headline, labels and rules"
+      },
+      "accent": {
+        "hex": "#ff7a2e",
+        "share": 0.16,
+        "use": "one big shape, or the headline in riso-style templates"
+      },
+      "second": {
+        "hex": "#8fb08a",
+        "share": 0.06,
+        "use": "the image zone and quiet details"
+      }
     },
-    "rules": ["green carries text", "tangerine is a highlight, not a background"]
+    "rules": [
+      "green carries text",
+      "tangerine is a highlight, not a background"
+    ]
+  },
+  {
+    "id": "bauhaus-primary",
+    "name": "Bauhaus primaries",
+    "description": "Warm off-white with black type, a hard red and a deep blue: geometric, constructivist, confident. Good for art schools, architecture, design talks, museums, bold brand statements.",
+    "tags": [
+      "bauhaus",
+      "geometric",
+      "primary",
+      "bold",
+      "cultural",
+      "red",
+      "blue"
+    ],
+    "roles": {
+      "ground": {
+        "hex": "#f2ede3",
+        "share": 0.58,
+        "use": "the background"
+      },
+      "ink": {
+        "hex": "#121212",
+        "share": 0.2,
+        "use": "the headline, labels and rules"
+      },
+      "accent": {
+        "hex": "#e1251b",
+        "share": 0.16,
+        "use": "one big shape, or the headline in riso-style templates"
+      },
+      "second": {
+        "hex": "#0b4fa8",
+        "share": 0.06,
+        "use": "the image zone and quiet details"
+      }
+    },
+    "rules": [
+      "red and blue as flat shapes; type in black",
+      "no gradients, no tints"
+    ]
+  },
+  {
+    "id": "pastel-soft",
+    "name": "Soft pastels",
+    "description": "Blush paper with plum type, a candy pink and a powder aqua. Gentle, sweet and friendly. Good for beauty, baby, bakeries, cafés, wellness, birthdays, soft launches.",
+    "tags": [
+      "pastel",
+      "soft",
+      "sweet",
+      "beauty",
+      "cafe",
+      "gentle",
+      "pink"
+    ],
+    "roles": {
+      "ground": {
+        "hex": "#fbeee6",
+        "share": 0.58,
+        "use": "the background"
+      },
+      "ink": {
+        "hex": "#3d2c3e",
+        "share": 0.2,
+        "use": "the headline, labels and rules"
+      },
+      "accent": {
+        "hex": "#f49ac1",
+        "share": 0.16,
+        "use": "one big shape, or the headline in riso-style templates"
+      },
+      "second": {
+        "hex": "#a7d8de",
+        "share": 0.06,
+        "use": "the image zone and quiet details"
+      }
+    },
+    "rules": [
+      "type always in plum: the pastels are too light to read"
+    ]
+  },
+  {
+    "id": "citrus-pop",
+    "name": "Citrus pop",
+    "description": "Lemon-cream ground, black type, tangerine and a fresh green. Juicy and loud. Good for summer sales, drinks, smoothies, fruit, markets, pool parties.",
+    "tags": [
+      "citrus",
+      "summer",
+      "sale",
+      "drinks",
+      "fresh",
+      "loud",
+      "food"
+    ],
+    "roles": {
+      "ground": {
+        "hex": "#fff7d6",
+        "share": 0.58,
+        "use": "the background"
+      },
+      "ink": {
+        "hex": "#1b1b1b",
+        "share": 0.2,
+        "use": "the headline, labels and rules"
+      },
+      "accent": {
+        "hex": "#ff8a00",
+        "share": 0.16,
+        "use": "one big shape, or the headline in riso-style templates"
+      },
+      "second": {
+        "hex": "#00a76f",
+        "share": 0.06,
+        "use": "the image zone and quiet details"
+      }
+    },
+    "rules": [
+      "one fruit colour leads; the other supports"
+    ]
+  },
+  {
+    "id": "mono-ink",
+    "name": "Black and white",
+    "description": "Pure white, pure black and a pale grey shape. Stark, editorial and expensive when the type is good. Good for fashion, galleries, statements, minimal brands, announcements, obituaries.",
+    "tags": [
+      "mono",
+      "black",
+      "white",
+      "minimal",
+      "editorial",
+      "stark",
+      "fashion"
+    ],
+    "roles": {
+      "ground": {
+        "hex": "#ffffff",
+        "share": 0.58,
+        "use": "the background"
+      },
+      "ink": {
+        "hex": "#0a0a0a",
+        "share": 0.2,
+        "use": "the headline, labels and rules"
+      },
+      "accent": {
+        "hex": "#e2e2e2",
+        "share": 0.16,
+        "use": "one pale grey shape behind the type"
+      },
+      "second": {
+        "hex": "#bdbdbd",
+        "share": 0.06,
+        "use": "the image zone and quiet details"
+      }
+    },
+    "rules": [
+      "no colour at all",
+      "black type; the grey only as a shape behind it"
+    ]
+  },
+  {
+    "id": "neon-night",
+    "name": "Neon night",
+    "description": "Deep navy-black with near-white type, hot magenta and electric cyan. Club, rave and arcade energy. Good for parties, gaming, esports, DJs, late events, tech with attitude.",
+    "tags": [
+      "neon",
+      "night",
+      "club",
+      "gaming",
+      "rave",
+      "dark",
+      "electric"
+    ],
+    "roles": {
+      "ground": {
+        "hex": "#0b0b1a",
+        "share": 0.58,
+        "use": "the background"
+      },
+      "ink": {
+        "hex": "#f5f5ff",
+        "share": 0.2,
+        "use": "the headline, labels and rules"
+      },
+      "accent": {
+        "hex": "#ff2bd6",
+        "share": 0.16,
+        "use": "one big shape, or the headline in riso-style templates"
+      },
+      "second": {
+        "hex": "#23e6ff",
+        "share": 0.06,
+        "use": "the image zone and quiet details"
+      }
+    },
+    "rules": [
+      "neon only on dark",
+      "never more than two neons"
+    ]
+  },
+  {
+    "id": "sunset-ochre",
+    "name": "Sunset ochre",
+    "description": "Warm cream with espresso type, a burnt orange and an ochre gold: the colours of a Lagos evening. Rich, warm and celebratory. Good for afrobeats, festivals, owambe, fashion, food, culture.",
+    "tags": [
+      "warm",
+      "sunset",
+      "african",
+      "festival",
+      "music",
+      "culture",
+      "orange",
+      "gold"
+    ],
+    "roles": {
+      "ground": {
+        "hex": "#fff1e0",
+        "share": 0.58,
+        "use": "the background"
+      },
+      "ink": {
+        "hex": "#2b1a10",
+        "share": 0.2,
+        "use": "the headline, labels and rules"
+      },
+      "accent": {
+        "hex": "#e2531e",
+        "share": 0.16,
+        "use": "one big shape, or the headline in riso-style templates"
+      },
+      "second": {
+        "hex": "#f2b632",
+        "share": 0.06,
+        "use": "the image zone and quiet details"
+      }
+    },
+    "rules": [
+      "orange leads, gold supports",
+      "espresso for all small text"
+    ]
+  },
+  {
+    "id": "ocean-calm",
+    "name": "Ocean calm",
+    "description": "Mist-blue ground, deep teal type, a lagoon blue and a soft coral. Calm, clean and trustworthy. Good for travel, health, clinics, finance, spas, water, summer calm.",
+    "tags": [
+      "calm",
+      "ocean",
+      "travel",
+      "health",
+      "clean",
+      "blue",
+      "trust"
+    ],
+    "roles": {
+      "ground": {
+        "hex": "#eef5f6",
+        "share": 0.58,
+        "use": "the background"
+      },
+      "ink": {
+        "hex": "#0d3b4a",
+        "share": 0.2,
+        "use": "the headline, labels and rules"
+      },
+      "accent": {
+        "hex": "#1aa6b7",
+        "share": 0.16,
+        "use": "one big shape, or the headline in riso-style templates"
+      },
+      "second": {
+        "hex": "#f4a259",
+        "share": 0.06,
+        "use": "the image zone and quiet details"
+      }
+    },
+    "rules": [
+      "coral sparingly: one detail"
+    ]
+  },
+  {
+    "id": "luxe-black-gold",
+    "name": "Black and gold",
+    "description": "Near-black with ivory type and an antique gold. Formal, luxurious and nocturnal. Good for galas, weddings, perfume, jewellery, premium launches, awards, New Year's Eve.",
+    "tags": [
+      "luxury",
+      "gold",
+      "black",
+      "formal",
+      "wedding",
+      "gala",
+      "premium",
+      "night"
+    ],
+    "roles": {
+      "ground": {
+        "hex": "#0f0e0c",
+        "share": 0.58,
+        "use": "the background"
+      },
+      "ink": {
+        "hex": "#f3ead8",
+        "share": 0.2,
+        "use": "the headline, labels and rules"
+      },
+      "accent": {
+        "hex": "#a8822f",
+        "share": 0.16,
+        "use": "one big shape, or the headline in riso-style templates"
+      },
+      "second": {
+        "hex": "#3a342a",
+        "share": 0.06,
+        "use": "the image zone and quiet details"
+      }
+    },
+    "rules": [
+      "gold is precious: one shape or one line",
+      "ivory for text"
+    ]
   }
 ]

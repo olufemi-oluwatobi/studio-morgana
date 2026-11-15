@@ -1,0 +1,99 @@
+{
+  "id": "quote-card",
+  "name": "Quote card",
+  "description": "A quotation card for feeds. A solid accent dot at the top left, the quote in four big flush-left lines below it, a soft circle in the second colour bleeding off the bottom right corner, and the speaker's name and role at the foot over a short accent rule. Calm, readable and shareable.",
+  "use": "quotes, testimonials, reviews, sayings, announcements in one sentence, tips, facts, thank-you posts",
+  "tags": [
+    "quote",
+    "social",
+    "card",
+    "testimonial",
+    "calm",
+    "typographic"
+  ],
+  "guide": "",
+  "size": [
+    1080,
+    1080
+  ],
+  "formats": [
+    "instagram-square",
+    "instagram-post",
+    "linkedin-post"
+  ],
+  "flexible": true,
+  "fits": {
+    "type": [
+      "editorial-serif",
+      "didone-fashion",
+      "friendly-round",
+      "retro-bold",
+      "handwritten-note",
+      "script-luxe",
+      "street-marker"
+    ],
+    "spacing": [
+      "standard",
+      "airy",
+      "gallery",
+      "tight"
+    ]
+  },
+  "sizes": {
+    "quote": {
+      "role": "display",
+      "default": 96,
+      "max": 110,
+      "width": "safe",
+      "elements": [
+        "quote-1",
+        "quote-2",
+        "quote-3",
+        "quote-4"
+      ],
+      "description": "the quote size; code shrinks it until the longest line fits between the margins"
+    },
+    "labels": {
+      "role": "label",
+      "default": 24,
+      "max": 29,
+      "width": 0.7,
+      "elements": [
+        "by-1",
+        "by-2"
+      ],
+      "description": "the size of the name and role"
+    }
+  },
+  "slots": [
+    {
+      "name": "quote",
+      "lines": 4,
+      "max": 18,
+      "description": "the quotation broken into four lines of similar length, at natural pauses; no quotation marks",
+      "default": [
+        "Good design is",
+        "as little design",
+        "as possible, and",
+        "then less."
+      ]
+    },
+    {
+      "name": "by",
+      "lines": 2,
+      "max": 28,
+      "description": "who said it, then their role or where it is from",
+      "default": [
+        "Dieter Rams",
+        "Ten principles, 1976"
+      ]
+    }
+  ],
+  "art": {
+    "description": "an accent dot above the quote and a soft circle bleeding off the bottom right",
+    "shapes": "Let there be a circle called dot, {{W * 0.045}} big, at {{left + W * 0.045}} {{top + W * 0.045}}.\nMake the dot pop.\nLet there be a circle called orb, {{W * 0.31}} big, at {{W * 0.95}} {{H * 0.95}}.\nMake the orb {{c.second}}.",
+    "stamp": "Let there be a circle called dot, {{W * 0.045}} big, at {{left + W * 0.045}} {{top + W * 0.045}}.\nMake the dot pop.\nplace a {{stamp}} at {{W * 0.8}} {{H * 0.8}}, size {{W * 0.13}}.",
+    "asset": "Let there be a circle called dot, {{W * 0.045}} big, at {{left + W * 0.045}} {{top + W * 0.045}}.\nMake the dot pop.\nLet there be a circle called photo, {{W * 0.23}} big, at {{W * 0.86}} {{H * 0.86}}.\nPrint @{{asset}} in the photo.",
+    "stampInk": "second"
+  }
+}
