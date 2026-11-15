@@ -156,17 +156,18 @@ pieces.post('/generate', async (c) => {
     ? await c.env.DB.prepare('SELECT id FROM projects WHERE id = ? AND owner = ? AND deleted = 0').bind(body.projectId, who.owner).first<{ id: string }>()
     : null;
   const upKeys = (Array.isArray(body.uploads) ? body.uploads : []).filter((x) => typeof x === 'string').slice(0, 4);
-  const uploads: { key: string; name: string; type: string; bytes: number }[] = [];
+  const uploads: { key: string; name: string; type: string; bytes: number; label: string | null; width: number | null; height: number | null; palette: string | null }[] = [];
+  const metaOf = (u: { label: string | null; width: number | null; height: number | null; palette: string | null }) => ({ label: u.label, w: u.width, h: u.height, palette: (() => { try { return JSON.parse(u.palette || '[]') as string[]; } catch { return []; } })() });
   for (const k of upKeys) {
-    const u = await c.env.DB.prepare('SELECT key, name, type, bytes FROM uploads WHERE key = ? AND owner = ?').bind(k, who.owner).first<{ key: string; name: string; type: string; bytes: number }>();
+    const u = await c.env.DB.prepare('SELECT key, name, type, bytes, label, width, height, palette FROM uploads WHERE key = ? AND owner = ?').bind(k, who.owner).first<{ key: string; name: string; type: string; bytes: number; label: string | null; width: number | null; height: number | null; palette: string | null }>();
     if (u) uploads.push(u);
   }
   // loose inspiration: images to match in style, never printed and never attached to the piece
   const inspoKeys = (Array.isArray(body.inspiration) ? body.inspiration : []).filter((x) => typeof x === 'string').slice(0, 4);
   const inspo: FileRef[] = [];
   for (const k of inspoKeys) {
-    const u = await c.env.DB.prepare('SELECT key, name, type FROM uploads WHERE key = ? AND owner = ?').bind(k, who.owner).first<FileRef>();
-    if (u) inspo.push(u);
+    const u = await c.env.DB.prepare('SELECT key, name, type, label, width, height, palette FROM uploads WHERE key = ? AND owner = ?').bind(k, who.owner).first<FileRef & { label: string | null; width: number | null; height: number | null; palette: string | null }>();
+    if (u) inspo.push({ key: u.key, name: u.name, type: u.type, meta: metaOf(u) });
   }
   if (inspo.length) (await readFiles(c.env, inspo)).images.forEach((im, i) => looksLike.push({ ...im, name: `style image ${i + 1}` }));
   const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
@@ -180,7 +181,7 @@ pieces.post('/generate', async (c) => {
     const beat = setInterval(() => { void send({ type: 'ping' }); }, 8000);
     try {
     // one plan for all the options (the reader looks at the images and picks the manual's chapters), then one write each
-    const planned = await late(planFor(env, { prompt, refs, files: uploads.map((u) => ({ name: u.name, key: u.key, type: u.type })), looksLike, dockets: (Array.isArray(body.dockets) ? body.dockets : []).map(String).slice(0, 2) }), 70_000).catch((e) => { console.error('planning failed', e); return null; });
+    const planned = await late(planFor(env, { prompt, refs, files: uploads.map((u) => ({ name: u.name, key: u.key, type: u.type, meta: metaOf(u) })), looksLike, dockets: (Array.isArray(body.dockets) ? body.dockets : []).map(String).slice(0, 2) }), 70_000).catch((e) => { console.error('planning failed', e); return null; });
     if (planned) log('plan', { n, dockets: planned.planned.dockets.map((d) => d.id), kind: planned.planned.plan.kind, chapters: planned.planned.chapters.map((c) => c.id), trail: planned.planned.trail });
     await Promise.all(Array.from({ length: n }, async (_, i) => {
       try {
@@ -378,7 +379,34 @@ pieces.post('/uploads', async (c) => {
   const key = 'f/' + hash;
   const name = `${base}-${hash.slice(0, 6)}.${ext}`;
   if (!(await c.env.BUCKET.head(key))) await c.env.BUCKET.put(key, body, { httpMetadata: { contentType: type, cacheControl: 'public, max-age=31536000, immutable' } });
-  await c.env.DB.prepare('INSERT OR REPLACE INTO uploads (key, owner, name, type, bytes, created) VALUES (?, ?, ?, ?, ?, ?)')
-    .bind(key, who.owner, name, type, body.byteLength, now()).run();
-  return c.json({ key, name, url: fileUrl(key), type, bytes: body.byteLength });
+  // what the browser measured, and what the person says it is (an asset to print, or a reference to look at)
+  const kind = c.req.header('x-kind') === 'asset' ? 'asset' : 'reference';
+  const label = (c.req.header('x-label') || '').toLowerCase().replace(/[^a-z -]/g, '').slice(0, 30) || null;
+  const dim = (h: string) => { const n = Number(c.req.header(h)); return Number.isFinite(n) && n > 0 && n < 100_000 ? Math.round(n) : null; };
+  let palette: string[] = [];
+  try { palette = (JSON.parse(decodeURIComponent(c.req.header('x-palette') || '[]')) as unknown[]).map(String).filter((h) => /^#[0-9a-f]{6}$/i.test(h)).slice(0, 8); } catch { /* none measured */ }
+  await c.env.DB.prepare(`INSERT INTO uploads (key, owner, name, type, bytes, created, kind, label, width, height, palette, saved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT (key, owner) DO UPDATE SET kind = excluded.kind, label = COALESCE(excluded.label, uploads.label), width = COALESCE(excluded.width, uploads.width),
+      height = COALESCE(excluded.height, uploads.height), palette = excluded.palette, saved = MAX(uploads.saved, excluded.saved)`)
+    .bind(key, who.owner, name, type, body.byteLength, now(), kind, label, dim('x-width'), dim('x-height'), JSON.stringify(palette), kind === 'asset' ? 1 : 0).run();
+  return c.json({ key, name, url: fileUrl(key), type, bytes: body.byteLength, kind, label });
+});
+
+// the person's asset library: logos, photos and SVGs they can put in any piece
+interface UploadRow { key: string; name: string; type: string; kind: string; label: string | null; width: number | null; height: number | null; palette: string | null }
+const assetOut = (r: UploadRow) => ({ key: r.key, name: r.name, type: r.type, kind: r.kind, label: r.label, url: fileUrl(r.key), w: r.width, h: r.height });
+pieces.get('/assets', async (c) => {
+  const { results } = await c.env.DB.prepare("SELECT key, name, type, kind, label, width, height, palette FROM uploads WHERE owner = ? AND saved = 1 AND kind = 'asset' ORDER BY created DESC LIMIT 200").bind(c.get('who').owner).all<UploadRow>();
+  return c.json({ assets: results.map(assetOut) });
+});
+// change what an upload is (asset or reference), its label, or whether it stays in the library
+pieces.post('/assets/update', async (c) => {
+  const b = await json<{ key?: string; kind?: string; label?: string; saved?: boolean }>(c);
+  const key = str(b.key, 'key', 200), who = c.get('who');
+  const row = await c.env.DB.prepare('SELECT key FROM uploads WHERE key = ? AND owner = ?').bind(key, who.owner).first();
+  if (!row) fail(404, 'that file is not yours');
+  if (b.kind === 'asset' || b.kind === 'reference') await c.env.DB.prepare('UPDATE uploads SET kind = ?, saved = CASE WHEN ? = \'asset\' THEN 1 ELSE saved END WHERE key = ? AND owner = ?').bind(b.kind, b.kind, key, who.owner).run();
+  if (typeof b.label === 'string') await c.env.DB.prepare('UPDATE uploads SET label = ? WHERE key = ? AND owner = ?').bind(b.label.toLowerCase().replace(/[^a-z -]/g, '').slice(0, 30) || null, key, who.owner).run();
+  if (typeof b.saved === 'boolean') await c.env.DB.prepare('UPDATE uploads SET saved = ? WHERE key = ? AND owner = ?').bind(b.saved ? 1 : 0, key, who.owner).run();
+  return c.json({ ok: true });
 });

@@ -5,7 +5,7 @@
 import type { GtChecked, GtElement } from '../gt/checker.gen.js';
 import { check } from '../gt/checker.gen.js';
 import type { Img, Models } from './models';
-import { addCheckLoop, chaptersFor, codeOf, contents, extractJson, numbered, runToEnd, stamp, systemFor, wizardOf, type LoopState, type Step } from './common';
+import { HOUSE, addCheckLoop, chaptersFor, codeOf, contents, extractJson, numbered, runToEnd, stamp, systemFor, wizardOf, type LoopState, type Step } from './common';
 
 export interface PartBrief { n: number; name: string; face?: string; lines: number[] }
 export interface EditRequest {
@@ -101,7 +101,7 @@ export async function editPiece(models: Models, o: EditRequest & { files: Record
     id: 'patch',
     handler: async ({ state, setState }) => {
       const t0 = Date.now();
-      const system = systemFor(chaptersFor(state.understood?.chapters, { kind: before.kind ?? undefined }));
+      const system = systemFor(chaptersFor(state.understood?.chapters, { kind: before.kind ?? undefined })) + '\n\n' + HOUSE;
       const reply = await models.write({
         system,
         prompt: [

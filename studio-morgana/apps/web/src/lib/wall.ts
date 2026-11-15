@@ -102,17 +102,74 @@ export function addPieceRef(t: { id: string; title: string; thumb: string | null
 export function removeRef(r: Ref) {
   composerStore.set((c) => ({ ...c, refs: c.refs.filter((x) => refKey(x) !== refKey(r)) }));
 }
-// an uploaded image is either put in the piece ("use") or only matched in look ("style")
+// an upload is an asset ("use": printed in the piece, kept in your library) or a reference ("style": its look is
+// matched, it is never printed)
 export function toggleRole(r: Ref) {
-  composerStore.set((c) => ({ ...c, refs: c.refs.map((x) => (x.kind === 'upload' && r.kind === 'upload' && x.key === r.key ? { ...x, role: x.role === 'use' ? 'style' : 'use' } : x)) }));
+  if (r.kind !== 'upload') return;
+  const role = r.role === 'use' ? 'style' : 'use';
+  composerStore.set((c) => ({ ...c, refs: c.refs.map((x) => (x.kind === 'upload' && x.key === r.key ? { ...x, role } : x)) }));
+  if (!r.key.startsWith('tmp-')) void api('/assets/update', { body: { key: r.key, kind: role === 'use' ? 'asset' : 'reference' } }).then(() => { if (role === 'use') void loadAssets(); }).catch(() => { });
 }
-export async function addUpload(file: File) {
-  if (!/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type)) { toast('Use a PNG, JPEG, WebP or SVG image'); return; }
-  if (composerStore.get().refs.length >= 4) { toast('Up to four references'); return; }
-  const local = URL.createObjectURL(file), tmp = 'tmp-' + Math.random().toString(36).slice(2);
-  composerStore.set((c) => ({ ...c, open: true, refs: [...c.refs, { kind: 'upload', key: tmp, name: file.name, thumb: local, uploading: true, role: 'use' }] }));
+
+// the person's saved assets (logos, photos, SVGs), to put in any piece
+export interface Asset { key: string; name: string; type: string; label: string | null; url: string; w: number | null; h: number | null }
+export const assetsStore = createStore<Asset[] | null>(null);
+export async function loadAssets() {
+  try { assetsStore.set((await api<{ assets: Asset[] }>('/assets')).assets); } catch { assetsStore.set([]); }
+}
+export function addAsset(a: Asset) {
+  const c = composerStore.get();
+  if (c.refs.some((r) => r.kind === 'upload' && r.key === a.key)) return;
+  if (c.refs.length >= 4) { toast('Up to four at a time'); return; }
+  composerStore.set((s) => ({ ...s, open: true, refs: [...s.refs, { kind: 'upload', key: a.key, name: a.name, thumb: a.url, role: 'use' }] }));
+}
+export async function forgetAsset(a: Asset) {
+  assetsStore.set((xs) => (xs ?? []).filter((x) => x.key !== a.key));
+  await api('/assets/update', { body: { key: a.key, saved: false } }).catch(() => { });
+}
+
+// size and main colours, measured here so the model gets exact numbers
+async function measure(file: File): Promise<{ w: number; h: number; palette: string[] } | null> {
   try {
-    const u = await api<{ key: string; name: string; url: string }>('/uploads', { method: 'POST', raw: file, headers: { 'content-type': file.type, 'x-file-name': encodeURIComponent(file.name) } });
+    const url = URL.createObjectURL(file);
+    const img = new Image(); img.decoding = 'async'; img.src = url;
+    await img.decode(); URL.revokeObjectURL(url);
+    let w = img.naturalWidth || 0, h = img.naturalHeight || 0;
+    if (file.type === 'image/svg+xml') {                                // an SVG's own size is its viewBox
+      const vb = (await file.text()).match(/viewBox\s*=\s*["']\s*[-\d.]+[\s,]+[-\d.]+[\s,]+([\d.]+)[\s,]+([\d.]+)/i);
+      if (vb) { w = Math.round(+vb[1]); h = Math.round(+vb[2]); }
+    }
+    const k = 64 / Math.max(w, h, 1), cw = Math.max(1, Math.round(w * k)), ch = Math.max(1, Math.round(h * k));
+    const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+    const cx = cv.getContext('2d', { willReadFrequently: true })!; cx.drawImage(img, 0, 0, cw, ch);
+    const d = cx.getImageData(0, 0, cw, ch).data, counts = new Map<number, [number, number, number, number]>();
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i + 3] < 128) continue;                                   // transparent (a logo's background)
+      const q = ((d[i] >> 4) << 8) | ((d[i + 1] >> 4) << 4) | (d[i + 2] >> 4), e = counts.get(q) ?? [0, 0, 0, 0];
+      e[0]++; e[1] += d[i]; e[2] += d[i + 1]; e[3] += d[i + 2]; counts.set(q, e);
+    }
+    const hex = (n: number) => Math.round(n).toString(16).padStart(2, '0');
+    const top = [...counts.values()].sort((a, b) => b[0] - a[0]).map(([n, r, g, b]) => [r / n, g / n, b / n] as const);
+    const palette: string[] = [], near = (a: readonly number[], b: readonly number[]) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]) < 60;
+    const kept: (readonly number[])[] = [];
+    for (const c of top) { if (kept.some((k2) => near(k2, c))) continue; kept.push(c); palette.push('#' + hex(c[0]) + hex(c[1]) + hex(c[2])); if (palette.length === 6) break; }
+    return w && h ? { w, h, palette } : null;
+  } catch { return null; }
+}
+
+export async function addUpload(file: File, role: 'use' | 'style' = file.type === 'image/svg+xml' ? 'use' : 'style') {
+  if (!/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type)) { toast('Use a PNG, JPEG, WebP or SVG image'); return; }
+  if (composerStore.get().refs.length >= 4) { toast('Up to four at a time'); return; }
+  const local = URL.createObjectURL(file), tmp = 'tmp-' + Math.random().toString(36).slice(2);
+  composerStore.set((c) => ({ ...c, open: true, refs: [...c.refs, { kind: 'upload', key: tmp, name: file.name, thumb: local, uploading: true, role }] }));
+  try {
+    const m = await measure(file);
+    const u = await api<{ key: string; name: string; url: string }>('/uploads', { method: 'POST', raw: file, headers: {
+      'content-type': file.type, 'x-file-name': encodeURIComponent(file.name), 'x-kind': role === 'use' ? 'asset' : 'reference',
+      ...(role === 'use' && /logo/i.test(file.name) ? { 'x-label': 'logo' } : {}),
+      ...(m ? { 'x-width': String(m.w), 'x-height': String(m.h), 'x-palette': encodeURIComponent(JSON.stringify(m.palette)) } : {}),
+    } });
+    if (role === 'use') void loadAssets();
     composerStore.set((c) => ({ ...c, refs: c.refs.map((r) => (r.kind === 'upload' && r.key === tmp ? { ...r, key: u.key, name: u.name, thumb: u.url, uploading: false } : r)) }));
   } catch (e) {
     toast((e as Error).message);

@@ -15,7 +15,8 @@ Measured on six riso posters (proportions of the width W and height H):
 - Margin: 6% of W on the left, right and top (66 at 1080). Labels start 4–6% of H from the top.
 - Headline zone: the top 30–35% of H. The headline sits flush left on the margin and takes 55–75% of W, leaving a
   right-hand column of 25–35% for labels.
-- Label column: starts at 62–76% of W. Two groups: one at the very top (what it is), one lower, level with the
+- Label column: starts at 62–76% of W, placed so its longest line ends on the right margin (no empty strip on the
+  right). Two groups: one at the very top (what it is), one lower, level with the
   headline's last lines (where and when). Some posters add a third group at the bottom left, above the bottom margin.
 - Image zone: from 35–40% of H to the bottom edge, bleeding off the bottom and at least one side. Its top reaches
   5–10% of H up into the headline zone (a sun, a leaf tip, a head), so the two zones lock together.
@@ -25,7 +26,9 @@ Measured on six riso posters (proportions of the width W and height H):
 ## Type
 - Headline: a bold text serif (Newsreader bold) for warm and editorial, or a condensed sans (Big Shoulders Display)
   for loud. Sentence case for the serif, capitals for the condensed sans. 2–4 lines, one or two words a line.
-- Headline size: the serif at 12–13% of W (137 at 1080), cap height about 9% of W; the condensed sans at 15–23% of W.
+- Headline size: the serif at 14–15% of W (158 at 1080) with tracking about -7% of the size (-11 at 158), so the
+  letters sit tight and the headline fills 55–60% of W; cap height about 10% of W. The condensed sans at 15–23% of W,
+  tracking -2 to -4.
 - Line step: 0.95–1.0 of the size for the serif (descenders nearly touch the next line), 0.87 for the condensed sans.
 - Labels: Jost 500, capitals, 2.7% of W (29 at 1080), tracking 2, line step 1.4 of the size, aligned left within the
   column (a date may align right on the right margin). Groups of two to four lines, one blank line between groups.
@@ -76,7 +79,7 @@ Keep: the margin, the headline zone and label column, the image bleeding off the
 - Lines 3–7: paper and the two inks as named colours; the card is paper with coarse grain.
 - Lines 9–15: the image zone without a photo: a warm sun circle, then cool stems and blooms in rows, all multiply,
   so the blooms crossing the sun turn deep violet.
-- Lines 17–22: the headline style (Newsreader bold, 140, flush left, warm), three lines at baselines 190, 330, 470
-  (a step equal to the size), multiply.
-- Lines 24–32: the label style (Jost 500, 29, tracking 2, cool) and two groups in the right-hand column: x 790 for
-  the top group, x 690 for the where-and-when group level with the headline.
+- Lines 17–22: the headline style (Newsreader bold, 158, tracking -11, flush left, warm), three lines at baselines
+  200, 350, 500 (a step of 0.95 of the size), multiply.
+- Lines 24–32: the label style (Jost 500, 29, tracking 2, cool) and two groups in the right-hand column:
+  both groups at x 800, so the longest line ("FROM SEVEN") ends on the right margin.

@@ -6,12 +6,14 @@ import type { Chapter } from '../manual.gen';
 import { DOCKETS, type Docket } from '../dockets.gen';
 import type { GtChecked } from '../gt/checker.gen.js';
 import type { Img, Models } from './models';
-import { addCheckLoop, chaptersFor, codeOf, contents, errorsOf, extractJson, runToEnd, stamp, systemFor, wizardOf, type LoopState, type Step } from './common';
+import type { AssetInfo } from '../ai';
+import { HOUSE, addCheckLoop, chaptersFor, codeOf, contents, errorsOf, extractJson, runToEnd, stamp, systemFor, wizardOf, type LoopState, type Step } from './common';
 
 export interface Brief {
   prompt: string;
   refs: string[];                                   // sources of pieces to take the style from
-  images: Img[];                                    // the person's uploads, which the piece may print (by name)
+  images: Img[];                                    // the assets the reader can see (raster images the piece may print)
+  assets?: AssetInfo[];                             // every asset the piece may print (logos and SVGs too), with what was measured
   looksLike: Img[];                                 // pictures to take the style from: finished pieces and loose inspiration (never printed)
   dockets?: string[];                               // looks the person chose themselves (docket ids); otherwise the reader picks
 }
@@ -26,7 +28,7 @@ export interface Plan {
   slots: Record<string, string>;                    // what the brief fills in each look
   missing: string[];                                // what the brief does not say that the look needs
 }
-export interface Planned { plan: Plan; chapters: Chapter[]; looks: string; trail: Step[]; dockets: Docket[] }
+export interface Planned { plan: Plan; chapters: Chapter[]; looks: string; trail: Step[]; dockets: Docket[]; breakdowns?: Breakdown[] }
 
 const PLAN_SHAPE = `{
   "kind": "canvas" | "card" | "stage" | "video",
@@ -47,6 +49,70 @@ const PLAN_SHAPE = `{
 
 // the looks we make well, one line each, for the reader to choose from
 export const docketIndex = () => DOCKETS.map((d) => `- ${d.id}: ${d.name}. Use when: ${d.use}. Kinds: ${d.kinds}. Size: ${d.size}. Tags: ${d.tags}.`).join('\n');
+
+// ── system 1: a style reference taken apart, layer by layer ─────────────────────────────────────────────────────
+// The reader lists the layers (back to front) with boxes as percentages of the canvas; the browser measured the
+// image's size and palette, which are exact. The writer rebuilds the structure with the brief's own words and assets.
+export interface RefLayer {
+  kind: string; role: string; text?: string; box: [number, number, number, number];
+  font?: { class?: string; nearest?: string; size_pct_w?: number; case?: string; tracking?: string; leading?: number; align?: string };
+  colour?: string; blend?: string; bleeds?: string[]; notes?: string;
+}
+export interface Breakdown { ref: string; size: [number, number] | null; palette: string[]; ground: string; layers: RefLayer[]; laws: string[] }
+
+const BREAKDOWN_SHAPE = `{
+  "ground": "#hex of the background",
+  "layers": [ back to front, every visible thing, including small labels:
+    { "kind": "text" | "image" | "shape" | "texture",
+      "role": "headline | subhead | label | body | logo | photo | illustration | block | rule | pattern …",
+      "text": "the words, for reference only",
+      "box": [left, top, width, height] as percentages of the canvas width and height (0–100),
+      "font": { "class": "bold serif | condensed sans | geometric sans | mono | script | display …", "nearest": "the closest font from the list",
+                "size_pct_w": the font size as a percentage of the canvas width, "case": "upper | title | sentence",
+                "tracking": "tight | normal | wide", "leading": line step as a multiple of the size, "align": "left | center | right" },
+      "colour": "#hex", "blend": "normal | multiply | screen …",
+      "bleeds": ["left" | "right" | "top" | "bottom" edges it runs off],
+      "notes": "anything else: treatment, rotation, what it overlaps" } ],
+  "laws": ["the rules the layout obeys, with numbers: margins as % of width, the edges things align to, columns, size ratios, overlaps …"]
+}`;
+
+export function tidyBreakdown(j: any, ref: Img): Breakdown {
+  const pct = (v: unknown) => Math.max(-20, Math.min(120, Number(v) || 0));
+  const layers: RefLayer[] = (Array.isArray(j?.layers) ? j.layers : []).slice(0, 40).map((l: any) => ({
+    kind: String(l?.kind || 'shape'), role: String(l?.role || ''), text: l?.text ? String(l.text).slice(0, 120) : undefined,
+    box: (Array.isArray(l?.box) && l.box.length === 4 ? l.box.map(pct) : [0, 0, 100, 100]) as [number, number, number, number],
+    font: l?.font && typeof l.font === 'object' ? { class: l.font.class, nearest: l.font.nearest, size_pct_w: Number(l.font.size_pct_w) || undefined, case: l.font.case, tracking: l.font.tracking, leading: Number(l.font.leading) || undefined, align: l.font.align } : undefined,
+    colour: /^#[0-9a-f]{6}$/i.test(l?.colour) ? l.colour : undefined, blend: l?.blend ? String(l.blend) : undefined,
+    bleeds: Array.isArray(l?.bleeds) ? l.bleeds.map(String).slice(0, 4) : undefined, notes: l?.notes ? String(l.notes).slice(0, 200) : undefined,
+  }));
+  const m = ref.meta;
+  return { ref: ref.name || 'reference', size: m?.w && m?.h ? [m.w, m.h] : null, palette: m?.palette ?? [], ground: /^#[0-9a-f]{6}$/i.test(j?.ground) ? j.ground : (m?.palette?.[0] ?? ''), layers, laws: (Array.isArray(j?.laws) ? j.laws : []).map(String).slice(0, 12) };
+}
+
+// the breakdown in the canvas's own pixels, for the writer
+export function breakdownFor(b: Breakdown, size: [number, number]): string {
+  const [W, H] = size, px = (v: number, of: number) => Math.round((v / 100) * of);
+  return [
+    `Reference "${b.ref}"${b.size ? ` (${b.size[0]} by ${b.size[1]})` : ''}: ground ${b.ground}${b.palette.length ? `; measured palette ${b.palette.join(' ')}` : ''}.`,
+    'Layers, back to front, in this canvas\'s pixels (x, y is the top-left corner):',
+    ...b.layers.map((l) => {
+      const [x, y, w, h] = l.box, f = l.font;
+      return `- ${l.role || l.kind} (${l.kind}): x ${px(x, W)}, y ${px(y, H)}, ${px(w, W)} by ${px(h, H)}${l.colour ? `, ${l.colour}` : ''}${l.blend && l.blend !== 'normal' ? `, ${l.blend}` : ''}`
+        + (f ? `; ${f.nearest || f.class || ''}${f.size_pct_w ? ` size ${Math.round((f.size_pct_w / 100) * W)}` : ''}${f.case ? `, ${f.case}` : ''}${f.tracking ? `, ${f.tracking} tracking` : ''}${f.leading ? `, line step ${f.leading}` : ''}${f.align ? `, aligned ${f.align}` : ''}` : '')
+        + (l.bleeds?.length ? `; bleeds off ${l.bleeds.join(', ')}` : '') + (l.text ? `; reads "${l.text}" (do not copy)` : '') + (l.notes ? `; ${l.notes}` : '');
+    }),
+    b.laws.length ? 'Laws:\n' + b.laws.map((x) => '- ' + x).join('\n') : '',
+  ].filter(Boolean).join('\n');
+}
+
+// the canvas takes the reference's shape unless the brief names a size or a format
+export function sizeFromRefs(prompt: string, refs: Img[]): [number, number] | null {
+  if (/\b\d{3,4}\s*(x|by|×)\s*\d{3,4}\b|\b(story|stories|reel|landscape|banner|square|header|thumbnail|a4|a3|letter|business card|16:9|9:16|4:5|1:1|2:3)\b/i.test(prompt)) return null;
+  const m = refs.find((r) => r.meta?.w && r.meta?.h)?.meta;
+  if (!m) return null;
+  const ratio = Math.max(0.45, Math.min(2.4, m.h! / m.w!));
+  return ratio >= 1 ? [1080, Math.round(1080 * ratio)] : [Math.round(1080 / ratio), 1080];
+}
 
 export function planWizard(models: Models, fonts: string[]) {
   const w = wizardOf(models);
@@ -69,6 +135,32 @@ export function planWizard(models: Models, fonts: string[]) {
         images: all, maxTokens: 1200,
       });
       setState((s: any) => ({ ...s, looks, trail: stamp(s, 'look', 'reader', t0, `looked at ${all.length} image${all.length > 1 ? 's' : ''}`) }));
+      return w.signal.skip;
+    },
+  });
+  w.addComputeStep({
+    id: 'study',
+    handler: async ({ state, setState }) => {
+      const refs: Img[] = (state.brief.looksLike ?? []).slice(0, 3);
+      if (!refs.length) return w.signal.skip;
+      const t0 = Date.now();
+      const breakdowns: Breakdown[] = [];
+      for (const ref of refs) {
+        const m = ref.meta;
+        const reply = await models.read({
+          prompt: [
+            'Take this design apart, layer by layer, so another designer can rebuild its structure exactly with different words and pictures.',
+            m?.w && m?.h ? `Measured: it is ${m.w} by ${m.h} pixels.` : '',
+            m?.palette?.length ? `Measured palette, most used first: ${m.palette.join(' ')}. Use these hex values.` : '',
+            `Fonts available for "nearest": ${fonts.join(', ')}.`,
+            'Measure carefully: boxes are percentages of the width and height; font size is the height of a capital letter divided by 0.7, as a percentage of the width.',
+            `Reply with JSON only:\n${BREAKDOWN_SHAPE}`,
+          ].filter(Boolean).join('\n\n'),
+          images: [ref], maxTokens: 2500,
+        });
+        breakdowns.push(tidyBreakdown(extractJson(reply) || {}, ref));
+      }
+      setState((s: any) => ({ ...s, breakdowns, trail: stamp(s, 'study', 'reader', t0, breakdowns.map((b) => `${b.ref}: ${b.layers.length} layers, ${b.laws.length} laws`).join('; ')) }));
       return w.signal.skip;
     },
   });
@@ -116,7 +208,7 @@ export function planWizard(models: Models, fonts: string[]) {
 export async function planBrief(models: Models, brief: Brief, fonts: string[]): Promise<Planned> {
   const out = await runToEnd(planWizard(models, fonts), { brief, trail: [] as Step[] } as any);
   const plan: Plan = out.plan ?? tidyPlan({}, brief);
-  return { plan, chapters: out.chapters ?? chaptersFor([], { kind: plan.kind }), looks: out.looks || '', trail: out.trail, dockets: docketsOf(plan.dockets) };
+  return { plan, chapters: out.chapters ?? chaptersFor([], { kind: plan.kind }), looks: out.looks || '', trail: out.trail, dockets: docketsOf(plan.dockets), breakdowns: out.breakdowns ?? [] };
 }
 
 export const docketsOf = (ids: string[]) => ids.map((id) => DOCKETS.find((d) => d.id === id)).filter((d): d is Docket => !!d);
@@ -138,6 +230,8 @@ export function tidyPlan(j: any, b: Brief): Plan {
     slots: Object.fromEntries(Object.entries(j?.slots && typeof j.slots === 'object' ? j.slots : {}).slice(0, 20).map(([k, v]) => [String(k), String(v)])),
     missing: (Array.isArray(j?.missing) ? j.missing : []).map(String).slice(0, 8),
   };
+  const fromRef = sizeFromRefs(b.prompt, b.looksLike ?? []);
+  if (fromRef && p.kind !== 'card') p.size = fromRef;                 // the reference's shape, measured
   if (p.kind === 'card') { p.size = undefined; p.flat = false; }
   if (!p.size && p.kind !== 'card') p.size = [1080, 1350];
   return p;
@@ -157,14 +251,18 @@ export interface Written { source: string; ok: boolean; checked: GtChecked; roun
 export async function writeOption(models: Models, o: { brief: Brief; planned: Planned; files: Record<string, Uint8Array>; i: number; n: number; rounds: number }): Promise<Written> {
   const { brief, planned } = o;
   // each option builds on one chosen look; with two looks the options alternate between them
+  const printable = brief.assets ?? brief.images.map((i) => ({ name: i.name!, type: i.mime, label: i.meta?.label ?? null, w: i.meta?.w ?? null, h: i.meta?.h ?? null, palette: i.meta?.palette ?? [] }));
+  const breakdowns = planned.breakdowns ?? [], size = (planned.plan.size ?? [1240, 1829]) as [number, number];
   const picks = planned.dockets ?? [], slots = planned.plan.slots ?? {}, missing = planned.plan.missing ?? [];
   const docket = picks.length ? picks[o.i % picks.length] : null;
-  const system = systemFor(planned.chapters) + (docket ? `\n\n# The look for this piece: ${docket.name}\nThis is one of our dockets: a look we make well, written down with a finished example. Build the piece on it: its grid, type, palette, signature and don'ts are the rules; its slots are what the brief changes. Do not copy the example's words or images; use the brief's.\n\n${docket.text}\n\n## Our example of this look\n\`\`\`gt\n${docket.source.trim()}\n\`\`\`` : '');
+  const system = systemFor(planned.chapters) + '\n\n' + HOUSE + (docket ? `\n\n# The look for this piece: ${docket.name}\nThis is one of our dockets: a look we make well, written down with a finished example. Build the piece on it: its grid, type, palette, signature and don'ts are the rules; its slots are what the brief changes. Do not copy the example's words or images; use the brief's.\n\n${docket.text}\n\n## Our example of this look\n\`\`\`gt\n${docket.source.trim()}\n\`\`\`` : '');
   const request = () => [
     `Brief: "${brief.prompt}"`,
     'Plan (from a designer who read the brief and looked at the images):', '```json', JSON.stringify(planned.plan, null, 1), '```',
     planned.looks ? 'What the images show:\n' + planned.looks : '',
-    brief.images.length ? `Images you may print (and only these): ${brief.images.map((i) => '@' + i.name).join(', ')}` : 'You were given no images: do not print any.',
+    printable.length ? `Assets you may print (and only these):\n${printable.map((a) => `- @${a.name}${a.label ? ` (${a.label})` : ''}${a.w && a.h ? `, ${a.w} by ${a.h}` : ''}${a.palette.length ? `, colours ${a.palette.slice(0, 4).join(' ')}` : ''}`).join('\n')}` : 'You were given no assets: print no images.',
+    (brief.looksLike ?? []).length ? 'The style references are for their look only: never print them, and do not copy their words.' : '',
+    breakdowns.length ? `How the reference is built (rebuild this structure: the same proportions, layer order, type sizes and laws, with the brief's own words and assets; where a reference layer is a photo or illustration and the brief gives no asset for it, use shapes in its colours instead):\n${breakdowns.map((b) => breakdownFor(b, size)).join('\n\n')}` : '',
     docket && Object.keys(slots).length ? `What the brief gives for the look's slots:\n${Object.entries(slots).map(([k, v]) => `- ${k}: ${v}`).join('\n')}` : '',
     docket && missing.length ? `The brief does not say: ${missing.join('; ')}. Choose something fitting and plausible for each; never leave a placeholder.` : '',
     o.n > 1 ? (docket ? `This is option ${o.i + 1} of ${o.n} on the look "${docket.name}": keep its structure and vary within its slots (${['the first of its palettes', 'another of its palettes', 'another arrangement of its slots', 'its inverted or darkest palette'][Math.floor(o.i / Math.max(1, picks.length)) % 4]}).` : `This is option ${o.i + 1} of ${o.n}: ${DIRECTIONS[o.i % DIRECTIONS.length]}.`) : '',

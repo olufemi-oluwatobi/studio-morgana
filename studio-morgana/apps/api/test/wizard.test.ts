@@ -1,6 +1,6 @@
 // The wizards with scripted models: the loops, the plan, patches, answers and reviews, without Workers AI.
 //   node apps/api/test/run-wizard.mjs
-import { planBrief, writeOption } from '../src/wizard/create';
+import { planBrief, sizeFromRefs, writeOption } from '../src/wizard/create';
 import { editPiece, parsePatch, applyPatch, reviewRender } from '../src/wizard/edit';
 import { MANUAL } from '../src/manual.gen';
 import { openAiCompatible, buildModels, roleConfig, roleReady, type Ask, type Models } from '../src/wizard/models';
@@ -76,10 +76,17 @@ const plan = { kind: 'canvas', title: 'sale', size: [1080, 1350], flat: true, mo
 
 // 3b. style references are seen too, and are marked as not to be printed
 {
-  const sty = { name: 'reference piece 1', mime: 'image/png', bytes: new Uint8Array([137, 80]) };
-  const m = scripted([[/designer was given these images/, 'reference piece 1: big condensed type, #d33.'], [/plan a piece/i, JSON.stringify(plan)], [/Pick the chapters/, '{"chapters":[]}']], []);
+  const sty = { name: 'reference piece 1', mime: 'image/png', bytes: new Uint8Array([137, 80]), meta: { w: 1000, h: 1540, palette: ['#f3c43d', '#df372c'] } };
+  const bd = { ground: '#f3c43d', layers: [{ kind: 'text', role: 'headline', text: 'Good Food', box: [6, 3, 52, 30], font: { class: 'bold serif', nearest: 'Newsreader', size_pct_w: 14.5, case: 'title', tracking: 'tight', leading: 0.95, align: 'left' }, colour: '#df372c' }, { kind: 'illustration', role: 'illustration', box: [0, 35, 100, 65], bleeds: ['left', 'right', 'bottom'] }], laws: ['margin 6% of the width'] };
+  const m = scripted([[/designer was given these images/, 'reference piece 1: big condensed type, #d33.'], [/Take this design apart/, JSON.stringify(bd)], [/plan a piece/i, JSON.stringify(plan)], [/Pick the chapters/, '{"chapters":[]}']], [[/./, gt(GOOD)]]);
   const p = await planBrief(m, { prompt: 'like this', refs: [], images: [], looksLike: [sty] }, []);
   ok('the reader sees a style reference and is told not to print it', m.calls[0].a.images?.length === 1 && /must not print/.test(m.calls[0].a.prompt) && /condensed/.test(p.looks));
+  ok('the reference is taken apart with its measured size and palette', /1000 by 1540/.test(m.calls[1].a.prompt) && /#df372c/.test(m.calls[1].a.prompt) && p.breakdowns![0].layers.length === 2);
+  ok('the canvas takes the reference\'s shape', p.plan.size![0] === 1080 && p.plan.size![1] === 1663, String(p.plan.size));
+  await writeOption(m, { brief: { prompt: 'like this', refs: [], images: [], looksLike: [sty] }, planned: p, files: {}, i: 0, n: 1, rounds: 0 });
+  const wr = m.calls.find((c) => c.who === 'writer')!.a;
+  ok('the writer gets the structure in its own pixels, and the rule never to print the reference', /x 65, y 50, 562 by 499/.test(wr.prompt) && /size 157/.test(wr.prompt) && /never print them/.test(wr.prompt) && /House rules/.test(wr.system!), wr.prompt.slice(0, 0));
+  ok('a size in the brief wins over the reference', planBrief && sizeFromRefs('a 1080 by 1080 post', [sty as any]) === null);
 }
 
 // 3c. a model that never answers ends in an error, not a wait

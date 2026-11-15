@@ -5,7 +5,7 @@ import type { Env } from './env';
 import { FACTS } from './guide.gen';
 import { localGenerate, localEdit } from './local-gen';
 import { fail } from './util';
-import { buildModels, roleReady, scriptedModels, type Img, type Models, ModelError } from './wizard/models';
+import { buildModels, roleReady, scriptedModels, type Img, type ImgMeta, type Models, ModelError } from './wizard/models';
 import { docketsOf, planBrief, tidyPlan, writeOption, type Brief, type Planned } from './wizard/create';
 import { editPiece, reviewRender, type Edited, type PartBrief, type Review } from './wizard/edit';
 import { addCheckLoop, chaptersFor, runToEnd, systemFor, wizardOf, type LoopState, type Step } from './wizard/common';
@@ -32,17 +32,19 @@ const busy = (e: unknown): never => {
 };
 
 // files as the wizards need them: bytes for the compiler (print reads its pictures) and images for the reader
-export interface FileRef { name: string; key: string; type: string }
-export async function readFiles(env: Env, refs: FileRef[]): Promise<{ images: Img[]; bytes: Record<string, Uint8Array> }> {
+export interface FileRef { name: string; key: string; type: string; meta?: ImgMeta }
+export interface AssetInfo { name: string; type: string; label: string | null; w: number | null; h: number | null; palette: string[] }
+export async function readFiles(env: Env, refs: FileRef[]): Promise<{ images: Img[]; bytes: Record<string, Uint8Array>; assets: AssetInfo[] }> {
   const images: Img[] = [], bytes: Record<string, Uint8Array> = {};
+  const assets: AssetInfo[] = refs.map((f) => ({ name: f.name, type: f.type, label: f.meta?.label ?? null, w: f.meta?.w ?? null, h: f.meta?.h ?? null, palette: f.meta?.palette ?? [] }));
   await Promise.all(refs.map(async (f) => {
     const o = await env.BUCKET.get(f.key);
     if (!o) return;
     const b = new Uint8Array(await o.arrayBuffer());
     bytes[f.name] = b;
-    if (f.type.startsWith('image/') && f.type !== 'image/svg+xml') images.push({ name: f.name, mime: f.type, bytes: b });
+    if (f.type.startsWith('image/') && f.type !== 'image/svg+xml') images.push({ name: f.name, mime: f.type, bytes: b, meta: f.meta });
   }));
-  return { images: images.sort((a, b) => a.name!.localeCompare(b.name!)), bytes };
+  return { images: images.sort((a, b) => a.name!.localeCompare(b.name!)), bytes, assets: assets.filter((a) => bytes[a.name]) };
 }
 export async function pictureOf(env: Env, versionId: string): Promise<Img | null> {
   for (const name of ['poster-1200', 'poster-480']) {
@@ -57,8 +59,8 @@ export async function pictureOf(env: Env, versionId: string): Promise<Img | null
 export interface Made { source: string; ok: boolean; trail: Step[] }
 export async function planFor(env: Env, o: { prompt: string; refs: string[]; files: FileRef[]; looksLike?: Img[]; dockets?: string[] }): Promise<{ planned: Planned; brief: Brief; bytes: Record<string, Uint8Array> } | null> {
   if (aiMode(env) === 'local') return null;
-  const { images, bytes } = await readFiles(env, o.files);
-  const brief: Brief = { prompt: o.prompt, refs: o.refs, images, looksLike: o.looksLike ?? [], dockets: o.dockets };
+  const { images, bytes, assets } = await readFiles(env, o.files);
+  const brief: Brief = { prompt: o.prompt, refs: o.refs, images, assets, looksLike: o.looksLike ?? [], dockets: o.dockets };
   try { return { planned: await planBrief(models(env), brief, [...FACTS.fonts]), brief, bytes }; }
   catch (e) {
     // no plan is not the end: the writer works from the brief alone

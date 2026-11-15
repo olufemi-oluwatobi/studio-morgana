@@ -3,7 +3,9 @@
 // Both sit behind one small interface, so tests can script them and the wizards never touch Workers AI directly.
 import type { Env } from '../env';
 
-export interface Img { name?: string; mime: string; bytes: Uint8Array }
+export interface Img { name?: string; mime: string; bytes: Uint8Array; meta?: ImgMeta }
+// measured in the browser when the file was uploaded
+export interface ImgMeta { w?: number | null; h?: number | null; palette?: string[]; label?: string | null }
 export interface Ask { system?: string; prompt: string; images?: Img[]; maxTokens?: number; temperature?: number }
 export interface Models {
   read(a: Ask): Promise<string>;            // sees images; short, structured answers

@@ -14,19 +14,19 @@ Make the stems cool, multiply, 10% see-through.
 Let there be 6 circles called bloom, 75 big, in a row, 150 apart, from 240 950.
 Make the blooms cool, multiply.
 
--- the headline zone: flush left on the margin, line step 1.0 of the size, 58% of the width
-Let a line be Newsreader bold, size 140, aligned left, warm.
-Write "Open" called h-1 as a line, at 66 190.
-Write "Studio" called h-2 as a line, at 66 330.
-Write "Nights" called h-3 as a line, at 66 470.
+-- the headline zone: flush left on the margin, set tight, line step 0.95 of the size, about 58% of the width
+Let a line be Newsreader bold, size 158, tracking -11, aligned left, warm.
+Write "Open" called h-1 as a line, at 64 200.
+Write "Studio" called h-2 as a line, at 64 350.
+Write "Nights" called h-3 as a line, at 64 500.
 Make the h-1, the h-2 and the h-3 multiply.
 
 -- labels: a right-hand column and a foot, caps in a geometric sans, the cool ink
 Let a label be Jost 500, size 29, tracking 2, aligned left, cool.
-Write "PRINT" called l-1 as a label, at 790 92.
-Write "PAPER" called l-2 as a label, at 790 132.
-Write "INK" called l-3 as a label, at 790 172.
-Write "EAST WING" called l-4 as a label, at 690 370.
-Write "STUDIO 3" called l-5 as a label, at 690 410.
-Write "FRIDAYS" called l-6 as a label, at 690 482.
-Write "FROM SEVEN" called l-7 as a label, at 690 522.
+Write "PRINT" called l-1 as a label, at 800 92.
+Write "PAPER" called l-2 as a label, at 800 132.
+Write "INK" called l-3 as a label, at 800 172.
+Write "EAST WING" called l-4 as a label, at 800 370.
+Write "STUDIO 3" called l-5 as a label, at 800 410.
+Write "FRIDAYS" called l-6 as a label, at 800 482.
+Write "FROM SEVEN" called l-7 as a label, at 800 522.

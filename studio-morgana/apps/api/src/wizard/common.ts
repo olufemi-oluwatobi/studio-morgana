@@ -49,6 +49,17 @@ export function chaptersForErrors(diags: GtDiagnostic[], source: string): Chapte
   return MANUAL.filter((c) => ids.has(c.id));
 }
 
+// ── house rules: what every piece obeys, whatever the look ─────────────────────────────────────────────────────────
+export const HOUSE = `# House rules (every piece)
+- Use the whole canvas. Side margins are 4–6% of the width (43–65 at 1080); the content reaches both margins. No
+  empty column down one side and no cluster squeezed into the middle, unless the look is built on that space.
+- Display type (size 8% of the width or more) is set tight: tracking about -5% of the size (size 150 → tracking -8),
+  line step 0.85–1.0 of the size. Small labels go the other way: capitals, tracking 2–4, 2.5–3% of the width.
+- At most two fonts and three type sizes. Align to shared edges; measure positions from the margins.
+- References are for their look only: never print a reference, and never copy its words.
+- When a reference is taken apart for you, keep its proportions (as shares of the canvas), its layer order and its
+  laws; change the content to the brief's.`;
+
 // ── replies ───────────────────────────────────────────────────────────────────────────────────────────────────────
 export function codeOf(text: string): string | null {
   const fenced = [...text.matchAll(/```(?:gt|godtongue)?[ \t]*\n([\s\S]*?)```/g)].map((m) => m[1]);
