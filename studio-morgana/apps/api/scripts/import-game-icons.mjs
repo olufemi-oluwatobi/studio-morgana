@@ -31,10 +31,12 @@ console.log(`${picked.size} drawings match`);
 
 const items = [], skipped = [];
 for (const [slug, { artist, file }] of picked) {
-  const r = svgToStamp(fs.readFileSync(file, 'utf8'), { name: slug });
+  // a word cannot start with a digit in godtongue: 3d-hammer becomes i-3d-hammer
+  const word = /^\d/.test(slug) ? `i-${slug}` : slug;
+  const r = svgToStamp(fs.readFileSync(file, 'utf8'), { name: word });
   if (!r.ok) { skipped.push(`${slug}: ${r.notes.join('; ')}`); continue; }
   items.push({
-    slug, name: cap(slug), words: [slug.replace(/-/g, ' ')], tags: [],
+    slug: word, name: cap(slug), words: [slug.replace(/-/g, ' ')], tags: [],
     parts: r.parts, source: `game-icons/${artist}/${slug}`,
     credit: `${cap(artist)}, game-icons.net, CC BY 3.0`, gt: r.gt, svg: r.svg,
   });
