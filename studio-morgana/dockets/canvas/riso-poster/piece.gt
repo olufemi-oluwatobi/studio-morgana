@@ -1,0 +1,32 @@
+-- Riso poster: two spot inks on cream paper. Warm ink: the headline and one big flat shape. Cool ink: the image
+-- zone (here shapes; with a photo, the photo's shadows). Where they cross they multiply into a third colour.
+Let there be a flat canvas called riso-poster, 1080 by 1666.
+Let paper be #f1e9da.
+Let warm be #ff4fa3.
+Let cool be #2343c2.
+Make the card paper, grainy 0.3, coarse.
+
+-- the image zone: 38% down to the bottom, bleeding off the bottom and the right
+Let there be a circle called sun, 330 big, at 700 860.
+Make the sun warm, multiply.
+Let there be 6 rectangles called stem, 90 by 760, in a row, 150 apart, from 240 1330.
+Make the stems cool, multiply, 10% see-through.
+Let there be 6 circles called bloom, 75 big, in a row, 150 apart, from 240 950.
+Make the blooms cool, multiply.
+
+-- the headline zone: flush left on the margin, line step 1.0 of the size, 58% of the width
+Let a line be Newsreader bold, size 140, aligned left, warm.
+Write "Open" called h-1 as a line, at 66 190.
+Write "Studio" called h-2 as a line, at 66 330.
+Write "Nights" called h-3 as a line, at 66 470.
+Make the h-1, the h-2 and the h-3 multiply.
+
+-- labels: a right-hand column and a foot, caps in a geometric sans, the cool ink
+Let a label be Jost 500, size 29, tracking 2, aligned left, cool.
+Write "PRINT" called l-1 as a label, at 790 92.
+Write "PAPER" called l-2 as a label, at 790 132.
+Write "INK" called l-3 as a label, at 790 172.
+Write "EAST WING" called l-4 as a label, at 690 370.
+Write "STUDIO 3" called l-5 as a label, at 690 410.
+Write "FRIDAYS" called l-6 as a label, at 690 482.
+Write "FROM SEVEN" called l-7 as a label, at 690 522.

@@ -592,6 +592,7 @@ Each is measured, so text wraps and fits exactly.
 | Michroma | 400 |
 | Mr Dafoe | 400 |
 | Mrs Saint Delafield | 400 |
+| Newsreader | 400, 700, 300, 500 |
 | Permanent Marker | 400 |
 | Rock Salt | 400 |
 | Saira Condensed | 400, 700, 300, 500 |
