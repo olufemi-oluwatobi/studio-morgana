@@ -355,9 +355,9 @@ export const OPERATIONS = [
     P('amount', '0–1', 0.2, 'How strong.', '…, 0.2', 'ok'),
     P('size', 'px', 140, 'How big the patches are.', '…, 140 wide', 'ok'),
   ]),
-  O('speck', 'Light and dark flecks, as on cheap paper.', 'speck the card, 0.03, in #8fc1d9 and #0b2533', 'ok', [
+  O('speck', 'Light and dark flecks, as on cheap paper.', 'speck the card, 0.03, light #8fc1d9, dark #0b2533', 'ok', [
     P('amount', '0–1', 0.03, 'How many.', '…, 0.03', 'ok'),
-    P('light / dark', 'colours', ['#ffffff', '#000000'], 'The two flecks.', '…, in #8fc1d9 and #0b2533', 'ok'),
+    P('light / dark', 'colours', ['#ffffff', '#000000'], 'The two flecks.', '…, light #8fc1d9, dark #0b2533', 'ok'),
   ]),
   O('distress', 'Grunge eating in from the edges of an area, worst at the corners.', 'distress the card in #0d1b22, 60 deep', 'ok', [
     P('color', 'colour', '#0d1b22', 'The grunge.', '… in #0d1b22', 'ok'),

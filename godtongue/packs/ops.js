@@ -149,11 +149,11 @@ export default function ops(reg) {
   });
   reg.verb({
     words: ['speck', 'fleck'],
-    help: 'Light and dark flecks, as on cheap paper: an amount from 0 to 1 (default 0.03), "in" a light colour "and" a dark one.',
-    examples: ['speck the card, 0.03, in #8fc1d9 and #0b2533.'],
+    help: 'Light and dark flecks, as on cheap paper: an amount from 0 to 1 (default 0.03), "light #colour" and "dark #colour".',
+    examples: ['speck the card, 0.03, light #8fc1d9, dark #0b2533.'],
     run(ctx, toks) {
-      const { area, mods } = head(ctx, toks), c = cols(toks);
-      step(ctx, 'speck', area, { params: { amount: amt(mods, .03), light: c[0] || '#ffffff', dark: c[1] || '#000000' } });
+      const { area, mods } = head(ctx, toks), c = cols(toks), col = (t) => [].concat(t ?? []).find(x => x?.t === 'color')?.v;
+      step(ctx, 'speck', area, { params: { amount: amt(mods, .03), light: col(mods.light) || c[0] || '#ffffff', dark: col(mods.dark) || c[1] || '#000000' } });
     },
   });
   reg.verb({

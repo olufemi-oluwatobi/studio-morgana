@@ -30,7 +30,7 @@ export function toManifest(doc, buildDir) {
         `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><g id="L">${L.svg}</g></svg>`);
       M.components[name] = { kind: 'artwork', src: `art/${name}.svg`, layers: { fill: '#L' } };
     } else if (L.kind === 'text') {
-      M.components[name] = { kind: 'shape.draw', items: [{ type: 'text', at: L.at, font: fontKey(L.font), size: L.size, text: L.text, ...(L.track ? { track: L.track } : {}) }] };
+      M.components[name] = { kind: 'shape.draw', items: [{ type: 'text', at: L.at, font: fontKey(L.font), size: L.size, text: L.text, ...(L.track ? { track: L.track } : {}), ...(L.align && L.align !== 'center' ? { align: L.align } : {}) }] };   // aligned left/right as written
     } else if (L.kind === 'signature') {
       const z = `sig-${name}`;
       M.zones[z] = { center: L.center, max_width: L.max_width, size: L.size, rotate_deg: L.rotate_deg, overlay: true };

@@ -510,12 +510,12 @@ Soft tone wandering across an area, like ink soaked into paper. **Say:** Make th
 
 ### speck
 
-Light and dark flecks, as on cheap paper. **Say:** speck the card, 0.03, in #8fc1d9 and #0b2533 · **Status:** yes
+Light and dark flecks, as on cheap paper. **Say:** speck the card, 0.03, light #8fc1d9, dark #0b2533 · **Status:** yes
 
 | Setting | Type | Default | What it does | How to say it | Status |
 | --- | --- | --- | --- | --- | --- |
 | `amount` | 0–1 | `0.03` | How many. | …, 0.03 | yes |
-| `light / dark` | colours | `["#ffffff","#000000"]` | The two flecks. | …, in #8fc1d9 and #0b2533 | yes |
+| `light / dark` | colours | `["#ffffff","#000000"]` | The two flecks. | …, light #8fc1d9, dark #0b2533 | yes |
 
 ### distress
 
@@ -667,7 +667,7 @@ The dictionary. A new effect, state, transform or motion is one entry (`docs/eng
 | `frosted`, `frosted glass`, `glassy` | effect | Blurs what is under the thing, like frosted glass. Details: blurred 18, brightness 1.1. | Make the panel frosted. |
 | `grain`, `grainy`, `noise`, `noisy` | effect | Film grain over the thing: an amount from 0 to 1. | Make the card grainy, 0.2. |
 | `mottle`, `mottled`, `blotchy` | effect | Soft tone wandering across the thing, like ink soaked into paper: an amount from 0 to 1, and "140 wide". | Make the card mottled, 0.2. |
-| `speck`, `specks`, `speckled`, `flecked` | effect | Light and dark flecks: an amount from 0 to 1, in a light colour and a dark one. | Make the card speckled, 0.03, in #8fc1d9 and #0b2533. |
+| `speck`, `specks`, `speckled`, `flecked` | effect | Light and dark flecks: an amount from 0 to 1, "light #colour" and "dark #colour". | Make the card speckled, 0.03, light #8fc1d9, dark #0b2533. |
 | `distressed`, `grungy`, `grunge` | effect | Grunge eating in from the edges: in a colour, an amount, "60 deep". | Make the card distressed in #0d1b22, 60 deep. |
 | `chalky`, `worn`, `weathered` | effect | The thing’s own paint breaks up: 0.1 a few specks (a printed title), 0.4 dry chalk. | Make the grid chalky, 0.4. |
 | `vignette`, `vignetted` | effect | Darkens the edges of the thing: an amount from 0 to 1, and a colour. | Give the card a vignette of 0.35, in #1f3a5f. |
@@ -729,7 +729,7 @@ Every first word a sentence can start with.
 | `vignette` | Darken (or tint) the edges of an area, leaving its middle clear: an amount from 0 to 1 (default 0.5), optionally "in #colour". |
 | `grain`, `noise` | Film grain over an area, for texture: an amount from 0 to 1 (default 0.25). "coarse" makes bigger grains. |
 | `mottle` | Soft tone that wanders across an area, like ink soaking into paper: an amount from 0 to 1 (default 0.2) and how big the patches are ("140 wide"). |
-| `speck`, `fleck` | Light and dark flecks, as on cheap paper: an amount from 0 to 1 (default 0.03), "in" a light colour "and" a dark one. |
+| `speck`, `fleck` | Light and dark flecks, as on cheap paper: an amount from 0 to 1 (default 0.03), "light #colour" and "dark #colour". |
 | `distress` | Grunge eating in from the edges of an area, worst at the corners, as on a well-handled print: "in" a colour, an amount from 0 to 1 (default 0.9) and how deep it reaches ("60 deep"). |
 | `wear`, `chalk` | Breaks up an area’s own paint, like dry chalk or a worn print: an amount from 0 to 1 (0.1 a few specks, 0.4 dry chalk, default 0.4) and the size of the patches ("10 wide"). |
 | `stroke` | A flat outline round an area, outside its edge: "stroke the title in #ffffff, 6 wide." (Without a colour, "stroke the petal, 3 wide" draws a shape as a line, like "hollow".) |
