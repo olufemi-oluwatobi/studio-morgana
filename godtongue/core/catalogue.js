@@ -41,6 +41,22 @@ export const PARTS = [
       P('elements', 'map', {}, 'Objects on a stage, or the card or canvas itself as one object (see Objects).', 'Let there be a card called ball, of cardstock …', 'ok'),
       P('timeline', 'object', null, 'Reveals, captions and the camera (see Time).', 'reveal, caption, glide the camera', 'partial', 'reveal and caption are craft words; the camera only moves through the older glide'),
       P('room', 'object', null, 'A room\'s size, surfaces, furniture, lights and cameras.', 'create a room …', 'old', 'drawn only by the room engine'),
+      P('game', 'object', null, 'A game played on the piece (see Game). The piece is its skin.', 'Play wordle on the screen, with the keyboard on the deck.', 'ok', 'drawn and played only by the game engine'),
+    ],
+  },
+  {
+    id: 'game', title: 'Game', path: 'doc.game',
+    does: 'A game laid on a canvas. The canvas is drawn and lit as always; the game sits on the drawn things it is played on, and talks to the page around it.',
+    props: [
+      P('kind', 'wordle', null, 'Which game.', 'Play wordle …', 'ok'),
+      P('board', 'thing', null, 'The drawn thing the board fills.', 'Play wordle on the screen', 'ok'),
+      P('keyboard', 'thing', null, 'The drawn thing the on-screen keyboard fills.', '…, with the keyboard on the deck', 'ok'),
+      P('looks', 'map', {}, 'How each part looks, and how it looks in each state: tile (empty, typed, correct, present, absent), key (correct, present, absent). Face colour or material, letter colour, font, corners, glowing, raised or sunk.', 'Every tile is #15130f, with ink letters, glowing. A correct tile is #1f6b4f.', 'ok'),
+      P('controls', 'map', {}, 'Drawn things that control the panel itself: the light (moves the light across the skin) and the power (the screen goes dark).', 'Control the light with the dial. Control the power with the switch.', 'ok'),
+      P('says', 'map', {}, 'Words shown, and sent to the page, at a moment of the game: started, guessed, won, lost.', 'When the game is won, say "Lunch is on us".', 'ok'),
+      P('values', 'map', {}, 'The game\'s values, from Let lines or a batch sheet: the word, the tries.', 'Let the word be "toast". Let the tries be 6.', 'ok'),
+      P('line', 'number', null, 'Source line of the Play sentence.', '', 'internal'),
+      P('span', '[line, col, length]', null, 'Source span of the Play sentence.', '', 'internal'),
     ],
   },
   {

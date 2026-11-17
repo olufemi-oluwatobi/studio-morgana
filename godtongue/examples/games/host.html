@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- The page around a game: embeds a built game in an iframe and listens to it. This is what a feed panel does.
+     Open it next to a build: node bin/gt.js build examples/games/diner-deck.gt --engine game --out out
+     then open examples/games/host.html?src=../../out/diner-deck/index.html -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thebes · game host</title>
+<style>
+  body{margin:0;display:flex;gap:16px;height:100vh;background:#111;color:#ddd;font:13px system-ui,sans-serif}
+  iframe{border:0;height:100vh;aspect-ratio:9/16;background:#000}
+  aside{flex:1;display:flex;flex-direction:column;gap:8px;padding:16px;min-width:0}
+  pre{flex:1;overflow:auto;background:#000;padding:8px;margin:0;white-space:pre-wrap}
+  button{font:inherit;padding:6px 10px;margin-right:6px}
+</style></head>
+<body>
+<iframe id="game" title="game" allow="clipboard-write"></iframe>
+<aside>
+  <div>
+    <button type="button" data-light="-0.6,-0.3">Light left</button>
+    <button type="button" data-light="0.6,-0.3">Light right</button>
+    <button type="button" data-power="false">Power off</button>
+    <button type="button" data-power="true">Power on</button>
+    <button type="button" data-reset>Reset</button>
+  </div>
+  <pre id="log"></pre>
+</aside>
+<script>
+  const frame = document.getElementById('game'), log = document.getElementById('log');
+  frame.src = new URLSearchParams(location.search).get('src') || '../../out/diner-deck/index.html';
+  const send = (m) => frame.contentWindow.postMessage(m, '*');
+  // everything the game says comes here: ready, started, guessed, won, lost, said, control
+  addEventListener('message', (e) => {
+    if (e.source !== frame.contentWindow || e.data?.source !== 'gt-game') return;
+    log.textContent = JSON.stringify(e.data) + '\n' + log.textContent;
+  });
+  document.querySelectorAll('[data-light]').forEach(b => b.onclick = () => send({ type: 'set', light: b.dataset.light.split(',').map(Number) }));
+  document.querySelectorAll('[data-power]').forEach(b => b.onclick = () => send({ type: 'set', power: b.dataset.power === 'true' }));
+  document.querySelector('[data-reset]').onclick = () => send({ type: 'reset' });
+</script>
+</body></html>

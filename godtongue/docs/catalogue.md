@@ -15,12 +15,12 @@ Everything the platform can make, every property each part has, what the rendere
 
 | Status | Meaning | Properties |
 | --- | --- | --- |
-| yes | rendered, and the plain-English words reach it | 145 |
+| yes | rendered, and the plain-English words reach it | 153 |
 | older words | rendered, but only verbs the plain-English layer replaces reach it (create, draw, set, glide, bring in, …) | 20 |
 | partly | some values reachable, some not | 16 |
 | **no word** | rendered, but nothing in the language reaches it | 4 |
 | not drawn | in the language, but the web renderer does not draw it | 2 |
-| compiler | set by the compiler, never written by hand | 25 |
+| compiler | set by the compiler, never written by hand | 27 |
 
 The craft operations (emboss, engrave, deboss, etch, plate, foil, inlay, spray, print, illustrate, mix, sign, reveal, caption, place) keep their own first word by design, so they count as "yes".
 
@@ -101,6 +101,23 @@ The craft operations (emboss, engrave, deboss, etch, plate, foil, inlay, spray, 
 | `elements` | map | `{}` | Objects on a stage, or the card or canvas itself as one object (see Objects). | Let there be a card called ball, of cardstock … | yes |
 | `timeline` | object |  | Reveals, captions and the camera (see Time). _(reveal and caption are craft words; the camera only moves through the older glide)_ | reveal, caption, glide the camera | partly |
 | `room` | object |  | A room's size, surfaces, furniture, lights and cameras. _(drawn only by the room engine)_ | create a room … | older words |
+| `game` | object |  | A game played on the piece (see Game). The piece is its skin. _(drawn and played only by the game engine)_ | Play wordle on the screen, with the keyboard on the deck. | yes |
+
+### Game
+
+`doc.game` · A game laid on a canvas. The canvas is drawn and lit as always; the game sits on the drawn things it is played on, and talks to the page around it.
+
+| Property | Type | Default | What it does | How to say it | Status |
+| --- | --- | --- | --- | --- | --- |
+| `kind` | wordle |  | Which game. | Play wordle … | yes |
+| `board` | thing |  | The drawn thing the board fills. | Play wordle on the screen | yes |
+| `keyboard` | thing |  | The drawn thing the on-screen keyboard fills. | …, with the keyboard on the deck | yes |
+| `looks` | map | `{}` | How each part looks, and how it looks in each state: tile (empty, typed, correct, present, absent), key (correct, present, absent). Face colour or material, letter colour, font, corners, glowing, raised or sunk. | Every tile is #15130f, with ink letters, glowing. A correct tile is #1f6b4f. | yes |
+| `controls` | map | `{}` | Drawn things that control the panel itself: the light (moves the light across the skin) and the power (the screen goes dark). | Control the light with the dial. Control the power with the switch. | yes |
+| `says` | map | `{}` | Words shown, and sent to the page, at a moment of the game: started, guessed, won, lost. | When the game is won, say "Lunch is on us". | yes |
+| `values` | map | `{}` | The game's values, from Let lines or a batch sheet: the word, the tries. | Let the word be "toast". Let the tries be 6. | yes |
+| `line` | number |  | Source line of the Play sentence. |  | compiler |
+| `span` | [line, col, length] |  | Source span of the Play sentence. |  | compiler |
 
 ### Card and canvas settings
 
@@ -732,6 +749,18 @@ Every first word a sentence can start with.
 | `move` | Puts a thing somewhere else: "move the badge to 540 300", "move the badge 40 right, 20 down". With a time it travels there (an object in a video): "move the ball to 880 300 over 1.4 s, bouncing" (bouncing, elastic, overshooting, linear, ease-in, ease-out). Or by words: "move the badge under the title, 20 apart", "move the badge in the panel, at the top right, 16 in". |
 | `change` | A change over time, for an object in a video: "change the title to invisible over 0.5 s", "change the badge to 120% size for 0.5 s, then back", "change the tag to turned 20 over 1 s". States: visible, invisible, N% size, N times bigger, turned N. "for N s" holds it and returns; "then back" returns after a moment. Use "move" for place. |
 | `when`, `once`, `after` | An event in a video: the rest of the sentence happens at that moment. Moments: "the video starts", "the video reaches 2 s" (or "after 2 s"), "the video ends", and what an object does: "the ball arrives" (its move ends), "the title appears", "the title leaves". Chain them, so nobody adds up seconds. |
+| `play` | Puts a game on the piece: which game, and which drawn things it sits on. "Play wordle on the screen, with the keyboard on the deck." The things must be drawn already (rectangles are best); the game fills them. |
+| `every tile`, `all tiles` | How every tile looks, before any state: a colour or material, "with <colour> letters", "in <font>", "corners 8", "glowing", "raised" or "sunk". |
+| `an empty tile`, `empty tiles`, `every empty tile` | How an empty tile looks, over how every tile looks. |
+| `a typed tile`, `typed tiles`, `every typed tile` | How a typed tile looks, over how every tile looks. |
+| `a correct tile`, `correct tiles`, `every correct tile` | How a correct tile looks, over how every tile looks. |
+| `a present tile`, `present tiles`, `every present tile` | How a present tile looks, over how every tile looks. |
+| `an absent tile`, `absent tiles`, `every absent tile` | How an absent tile looks, over how every tile looks. |
+| `every key`, `all keys` | How every key looks, before any state: a colour or material, "with <colour> letters", "in <font>", "corners 8", "glowing", "raised" or "sunk". |
+| `a correct key`, `correct keys`, `every correct key` | How a correct key looks, over how every key looks. |
+| `a present key`, `present keys`, `every present key` | How a present key looks, over how every key looks. |
+| `an absent key`, `absent keys`, `every absent key` | How an absent key looks, over how every key looks. |
+| `control` | Gives the panel a control: a drawn thing that changes the panel itself, not the game. "Control the light with the dial." (turn it, and the light moves across the whole skin) "Control the power with the switch." (the screen goes dark and back) |
 
 ## Engines
 
@@ -740,6 +769,7 @@ Engines read the document, never the source. "web" is the one renderer the app u
 | Engine | What it makes |
 | --- | --- |
 | `fancard-py` | Fancard v1 · reference only (Python factory): Runs the locked v1 factory: metals, relief, enamel and light, as a tilt-and-flip card page. About 30–90 s. |
+| `game` | Game (lit skin + playable game, in a frame): A canvas with "Play …" on it: the web engine draws and lights the skin, the game is laid on top as DOM. One page, served in an iframe, talking to its parent over postMessage. |
 | `room` | Room (Mitsuba): Interiors: builds the room and renders every photographed shot with the Python path tracer. |
 | `svg-preview` | SVG preview · instant: Pure JS, under a second. Flat metals and enamel, masks, photo and sprays. For drafting. |
 | `svg` | Vector export (SVG): One SVG file of a card or canvas: flat colours, gradients, shadows, glows, photos and text. Relief and sprays are left out. |

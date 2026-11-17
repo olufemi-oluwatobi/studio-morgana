@@ -15,8 +15,9 @@ import room from './packs/room.js';
 import elements from './packs/elements.js';
 import english from './packs/english.js';
 import layout from './packs/layout.js';
+import game from './packs/game.js';
 
-export const PACKS = [materials, card, ops, text, art, shapes, styles, room, elements, english, layout];   // english, then layout: they build on the others
+export const PACKS = [materials, card, ops, text, art, shapes, styles, room, elements, english, layout, game];   // english, then layout: they build on the others; game wraps english's "when"
 
 export function createRegistry(packs = PACKS) {
   const reg = new Registry();

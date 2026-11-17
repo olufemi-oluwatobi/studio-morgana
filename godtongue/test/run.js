@@ -312,6 +312,34 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
   ok('every verb has help and an example', missing.length === 0, 'missing: ' + missing.join(', '));
 }
 
+// games: a skin with "Play wordle" on it
+{
+  const gd = path.join(ex, 'games'), src = fs.readFileSync(path.join(gd, 'diner-deck.gt'), 'utf8');
+  const r = compile(src, { baseDir: gd }), g = r.doc.game;
+  ok('compiles games/diner-deck.gt', r.ok, JSON.stringify(r.diagnostics));
+  ok('game: wordle on the screen, keyboard on the deck', g?.kind === 'wordle' && g.board === 'screen' && g.keyboard === 'deck');
+  ok('game: values from Let lines', g?.values.word === 'toast' && g.values.tries === 6);
+  ok('game: looks, a named colour and a material', g?.looks.tile.ink === '#ffb347' && g.looks['tile.correct'].face === '#1f6b4f' && g.looks.key.face === '#efe6d8');
+  ok('game: controls and says', g?.controls.light === 'dial' && g.controls.power === 'switch' && /Lunch/.test(g.says.won));
+  const tpl = fs.readFileSync(path.join(gd, 'deck', 'template.gt'), 'utf8');
+  const rt = compile(tpl, { baseDir: path.join(gd, 'deck'), vars: { id: 'x-1', word: 'Glaze', brand: 'KILN & CO.', tagline: 'No. 1', ink: '#8fe3ff', prize: 'Code GLAZE14' } });
+  ok('game template with $word $brand $ink $prize', rt.ok && rt.doc.game.values.word === 'glaze' && rt.doc.game.looks.tile.ink === '#8fe3ff' && rt.doc.game.says.won === 'Code GLAZE14', JSON.stringify(rt.diagnostics));
+  const S = 'Let there be a canvas called t, 1080 by 1920.\nLet there be a rectangle called screen, 800 by 800, at 540 600.\n';
+  for (const [name, body, line, words] of [
+    ['unknown game', S + 'Play chesss on the screen.', 3, 'games: wordle'],
+    ['game on nothing', S + 'Play wordle on the scren.', 3, 'did you mean "screen"'],
+    ['game needs a word', S + 'Play wordle on the screen.', 3, 'needs a word'],
+    ['word must be 5 letters', S + 'Let the word be "toasts".\nPlay wordle on the screen.', 4, '5 letters'],
+    ['look before the game', S + 'A correct tile is #00ff00.', 3, 'no game'],
+    ['unknown tile state', S + 'Let the word be "toast".\nPlay wordle on the screen.\nA purple tile is #00ff00.', 5, 'unknown verb'],
+    ['unknown look', S + 'Let the word be "toast".\nPlay wordle on the screen.\nEvery tile is wobbly.', 5, 'wobbly'],
+    ['unknown game moment', S + 'Let the word be "toast".\nPlay wordle on the screen.\nWhen the game is paused, say "hi".', 5, 'the game is won'],
+  ]) {
+    const rr = compile(body), d = rr.diagnostics.find(x => x.level === 'error');
+    ok(`game error: ${name}`, !rr.ok && d && d.line === line && `${d.msg} ${d.hint || ''}`.includes(words), JSON.stringify(rr.diagnostics));
+  }
+}
+
 console.log(`\n${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);
 
 // ── errors an editor can act on ───────────────────────────────────────────────────────────────────────────────────

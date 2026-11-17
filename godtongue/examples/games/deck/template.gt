@@ -1,0 +1,73 @@
+-- Thebes · the analog player as a template: one skin, many challenges. Each row of challenges.csv fills $id, $word,
+-- $brand, $tagline, $ink and $prize. Build them all: node bin/gt.js batch examples/games/deck/template.gt examples/games/deck/challenges.csv --engine game
+
+-- what changes from one challenge to the next
+Let the word be $word.
+Let the tries be 6.
+Let ink be $ink.
+Let walnut be #5a3620.
+
+Let there be a canvas called $id, 1080 by 1920, from aluminium.
+Let text be in Jost, size 26.
+
+-- the cabinet and its faceplate
+Let there be a rectangle called cabinet, 1040 by 1880, corners 70, at 540 960.
+Make the cabinet a gradient from #6e4428 to #24140a, angled 90.
+Give the cabinet an inner shadow, 10 down, blur 24, 50% opacity.
+Let there be a rectangle called face, 960 by 1790, corners 44, at 540 960.
+Make the face a gradient from #e6e8eb to #a9aeb5, angled 90.
+Give the face an outline in #7d838b, 3 wide.
+Give the face an inner shadow, 3 down, blur 6, in #ffffff, 60% opacity.
+
+-- speaker grille
+Let there be 90 circles called hole, 8 big, in a grid 18 by 5, 46 apart, from 149 120.
+Make the holes #2a2724.
+Give the holes an inner shadow, 2 down, blur 3, 80% opacity.
+
+-- the brand
+Let there be a rectangle called badge, 680 by 120, corners 18, at 540 400.
+Make the badge gold.
+Emboss the badge, 0.2 mm high, soft 0.6.
+Write $brand called brand in Big Shoulders Display bold, size 76, tracking 6, in the badge.
+Make the brand #3b2410.
+Write $tagline called tagline in Martian Mono, size 22, tracking 4, under the badge, 22 apart.
+Make the tagline #4a4e55.
+
+-- the screen: smoked glass, where the board glows
+Let there be a rectangle called screen, 860 by 820, corners 26, at 540 950.
+Make the screen a gradient from #1d1a16 to #0b0a08, angled 90.
+Give the screen an inner shadow, 8 down, blur 22, 80% opacity.
+Give the screen an outline in #3a352e, 6 wide.
+
+-- the key deck
+Let there be a rectangle called deck, 900 by 330, corners 22, at 540 1530.
+Make the deck #2b2723.
+Give the deck an inner shadow, 6 down, blur 14, 70% opacity.
+
+-- light dial and power switch
+Let there be a circle called dial, 58 big, at 230 1778.
+Make the dial mirror chrome.
+Emboss the dial, 0.35 mm high, soft 0.5.
+Write "LIGHT" called dial-label in Martian Mono, size 22, tracking 4, beside the dial, 26 apart.
+Make the dial-label #4a4e55.
+Let there be a circle called switch, 38 big, at 850 1778.
+Make the switch #1d1a16.
+Emboss the switch, 0.25 mm high, soft 0.5.
+Write "POWER" called switch-label in Martian Mono, size 22, tracking 4, left of the switch, 26 apart.
+Make the switch-label #4a4e55.
+
+-- the game
+Play wordle on the screen, with the keyboard on the deck.
+Every tile is #15130f, with ink letters, in Martian Mono, glowing, sunk, corners 6.
+A typed tile is #1f1b15.
+A correct tile is #1f6b4f, with #b8ffd9 letters.
+A present tile is #8a6418, with #ffe2a8 letters.
+An absent tile is #24211d, with #6e675c letters.
+Every key is ivory, with #2b2118 letters, in Jost, raised, corners 10.
+A correct key is #2f8f6b, with white letters.
+A present key is #d9a441, with #2b2118 letters.
+An absent key is #5a554d, with #d8d2c6 letters.
+Control the light with the dial.
+Control the power with the switch.
+When the game is won, say $prize.
+When the game is lost, say "So close. Come back tomorrow.".
