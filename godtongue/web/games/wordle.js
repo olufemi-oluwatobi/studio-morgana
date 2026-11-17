@@ -84,9 +84,16 @@
   const put = (name, v, cls) => { const o = outs[name]; if (!o) return; o.textContent = v; o.className = 'readout' + (cls ? ' ' + cls : ''); };
 
   // ---------- the game ----------
-  const store = `gt-${G.kind}:${G.id}:${V.word.length}${[...V.word].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 99991, 7)}`;
-  let guesses = [], cur = '', over = null, busy = false, power = true, ms = 0, ticking = false, lastTick = 0;
-  try { const s = JSON.parse(localStorage.getItem(store) || 'null'); if (s?.guesses) guesses = s.guesses.filter(g => g.length === N).slice(0, ROWS); if (s?.ms) ms = s.ms; } catch { }
+  // server mode: the word is kept by the server ("Let the word be kept by the server."); the page that serves the game
+  // sets window.GAME_API, and every guess is scored there. Otherwise the word is in the page and scored here.
+  const API = V.server ? window.GAME_API : null;
+  const call = async (path, body) => {
+    const r = await fetch(`${API}/${path}`, { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body || {}) });
+    const j = await r.json().catch(() => ({})); if (!r.ok) throw Object.assign(new Error(j.error || 'the game could not reach the server'), j); return j;
+  };
+  const store = API ? `gt-${G.kind}:${G.id}:server` : `gt-${G.kind}:${G.id}:${V.word.length}${[...V.word].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 99991, 7)}`;
+  let guesses = [], results = [], answer = API ? null : V.word, cur = '', over = null, busy = false, power = true, ms = 0, ticking = false, lastTick = 0, closed = false;
+  try { const s = JSON.parse(localStorage.getItem(store) || 'null'); if (!API && s?.guesses) { guesses = s.guesses.filter(g => g.length === N).slice(0, ROWS); results = guesses.map(g => score(g, V.word)); } if (s?.ms) ms = s.ms; } catch { }
 
   // the series' stats: played, wins, streak, best (fewest tries, then fastest)
   const statsKey = `gt-${G.kind}-stats:${V.series || G.id}`;
@@ -121,34 +128,34 @@
   const stopClock = () => { if (ticking) { ms += performance.now() - lastTick; ticking = false; } save(); };
 
   // scoring: greens first, then yellows only as many times as the letter is left in the word
-  const score = (guess, word) => {
+  function score(guess, word) {
     const out = Array(N).fill('absent'), left = {};
     for (let i = 0; i < N; i++) guess[i] === word[i] ? (out[i] = 'correct') : (left[word[i]] = (left[word[i]] || 0) + 1);
     for (let i = 0; i < N; i++) if (out[i] !== 'correct' && left[guess[i]]) { out[i] = 'present'; left[guess[i]]--; }
     return out;
-  };
+  }
   const RANK = { absent: 1, present: 2, correct: 3 };
   const paintKeys = () => {
     const best = {};
-    for (const g of guesses) score(g, V.word).forEach((s, i) => { if (!best[g[i]] || RANK[s] > RANK[best[g[i]]]) best[g[i]] = s; });
+    guesses.forEach((g, r) => results[r].forEach((s, i) => { if (!best[g[i]] || RANK[s] > RANK[best[g[i]]]) best[g[i]] = s; }));
     for (const [k, b] of Object.entries(keys)) b.className = 'key' + (best[k] ? ' ' + best[k] : '');
   };
   const say = (text, ms = 0) => { msg.textContent = text; msg.classList.add('on'); clearTimeout(say.t); if (ms) say.t = setTimeout(() => msg.classList.remove('on'), ms); };
   const save = () => { try { localStorage.setItem(store, JSON.stringify({ guesses, ms: Math.round(ms) })); } catch { } };
-  const share = () => guesses.map(g => score(g, V.word).map(s => ({ correct: '🟩', present: '🟨', absent: '⬛' })[s]).join('')).join('\n');
+  const share = () => results.map(res => res.map(s => ({ correct: '🟩', present: '🟨', absent: '⬛' })[s]).join('')).join('\n');
   const finish = (won, quiet, why) => {
     over = won ? 'won' : 'lost'; stopClock(); record(won); showStats(); showTime();
     const ev = why === 'timeout' && G.says.timeout ? 'timeout' : over;
-    const text = G.says[ev] || (won ? ['Genius', 'Magnificent', 'Impressive', 'Splendid', 'Great', 'Phew'][Math.min(guesses.length - 1, 5)] : why === 'timeout' ? `Time! It was ${V.word.toUpperCase()}` : V.word.toUpperCase());
+    const text = G.says[ev] || (won ? ['Genius', 'Magnificent', 'Impressive', 'Splendid', 'Great', 'Phew'][Math.min(guesses.length - 1, 5)] : why === 'timeout' ? `Time!${answer ? ` It was ${answer.toUpperCase()}` : ''}` : why === 'closed' ? 'This contest has closed' : (answer || '').toUpperCase());
     say(text);
     if (!quiet) {
       post(over, { tries: guesses.length, of: ROWS, grid: share(), ms: Math.round(ms), ...(why ? { reason: why } : {}) });
       if (G.says[ev]) post('said', { event: ev, text: G.says[ev] });
     }
   };
-  function timeUp() { if (!over) { busy = false; finish(false, false, 'timeout'); } }
+  function timeUp() { if (!over) { busy = false; if (API) call('timeout').catch(() => { }); finish(false, false, 'timeout'); } }
   const showRow = (r, word, animate) => {
-    const res = score(word, V.word);
+    const res = results[r];
     tiles[r].forEach((t, i) => {
       t.textContent = word[i].toUpperCase();
       if (animate) { t.classList.add('flip'); setTimeout(() => { t.className = 'tile ' + res[i] + ' flip'; }, i * 220 + 250); }
@@ -164,15 +171,25 @@
     if (k === 'back') { cur = cur.slice(0, -1); return drawCur(); }
     if (k === 'enter') {
       if (cur.length < N) { shake(); return say('Not enough letters', 1200); }
-      if (!WORDS.has(cur) && cur !== V.word) { shake(); return say('Not in word list', 1200); }
-      const r = guesses.length, word = cur; guesses.push(word); cur = ''; save(); busy = true;
-      showRow(r, word, true);
-      post('guessed', { row: r + 1, of: ROWS, result: score(word, V.word) });
-      setTimeout(() => {
-        busy = false; paintKeys(); showStats();
-        if (over) return;
-        if (word === V.word) finish(true); else if (guesses.length >= ROWS) finish(false);
-      }, N * 220 + 520);
+      if (!WORDS.has(cur) && cur !== answer) { shake(); return say('Not in word list', 1200); }
+      const r = guesses.length, word = cur; busy = true;
+      const scored = API ? call('guess', { guess: word }) : Promise.resolve({ result: score(word, V.word), status: word === V.word ? 'won' : guesses.length + 1 >= ROWS ? 'lost' : 'playing' });
+      scored.then((j) => {
+        if (j.answer) answer = j.answer;
+        guesses.push(word); results.push(j.result); cur = ''; save();
+        showRow(r, word, true);
+        post('guessed', { row: r + 1, of: ROWS, result: j.result });
+        setTimeout(() => {
+          busy = false; paintKeys(); showStats();
+          if (over) return;
+          if (j.status === 'won') finish(true); else if (j.status === 'lost' || j.status === 'timeout') finish(false, false, j.status === 'timeout' ? 'timeout' : null);
+        }, N * 220 + 520);
+      }).catch((e) => {
+        busy = false;
+        if (e.code === 'not_a_word') { shake(); return say('Not in word list', 1200); }
+        if (e.code === 'closed') { closed = true; return finish(false, true, 'closed'); }
+        say(e.message || 'Try again', 1800);
+      });
       return;
     }
     if (/^[a-z]$/.test(k) && cur.length < N) { cur += k; drawCur(); const t = tiles[guesses.length][cur.length - 1]; t.classList.remove('pop'); void t.offsetWidth; t.classList.add('pop'); }
@@ -210,11 +227,23 @@
   });
 
   // ---------- start ----------
-  guesses.forEach((g, r) => showRow(r, g, false)); paintKeys(); drawCur(); showStats(); showTime();
+  const begin = () => {
+    guesses.forEach((g, r) => showRow(r, g, false)); paintKeys(); drawCur(); showStats(); showTime();
+    if (closed) finish(false, true, 'closed');
+    else if (results.some(res => res.every(x => x === 'correct'))) finish(true, true); else if (guesses.length >= ROWS) finish(false, true);
+    if (!over) post('started');
+    if (!over && G.says.started) say(G.says.started, 2600);
+  };
   addEventListener('pagehide', stopClock); document.addEventListener('visibilitychange', () => { if (document.hidden) stopClock(); });
-  if (guesses.includes(V.word)) finish(true, true); else if (guesses.length >= ROWS) finish(false, true);
   const ready = () => { if (window.__gt) { if (G.rects.light) setLight(light); post('ready', { rows: ROWS, letters: N, played: guesses.length, over }); } else setTimeout(ready, 60); };
   ready();
-  if (!over) post('started');
-  if (!over && G.says.started) say(G.says.started, 2600);
+  if (API) {
+    busy = true;
+    call('start').then((j) => {
+      busy = false; closed = !!j.closed; if (j.answer) answer = j.answer;
+      guesses = (j.moves || []).map(m => m.guess); results = (j.moves || []).map(m => m.result);
+      if (typeof j.ms === 'number') ms = Math.max(ms, j.ms);
+      begin();
+    }).catch((e) => { busy = false; say(e.message || 'The game could not start', 4000); });
+  } else begin();
 })();

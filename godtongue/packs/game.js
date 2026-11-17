@@ -2,6 +2,7 @@
 //
 //   Play wordle on the screen, with the keyboard on the deck.     which game, and which drawn things it sits on
 //   Let the word be "crane".  Let the tries be 6.                 the game's values are plain Let values ($word works)
+//   Let the word be kept by the server.                            contests: guesses are scored by the server (window.GAME_API)
 //   Every tile is #1a1408, with #ffb347 letters, in Martian Mono, glowing.
 //   A correct tile is #2f8f6b.  A present tile is #d9a441.  An absent tile is #3a3530.
 //   Every key is ivory, with #2b2118 letters, raised.  A correct key is #2f8f6b.
@@ -194,7 +195,9 @@ export default function game(reg) {
     const spec = GAMES[g.kind];
     for (const [name, v] of Object.entries(spec.values)) {
       const got = ctx.vars.get(name)?.value;
+      if (name === 'word' && got?.length && got[0].t === 'word' && got.some(t => t.t === 'word' && t.v === 'server')) { g.values.server = true; continue; }   // "Let the word be kept by the server."
       let val = got?.length ? (got[0].t === 'num' ? got[0].v * (/^(min|minutes?)$/.test(got[1]?.v || '') ? 60 : 1) : String(got[0].v).toLowerCase()) : v.def;
+      if (name === 'time' && val === 0) continue;   // "Let the time be 0 s." means no limit (a template can always say it)
       if (val == null) {
         if (v.need) ctx.err(`${g.kind} needs a ${name}`, `e.g. "Let the ${name} be \\"crane\\"."`);
         continue;
