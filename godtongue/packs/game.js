@@ -195,7 +195,7 @@ export default function game(reg) {
     const spec = GAMES[g.kind];
     for (const [name, v] of Object.entries(spec.values)) {
       const got = ctx.vars.get(name)?.value;
-      if (name === 'word' && got?.length && got[0].t === 'word' && got.some(t => t.t === 'word' && t.v === 'server')) { g.values.server = true; continue; }   // "Let the word be kept by the server."
+      if (name === 'word' && got?.length && ((got[0].t === 'word' && got.some(t => t.t === 'word' && t.v === 'server')) || (got[0].t === 'str' && /^kept by the server$/i.test(got[0].v.trim())))) { g.values.server = true; continue; }   // "Let the word be kept by the server."
       let val = got?.length ? (got[0].t === 'num' ? got[0].v * (/^(min|minutes?)$/.test(got[1]?.v || '') ? 60 : 1) : String(got[0].v).toLowerCase()) : v.def;
       if (name === 'time' && val === 0) continue;   // "Let the time be 0 s." means no limit (a template can always say it)
       if (val == null) {
