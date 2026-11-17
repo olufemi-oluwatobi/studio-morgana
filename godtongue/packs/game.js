@@ -6,6 +6,8 @@
 //   A correct tile is #2f8f6b.  A present tile is #d9a441.  An absent tile is #3a3530.
 //   Every key is ivory, with #2b2118 letters, raised.  A correct key is #2f8f6b.
 //   Control the light with the dial.  Control the power with the switch.
+//   Let the time be 180 s.  Show the timer on the clock.  Show the best on the best-box.   (readouts: timer, best, streak, played, wins, tries)
+//   Every readout is with #1a0d2e letters, in Big Shoulders Display.  An urgent readout is with #ff3b30 letters.
 //   When the game is won, say "Lunch is on us".
 //
 // What it writes: doc.game = { kind, board, keyboard, looks, controls, says, values } (docs/game-layer.md).
@@ -13,12 +15,15 @@
 
 const GAMES = {
   wordle: {
-    parts: ['tile', 'key'],
-    states: { tile: ['empty', 'typed', 'correct', 'present', 'absent'], key: ['correct', 'present', 'absent'] },
-    events: ['won', 'lost', 'guessed', 'started'],
+    parts: ['tile', 'key', 'readout'],
+    states: { tile: ['empty', 'typed', 'correct', 'present', 'absent'], key: ['correct', 'present', 'absent'], readout: ['urgent'] },
+    events: ['won', 'lost', 'guessed', 'started', 'timeout'],
+    readouts: ['timer', 'best', 'streak', 'played', 'wins', 'tries'],
     values: {
       word: { need: true, check: (v) => /^[a-z]{5}$/.test(v) || 'the word must be 5 letters, a to z' },
       tries: { def: 6, check: (v) => (Number.isInteger(v) && v >= 1 && v <= 10) || 'tries must be a whole number from 1 to 10' },
+      time: { check: (v) => (typeof v === 'number' && v >= 10 && v <= 3600) || 'the time is in seconds, from 10 to 3600, e.g. "Let the time be 180 s."' },
+      series: { check: (v) => /^[a-z0-9-]{1,60}$/.test(v) || 'the series is a short name: letters, digits and hyphens' },
     },
   },
 };
@@ -53,7 +58,7 @@ export default function game(reg) {
       const comma = toks.findIndex(t => t.t === ',');
       const boardName = on(1);
       if (!boardName || (comma >= 0 && toks.findIndex(t => isWord(t, 'on', 'in')) > comma)) ctx.err('play it on what?', 'e.g. "Play wordle on the screen."');
-      const g = { kind, board: layerOf(ctx, boardName), keyboard: null, looks: {}, controls: {}, says: {}, values: {}, line: ctx.line, span: ctx.span };
+      const g = { kind, board: layerOf(ctx, boardName), keyboard: null, looks: {}, controls: {}, shows: {}, says: {}, values: {}, line: ctx.line, span: ctx.span };
       if (comma >= 0) {
         const rest = toks.slice(comma + 1);
         if (!isWord(rest.find(t => t.t === 'word' && !isWord(t, 'with', 'the')), 'keyboard', 'keys')) ctx.err(`I don't know "${txt(rest)}"`, 'e.g. ", with the keyboard on the deck"');
@@ -94,14 +99,22 @@ export default function game(reg) {
       }
       if (isWord(w, 'in')) { L.font = p.slice(1).map(x => x.raw ?? x.v).join(' '); continue; }
       if (isWord(w, 'corners', 'rounded')) { const n = p.find(x => x.t === 'num'); if (!n) ctx.err('corners how round?', 'e.g. "corners 8"'); L.corners = n.v; continue; }
+      if (isWord(w, 'outlined', 'outline')) {   // "outlined", "outlined in #1a0d2e", "outlined in ink, 4 wide" (wide comes as its own part)
+        const c = p.slice(1).find(x => x.t === 'color' || (x.t === 'word' && !isWord(x, 'in', 'with')));
+        L.outline = c ? (colour(c)?.hex ?? ctx.err(`"${txt([c])}" is not a colour`)) : (L.outline || '#1a0d2e');
+        const n = p.find(x => x.t === 'num'); if (n) L.outlineWidth = n.v; continue;
+      }
+      if (isWord(w, 'size') && p[1]?.t === 'num') { L.size = p[1].v; continue; }
+      if (p.length === 2 && p[0].t === 'num' && isWord(p[1], 'wide')) { L.outlineWidth = p[0].v; continue; }
       if (isWord(w, 'glowing', 'lit', 'glows')) { L.glow = true; continue; }
       if (isWord(w, 'dark', 'unlit')) { L.glow = false; continue; }
       if (isWord(w, 'raised', 'sunk', 'sunken', 'flat')) { L.relief = w.v === 'sunken' ? 'sunk' : w.v; continue; }
       let c = colour(w);
       if (!c && p.length > 1) { const two = ctx.reg.materials.get(`${w.v} ${p[1].v}`); if (two?.preview) c = { hex: two.preview.hi, lo: two.preview.lo, metal: true }; }
       if (c) { L.face = c.hex; if (c.lo) L.faceLo = c.lo; if (c.metal) L.metal = true; continue; }
-      ctx.err(`I don't know "${txt(p)}" for a ${part}`, 'say a colour or material, "with <colour> letters", "in <font>", "corners 8", "glowing", "raised" or "sunk"');
+      ctx.err(`I don't know "${txt(p)}" for a ${part}`, 'say a colour or material, "with <colour> letters", "in <font>", "corners 8", "outlined in <colour>, 4 wide", "glowing", "raised", "sunk" or "flat"');
     }
+    if (part === 'readout' && L.face) { L.ink ??= L.face; delete L.face; delete L.faceLo; delete L.metal; }   // a readout is only letters
     const key = state ? `${part}.${state}` : part;
     g.looks[key] = { ...(g.looks[key] || {}), ...L };
   };
@@ -132,6 +145,26 @@ export default function game(reg) {
     },
   });
 
+  // Show the timer on the clock.   (other "show"s keep their old meaning: reveal a thing)
+  const show = reg.verbs.get('show');
+  const gameShow = {
+    ...show,
+    run(ctx, toks, s) {
+      const g = ctx.doc.game, spec = g && GAMES[g.kind];
+      const what = toks.find(t => t.t === 'word' && !isWord(t, 'the', 'a', 'an'))?.v?.replace(/s$/, '');
+      const names = spec?.readouts || [], hit = names.find(n => n === what || n.replace(/s$/, '') === what);
+      if (!g || !hit) {
+        if (!g && toks.some(t => isWord(t, 'timer', 'best', 'streak', 'played', 'wins', 'tries'))) ctx.err('there is no game on this piece yet', 'write the "Play …" sentence first');
+        return show.run(ctx, toks, s);
+      }
+      const on = toks.findIndex(t => isWord(t, 'on', 'in'));
+      const name = on < 0 ? null : toks.slice(on + 1).find(t => t.t === 'word' && !isWord(t, 'the'))?.v;
+      if (!name) ctx.err(`show the ${hit} on what?`, `e.g. "Show the ${hit} on the clock."`);
+      g.shows[hit] = layerOf(ctx, name);
+    },
+  };
+  reg.verbs.set('show', gameShow); reg.verbs.set('reveal', gameShow);
+
   // When the game is won, say "…".   (other "when"s keep their old meaning)
   const when = reg.verbs.get('when');
   const gameWhen = {
@@ -139,11 +172,12 @@ export default function game(reg) {
     run(ctx, toks, s) {
       const ci = toks.findIndex(t => t.t === ',');
       const cond = ci < 0 ? toks : toks.slice(0, ci);
-      if (!cond.some(t => isWord(t, 'game'))) return when.run(ctx, toks, s);
+      const timeOut = cond.some(t => isWord(t, 'time')) && cond.some(t => isWord(t, 'out', 'up'));
+      if (!cond.some(t => isWord(t, 'game')) && !timeOut) return when.run(ctx, toks, s);
       const g = G(ctx), spec = GAMES[g.kind];
-      const ev = cond.find(t => t.t === 'word' && spec.events.includes(t.v))?.v
+      const ev = timeOut ? 'timeout' : cond.find(t => t.t === 'word' && spec.events.includes(t.v))?.v
         ?? (cond.some(t => isWord(t, 'starts', 'begins')) ? 'started' : null);
-      if (!ev) ctx.err(`I don't know that moment: "${txt(cond)}"`, `moments: ${spec.events.map(e => `the game is ${e}`).join(', ')}`);
+      if (!ev) ctx.err(`I don't know that moment: "${txt(cond)}"`, `moments: ${spec.events.filter(e => e !== 'timeout').map(e => `the game is ${e}`).join(', ')}, the time runs out`);
       const rest = ci < 0 ? [] : toks.slice(ci + 1);
       if (!isWord(rest[0], 'say', 'show')) ctx.err('when that happens, then what?', `e.g. "When the game is ${ev}, say \\"…\\"."`);
       const str = rest.find(t => t.t === 'str');
@@ -160,7 +194,7 @@ export default function game(reg) {
     const spec = GAMES[g.kind];
     for (const [name, v] of Object.entries(spec.values)) {
       const got = ctx.vars.get(name)?.value;
-      let val = got?.length ? (got[0].t === 'num' ? got[0].v : String(got[0].v).toLowerCase()) : v.def;
+      let val = got?.length ? (got[0].t === 'num' ? got[0].v * (/^(min|minutes?)$/.test(got[1]?.v || '') ? 60 : 1) : String(got[0].v).toLowerCase()) : v.def;
       if (val == null) {
         if (v.need) ctx.err(`${g.kind} needs a ${name}`, `e.g. "Let the ${name} be \\"crane\\"."`);
         continue;
@@ -168,6 +202,7 @@ export default function game(reg) {
       const ok = v.check(val); if (ok !== true) ctx.err(`the ${name} "${val}" won't do`, ok);
       g.values[name] = val;
     }
+    if (g.shows.timer && !g.values.time) g.values.countUp = true;
     if (!g.keyboard) ctx.warn('the game has no keyboard on the piece, so only a hardware keyboard can play it', 'add ", with the keyboard on the deck" to the Play sentence');
   });
 }

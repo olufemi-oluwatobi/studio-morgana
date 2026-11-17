@@ -324,6 +324,10 @@ ok('reports every problem in one run', many.diagnostics.filter(d => d.level === 
   const tpl = fs.readFileSync(path.join(gd, 'deck', 'template.gt'), 'utf8');
   const rt = compile(tpl, { baseDir: path.join(gd, 'deck'), vars: { id: 'x-1', word: 'Glaze', brand: 'KILN & CO.', tagline: 'No. 1', ink: '#8fe3ff', prize: 'Code GLAZE14' } });
   ok('game template with $word $brand $ink $prize', rt.ok && rt.doc.game.values.word === 'glaze' && rt.doc.game.looks.tile.ink === '#8fe3ff' && rt.doc.game.says.won === 'Code GLAZE14', JSON.stringify(rt.diagnostics));
+  const rp = compile(fs.readFileSync(path.join(gd, 'pop-player.gt'), 'utf8'), { baseDir: gd }), gp = rp.doc.game;
+  ok('compiles games/pop-player.gt', rp.ok, JSON.stringify(rp.diagnostics));
+  ok('game: time limit, series, readouts', gp?.values.time === 180 && gp.values.series === 'mamas-daily' && gp.shows.timer === 'time-box' && gp.shows.best === 'best-box' && gp.shows.streak === 'streak-box');
+  ok('game: outlines, flat, readout looks, timeout', gp?.looks.tile.outline === '#1a0d2e' && gp.looks.tile.outlineWidth === 5 && gp.looks.tile.relief === 'flat' && gp.looks.readout.ink === '#1a0d2e' && gp.looks['readout.urgent'].ink === '#ff3b30' && /Time!/.test(gp.says.timeout));
   const S = 'Let there be a canvas called t, 1080 by 1920.\nLet there be a rectangle called screen, 800 by 800, at 540 600.\n';
   for (const [name, body, line, words] of [
     ['unknown game', S + 'Play chesss on the screen.', 3, 'games: wordle'],

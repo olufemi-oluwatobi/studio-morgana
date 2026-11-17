@@ -31,13 +31,14 @@ export function gameOf(doc) {
     rects: {
       board: boxOf(doc, g.board), keyboard: g.keyboard ? boxOf(doc, g.keyboard) : null,
       light: g.controls.light ? boxOf(doc, g.controls.light) : null, power: g.controls.power ? boxOf(doc, g.controls.power) : null,
+      shows: Object.fromEntries(Object.entries(g.shows || {}).map(([k, v]) => [k, boxOf(doc, v)])),
     },
   };
 }
 
 const fontFaces = (looks) => {
   const fams = new Set(['Jost', ...Object.values(looks).map(l => l.font).filter(Boolean)]), out = [];
-  for (const fam of fams) for (const w of [400, 600]) {
+  for (const fam of fams) for (const w of [400, 700]) {
     const f = fontFile(fam, w, 'normal') || (w === 400 ? null : fontFile(fam, 400, 'normal'));
     if (f) out.push(`@font-face{font-family:"${fam}";font-weight:${w};src:url(data:font/woff2;base64,${fs.readFileSync(f).toString('base64')}) format("woff2")}`);
   }
@@ -53,7 +54,7 @@ html,body{margin:0;height:100%;background:${bench};overflow:hidden;touch-action:
 #game>*{position:absolute;pointer-events:auto}
 .board{display:flex;flex-direction:column;align-items:center;justify-content:center}
 .grid{display:grid;justify-content:center;perspective:900px}
-.tile{display:flex;align-items:center;justify-content:center;font-weight:600;text-transform:uppercase;transition:background .2s,filter .4s}
+.tile{display:flex;align-items:center;justify-content:center;font-weight:700;text-transform:uppercase;transition:background .2s,filter .4s}
 .tile.typed{transform:scale(1)}
 .tile.pop{animation:pop .11s ease-out}
 .tile.flip{animation:flip .5s ease-in-out both;animation-delay:var(--d)}
@@ -61,11 +62,12 @@ html,body{margin:0;height:100%;background:${bench};overflow:hidden;touch-action:
 @keyframes pop{50%{transform:scale(1.1)}}
 @keyframes flip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
 @keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
-.msg{position:absolute;left:0;right:0;bottom:2%;text-align:center;font:600 1em Jost,system-ui,sans-serif;color:#fff;opacity:0;transition:opacity .25s;text-shadow:0 1px 3px #000}
+.readout{display:flex;align-items:center;justify-content:center;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap;pointer-events:none}
+.msg{position:absolute;left:0;right:0;bottom:2.5%;width:max-content;max-width:92%;margin:auto;padding:.35em .9em;border-radius:999px;background:rgba(10,8,14,.82);text-align:center;font:600 1em Jost,system-ui,sans-serif;color:#fff;opacity:0;transition:opacity .25s;pointer-events:none}
 .msg.on{opacity:1}
 .keyboard{display:flex;flex-direction:column;box-sizing:border-box;justify-content:center}
 .krow{display:flex;justify-content:center}
-.key{border:0;padding:0;height:100%;font-weight:600;font-size:inherit;cursor:pointer;transition:transform .06s,box-shadow .06s}
+.key{padding:0;height:100%;font-weight:700;font-size:inherit;cursor:pointer;transition:transform .06s,box-shadow .06s}
 .key:active{transform:translateY(3px)}
 .control{border:0;background:transparent;cursor:pointer;border-radius:50%;padding:0}
 .dial i{position:absolute;left:50%;top:8%;width:6%;height:30%;margin-left:-3%;border-radius:3px;background:#fff8;box-shadow:0 0 6px #fff6;transform-origin:50% 140%}

@@ -15,7 +15,7 @@ Everything the platform can make, every property each part has, what the rendere
 
 | Status | Meaning | Properties |
 | --- | --- | --- |
-| yes | rendered, and the plain-English words reach it | 153 |
+| yes | rendered, and the plain-English words reach it | 154 |
 | older words | rendered, but only verbs the plain-English layer replaces reach it (create, draw, set, glide, bring in, …) | 20 |
 | partly | some values reachable, some not | 16 |
 | **no word** | rendered, but nothing in the language reaches it | 4 |
@@ -114,8 +114,9 @@ The craft operations (emboss, engrave, deboss, etch, plate, foil, inlay, spray, 
 | `keyboard` | thing |  | The drawn thing the on-screen keyboard fills. | …, with the keyboard on the deck | yes |
 | `looks` | map | `{}` | How each part looks, and how it looks in each state: tile (empty, typed, correct, present, absent), key (correct, present, absent). Face colour or material, letter colour, font, corners, glowing, raised or sunk. | Every tile is #15130f, with ink letters, glowing. A correct tile is #1f6b4f. | yes |
 | `controls` | map | `{}` | Drawn things that control the panel itself: the light (moves the light across the skin) and the power (the screen goes dark). | Control the light with the dial. Control the power with the switch. | yes |
-| `says` | map | `{}` | Words shown, and sent to the page, at a moment of the game: started, guessed, won, lost. | When the game is won, say "Lunch is on us". | yes |
-| `values` | map | `{}` | The game's values, from Let lines or a batch sheet: the word, the tries. | Let the word be "toast". Let the tries be 6. | yes |
+| `says` | map | `{}` | Words shown, and sent to the page, at a moment of the game: started, guessed, won, lost, timeout (the time runs out). | When the game is won, say "Lunch is on us". | yes |
+| `shows` | map | `{}` | Readouts the game keeps up to date, each on a drawn thing: timer (counts down from the time, or up), best, streak, played, wins, tries (left). | Show the timer on the time-box. Show the best on the best-box. | yes |
+| `values` | map | `{}` | The game's values, from Let lines or a batch sheet: the word, the tries, the time (a limit in seconds), the series (whose stats a challenge adds to). | Let the word be "toast". Let the tries be 6. Let the time be 180 s. | yes |
 | `line` | number |  | Source line of the Play sentence. |  | compiler |
 | `span` | [line, col, length] |  | Source span of the Play sentence. |  | compiler |
 
@@ -760,6 +761,8 @@ Every first word a sentence can start with.
 | `a correct key`, `correct keys`, `every correct key` | How a correct key looks, over how every key looks. |
 | `a present key`, `present keys`, `every present key` | How a present key looks, over how every key looks. |
 | `an absent key`, `absent keys`, `every absent key` | How an absent key looks, over how every key looks. |
+| `every readout`, `all readouts` | How every readout looks, before any state: a colour or material, "with <colour> letters", "in <font>", "corners 8", "glowing", "raised" or "sunk". |
+| `an urgent readout`, `urgent readouts`, `every urgent readout` | How an urgent readout looks, over how every readout looks. |
 | `control` | Gives the panel a control: a drawn thing that changes the panel itself, not the game. "Control the light with the dial." (turn it, and the light moves across the whole skin) "Control the power with the switch." (the screen goes dark and back) |
 
 ## Engines

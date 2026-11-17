@@ -4,7 +4,8 @@ A game is a godtongue piece that plays. The piece is drawn and lit as always: th
 sentence puts a game on drawn things in it, a few more sentences say how the game's parts look and what the panel's
 controls do, and the `game` engine builds one page that runs in an iframe and talks to the page around it.
 
-First game: **wordle**. First skin: the analog player (`examples/games/diner-deck.gt`).
+First game: **wordle**. Skins: the analog player (`examples/games/diner-deck.gt`, lit) and the flat full-colour player
+(`examples/games/pop-player.gt`: the panel is the whole page, the sponsor's name runs round all four edges).
 
 ```
 node bin/gt.js build examples/games/diner-deck.gt --engine game
@@ -22,10 +23,14 @@ node bin/gt.js batch examples/games/deck/template.gt examples/games/deck/challen
 | `Every key is ivory, with #2b2118 letters, raised.` · `An absent key is #5a554d.` | the keyboard, the same way |
 | `Control the light with the dial.` | the panel's own control: turning the dial moves the light across the whole skin |
 | `Control the power with the switch.` | the screen goes dark and back |
-| `When the game is won, say "Lunch is on us".` | words shown on the board and sent to the page; moments: started, guessed, won, lost |
+| `Let the time be 180 s.` | a time limit; the game is lost when it runs out (without one, a shown timer counts up) |
+| `Let the series be "mamas-daily".` | which run of challenges the stats (played, wins, streak, best) add up across |
+| `Show the timer on the time-box.` | a readout on a drawn thing: timer, best, streak, played, wins, tries (left) |
+| `Every readout is ink, in Big Shoulders Display.` · `An urgent readout is #ff3b30.` | readout letters; urgent is the last 10 seconds |
+| `When the game is won, say "Lunch is on us".` | words shown on the board and sent to the page; moments: started, guessed, won, lost, and `When the time runs out` |
 
 Looks take a colour (`#hex`, a colour name or a Let name), a material (`gold`, `chrome`, `brass`, `ivory` …), `with <colour>
-letters`, `in <font>`, `corners N`, `glowing`, `raised`, `sunk` or `flat`. States: a tile is empty, typed, correct, present or
+letters`, `in <font>`, `corners N`, `outlined in <colour>, N wide`, `glowing`, `raised`, `sunk` or `flat`. States: a tile is empty, typed, correct, present or
 absent; a key is correct, present or absent.
 
 ## A challenge is a .gt file
@@ -54,7 +59,7 @@ The game posts to its parent `{ source: 'gt-game', game, id, type, … }`:
 | `started` | a fresh game begins | |
 | `ready` | the skin is drawn and the game is playable | `rows`, `letters`, `played`, `over` |
 | `guessed` | after each guess | `row`, `of`, `result` |
-| `won` / `lost` | the end | `tries`, `of`, `grid` (the share squares) |
+| `won` / `lost` | the end | `tries`, `of`, `grid` (the share squares), `ms`, `reason` (`timeout`) |
 | `said` | a `say` sentence fired | `event`, `text` |
 | `control` | the light or power changed | `control`, `value` |
 
