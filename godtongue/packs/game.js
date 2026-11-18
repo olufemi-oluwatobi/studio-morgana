@@ -27,7 +27,27 @@ const GAMES = {
       series: { check: (v) => /^[a-z0-9-]{1,60}$/.test(v) || 'the series is a short name: letters, digits and hyphens' },
     },
   },
+  // Trivia: a run of questions, four answers each, one clock. No keyboard: the answers are buttons on the board.
+  //   Let the questions be "Which bread is ours? | Sourdough | Rye | Brioche | Bagel; …"   (the right answer first; the game shuffles)
+  //   Let the questions be kept by the server.                                            (contests: the server holds them)
+  trivia: {
+    keyboard: false,
+    parts: ['question', 'answer', 'readout'],
+    states: { question: [], answer: ['chosen', 'correct', 'wrong'], readout: ['urgent'] },
+    events: ['won', 'lost', 'guessed', 'started', 'timeout'],
+    readouts: ['timer', 'score', 'progress', 'best', 'streak', 'played', 'wins'],
+    values: {
+      questions: { need: true, raw: true, check: (v) => { const q = parseQuiz(v); return q.length >= 1 || 'write questions as "Question | right answer | wrong | wrong | wrong", separated by ;'; } },
+      time: { check: (v) => (typeof v === 'number' && v >= 10 && v <= 3600) || 'the time is in seconds, from 10 to 3600, e.g. "Let the time be 90 s."' },
+      series: { check: (v) => /^[a-z0-9-]{1,60}$/.test(v) || 'the series is a short name: letters, digits and hyphens' },
+    },
+  },
 };
+// "Q | right | wrong | wrong | wrong; Q2 | …" → [{ q, options: [right, …wrongs] }]
+export function parseQuiz(s) {
+  return String(s || '').split(';').map((b) => b.split('|').map((x) => x.trim())).filter((p) => p[0] && p.length >= 3 && p.length <= 5 && p.every(Boolean))
+    .map(([q, ...options]) => ({ q, options }));
+}
 const CONTROLS = ['light', 'power'];
 
 const isWord = (t, ...w) => t?.t === 'word' && w.includes(t.v);
@@ -61,6 +81,7 @@ export default function game(reg) {
       if (!boardName || (comma >= 0 && toks.findIndex(t => isWord(t, 'on', 'in')) > comma)) ctx.err('play it on what?', 'e.g. "Play wordle on the screen."');
       const g = { kind, board: layerOf(ctx, boardName), keyboard: null, looks: {}, controls: {}, shows: {}, says: {}, values: {}, line: ctx.line, span: ctx.span };
       if (comma >= 0) {
+        if (GAMES[kind].keyboard === false) ctx.err(`${kind} has no keyboard`, `e.g. "Play ${kind} on the screen."`);
         const rest = toks.slice(comma + 1);
         if (!isWord(rest.find(t => t.t === 'word' && !isWord(t, 'with', 'the')), 'keyboard', 'keys')) ctx.err(`I don't know "${txt(rest)}"`, 'e.g. ", with the keyboard on the deck"');
         const kb = rest.findIndex(t => isWord(t, 'on', 'in'));
@@ -155,7 +176,7 @@ export default function game(reg) {
       const what = toks.find(t => t.t === 'word' && !isWord(t, 'the', 'a', 'an'))?.v?.replace(/s$/, '');
       const names = spec?.readouts || [], hit = names.find(n => n === what || n.replace(/s$/, '') === what);
       if (!g || !hit) {
-        if (!g && toks.some(t => isWord(t, 'timer', 'best', 'streak', 'played', 'wins', 'tries'))) ctx.err('there is no game on this piece yet', 'write the "Play …" sentence first');
+        if (!g && toks.some(t => isWord(t, 'timer', 'best', 'streak', 'played', 'wins', 'tries', 'score', 'progress'))) ctx.err('there is no game on this piece yet', 'write the "Play …" sentence first');
         return show.run(ctx, toks, s);
       }
       const on = toks.findIndex(t => isWord(t, 'on', 'in'));
@@ -195,7 +216,12 @@ export default function game(reg) {
     const spec = GAMES[g.kind];
     for (const [name, v] of Object.entries(spec.values)) {
       const got = ctx.vars.get(name)?.value;
-      if (name === 'word' && got?.length && ((got[0].t === 'word' && got.some(t => t.t === 'word' && t.v === 'server')) || (got[0].t === 'str' && /^kept by the server$/i.test(got[0].v.trim())))) { g.values.server = true; continue; }   // "Let the word be kept by the server."
+      if (v.need && got?.length && ((got[0].t === 'word' && got.some(t => t.t === 'word' && t.v === 'server')) || (got[0].t === 'str' && /^kept by the server$/i.test(got[0].v.trim())))) { g.values = { server: true, ...g.values }; continue; }   // "Let the word be kept by the server."
+      if (v.raw) {                                   // a value kept as written (trivia's questions)
+        if (!got?.length) { if (v.need) ctx.err(`${g.kind} needs its ${name}`, `e.g. "Let the ${name} be \\"Which bread is ours? | Sourdough | Rye | Brioche | Bagel\\"."`); continue; }
+        const ok = v.check(got[0].v); if (ok !== true) ctx.err(`the ${name} won't do`, ok);
+        g.values[name] = parseQuiz(got[0].v); continue;
+      }
       let val = got?.length ? (got[0].t === 'num' ? got[0].v * (/^(min|minutes?)$/.test(got[1]?.v || '') ? 60 : 1) : String(got[0].v).toLowerCase()) : v.def;
       if (name === 'time' && val === 0) continue;   // "Let the time be 0 s." means no limit (a template can always say it)
       if (val == null) {
@@ -206,6 +232,6 @@ export default function game(reg) {
       g.values[name] = val;
     }
     if (g.shows.timer && !g.values.time) g.values.countUp = true;
-    if (!g.keyboard) ctx.warn('the game has no keyboard on the piece, so only a hardware keyboard can play it', 'add ", with the keyboard on the deck" to the Play sentence');
+    if (!g.keyboard && spec.keyboard !== false) ctx.warn('the game has no keyboard on the piece, so only a hardware keyboard can play it', 'add ", with the keyboard on the deck" to the Play sentence');
   });
 }

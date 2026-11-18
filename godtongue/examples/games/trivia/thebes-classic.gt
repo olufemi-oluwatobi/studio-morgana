@@ -1,0 +1,60 @@
+-- Thebes template · Classic (Trivia). The Thebes look: navy field, lavender and purple, Libre Baskerville and Inter.
+-- Slots ($…) are filled by the app. $questions is "kept by the server" for published contests.
+Let the questions be $questions.
+Let the time be $time s.
+Let the series be $series.
+Let ink be $ink.
+Let field be $field.
+Let accent be $accent.
+Let sponsor be $sponsor.
+Let card be $card.
+
+Let there be a flat canvas called $id, 1080 by 1920.
+Set the bench to $field.
+Let text be in Inter bold, size 40.
+
+-- the field
+Let there be a rectangle called field, 1080 by 1920, at 540 960.
+Make the field field.
+
+-- the sponsor
+Write "PRESENTED BY" called presented, size 22, tracking 8, at 540 120.
+Make the presented accent.
+Write $brand called brand in Libre Baskerville bold, size 76, at 540 200.
+Make the brand sponsor.
+Let there be a rectangle called rule, 860 by 3, at 540 268.
+Make the rule accent.
+
+-- the title
+Write $title called title in Libre Baskerville bold, size 64, at 540 352.
+Make the title white.
+Write $subtitle called subtitle, size 24, tracking 6, under the title, 18 apart.
+Make the subtitle accent.
+
+-- the readouts
+Let there be a rectangle called time-box, 400 by 92, corners 46, at 320 530.
+Let there be a rectangle called score-box, 400 by 92, corners 46, at 760 530.
+Make the time-box and the score-box card.
+Write "TIME" called time-label, size 18, tracking 6, above the time-box, 12 apart.
+Write "SCORE" called score-label, size 18, tracking 6, above the score-box, 12 apart.
+Make the time-label and the score-label accent.
+
+-- the board
+Let there be a rectangle called board, 920 by 1180, corners 40, at 540 1196.
+Make the board card.
+Let there be a rectangle called stage, 880 by 1140, at 540 1196.
+
+-- the game
+Play trivia on the stage.
+Every question is ink, with white letters, in Libre Baskerville, corners 24.
+Every answer is white, with ink letters, in Inter, raised, outlined in ink, 3 wide, corners 18.
+A chosen answer is accent.
+A correct answer is #14a86a, with white letters.
+A wrong answer is #e5484d, with white letters.
+Every readout is ink, in Inter.
+An urgent readout is #e5484d.
+Show the timer on the time-box.
+Show the score on the score-box.
+When the game is won, say $win.
+When the game is lost, say $lose.
+When the time runs out, say $timeout.

@@ -33,6 +33,22 @@ Looks take a colour (`#hex`, a colour name or a Let name), a material (`gold`, `
 letters`, `in <font>`, `corners N`, `outlined in <colour>, N wide`, `glowing`, `raised`, `sunk` or `flat`. States: a tile is empty, typed, correct, present or
 absent; a key is correct, present or absent.
 
+## Trivia
+
+```
+Play trivia on the stage.
+Let the questions be "What do we bake every morning? | Sourdough | Rye | Brioche | Bagel; …".   (right answer first; shuffled)
+Let the questions be kept by the server.                                                       (contests)
+Every question is ink, with white letters, in Libre Baskerville.
+Every answer is white, with ink letters, in Inter, raised.  A chosen answer is lavender.
+A correct answer is #14a86a.  A wrong answer is #e5484d.
+Show the timer on the time-box.  Show the score on the score-box.     (readouts: timer, score, progress, best, streak, played, wins)
+```
+
+No keyboard: the four answers are buttons on the board. `won`/`lost` post `tries` = how many were right, `of` = the number of
+questions. In server mode the page calls `start` (questions with shuffled options), `guess` (`{ n, pick }` → `{ right, status }`)
+and `timeout`. Example: `examples/games/trivia/thebes-classic.gt`.
+
 ## A challenge is a .gt file
 
 A template is a finished skin whose changing parts are `$variables` (`examples/games/deck/template.gt`). Each challenge is a

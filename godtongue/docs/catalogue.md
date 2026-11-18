@@ -763,6 +763,11 @@ Every first word a sentence can start with.
 | `an absent key`, `absent keys`, `every absent key` | How an absent key looks, over how every key looks. |
 | `every readout`, `all readouts` | How every readout looks, before any state: a colour or material, "with <colour> letters", "in <font>", "corners 8", "glowing", "raised" or "sunk". |
 | `an urgent readout`, `urgent readouts`, `every urgent readout` | How an urgent readout looks, over how every readout looks. |
+| `every question`, `all questions` | How every question looks, before any state: a colour or material, "with <colour> letters", "in <font>", "corners 8", "glowing", "raised" or "sunk". |
+| `every answer`, `all answers` | How every answer looks, before any state: a colour or material, "with <colour> letters", "in <font>", "corners 8", "glowing", "raised" or "sunk". |
+| `a chosen answer`, `chosen answers`, `every chosen answer` | How a chosen answer looks, over how every answer looks. |
+| `a correct answer`, `correct answers`, `every correct answer` | How a correct answer looks, over how every answer looks. |
+| `a wrong answer`, `wrong answers`, `every wrong answer` | How a wrong answer looks, over how every answer looks. |
 | `control` | Gives the panel a control: a drawn thing that changes the panel itself, not the game. "Control the light with the dial." (turn it, and the light moves across the whole skin) "Control the power with the switch." (the screen goes dark and back) |
 
 ## Engines
